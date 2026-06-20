@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/cover.png" width="840" alt="ComfyUI Skill for Claude Code, by AI VFX NEWS">
+<img src="docs/assets/cover.png" width="880" alt="ComfyUI Skill for Claude Code, by AI VFX NEWS">
 
 # comfyui-claude-kit
 
@@ -51,7 +51,7 @@ task, image, video, 3D, audio, utilities:
 
 <div align="center">
 
-<img src="docs/assets/templates_by_category.png" width="760" alt="Workflow templates by category: 136 image, 129 video, 107 use cases, 67 utility, 33 3D, 29 audio, and more">
+<img src="docs/assets/templates_by_category.png" width="880" alt="Workflow templates by category: 136 image, 129 video, 107 use cases, 67 utility, 33 3D, 29 audio, and more">
 
 </div>
 
@@ -76,12 +76,96 @@ object removal (VOID). Anything else falls back to the template library.
 
 <div align="center">
 
-<img src="docs/assets/models_by_modality.png" width="760" alt="Per-model prompt recipes by modality: 36 image, 20 video, 5 audio, 4 3D, 65 total, split local/open-weight vs API, plus 17 enhancement and utility tools">
+<img src="docs/assets/models_by_modality.png" width="880" alt="Per-model prompt recipes by modality: 36 image, 20 video, 5 audio, 4 3D, 65 total, split local/open-weight vs API, plus 17 enhancement and utility tools">
 
 </div>
 
 **Full model index** — every model in the library and exactly what the kit has for it (recipe / utility /
 template-only): **[docs/MODEL_INDEX.md](docs/MODEL_INDEX.md)**.
+
+### Coverage table — every model and whether a prompt recipe is ready
+
+`✅ recipe` = a dedicated, up-to-date prompting guide in [MODELS.md](skills/comfyui/MODELS.md). `🔧 tool` = an
+enhancement/utility note (settings, not prompts). **Updated: 2026-06-19 23:08.**
+
+**Image — text-to-image and edit (local / open-weight)**
+
+| Model | Prompt recipe | Runs |
+|---|:---:|---|
+| FLUX.1 / FLUX.2 / Kontext | ✅ | local + API |
+| Z-Image-Turbo | ✅ | local |
+| Qwen-Image / Edit | ✅ | local |
+| SDXL · SD 1.5 · SD 3.5 | ✅ | local |
+| HiDream-I1 | ✅ | local |
+| BRIA 3.x | ✅ | local |
+| OmniGen v1/v2 | ✅ | local |
+| Chroma | ✅ | local |
+| Krea 1 | ✅ | local |
+| ERNIE-Image | ✅ | local |
+| Capybara (image+video) | ✅ | local |
+| Bernini-R (relight) | ✅ | local |
+| Anima (anime) | ✅ | local |
+| NewBie (anime, XML) | ✅ | local |
+| PixelDiT | ✅ | local |
+| Ovis-Image (text) | ✅ | local |
+| Lens / Lens Turbo | ✅ | local |
+| Quiver (text→SVG) | ✅ | API |
+
+**Image — API / closed**
+
+| Model | Prompt recipe | Runs |
+|---|:---:|---|
+| Ideogram 2/3 | ✅ | API |
+| Nano Banana Pro / 2 | ✅ | API |
+| Seedream 4/5 | ✅ | API |
+| Recraft V3 | ✅ | API |
+| GPT-Image | ✅ | API |
+| Grok Image | ✅ | API |
+| Reve | ✅ | API |
+| Kandinsky 3.x | ✅ | local + API |
+| FireRed / LongCat / ChronoEdit (edit) | ✅ | local |
+
+**Video**
+
+| Model | Prompt recipe | Runs |
+|---|:---:|---|
+| Wan 2.1–2.7 (+VACE/Animate/ATI) | ✅ | local + API |
+| LTX-2.3 / LTX-2 Pro | ✅ | local |
+| Hunyuan Video | ✅ | local |
+| SVD (image-to-video) | ✅ | local |
+| HuMo (lip-sync) | ✅ | local |
+| SCAIL-2 (character) | ✅ | local |
+| HappyHorse 1.0 | ✅ | API |
+| Kling (1.6–3.0, O1/O3) | ✅ | API |
+| Veo 3/3.1 | ✅ | API |
+| Sora 2 | ✅ | API |
+| Seedance 1.0/1.5/2.0 | ✅ | API |
+| Luma Ray · Runway Gen-4/4.5 | ✅ | API |
+| MiniMax/Hailuo · PixVerse · Vidu · Pika | ✅ | API |
+
+**Audio and 3D**
+
+| Model | Prompt recipe | Runs |
+|---|:---:|---|
+| Stable Audio · ACE-Step · ChatterBox | ✅ | local |
+| ElevenLabs · Sonilo | ✅ | API |
+| Hunyuan3D | ✅ | local |
+| Tripo · Rodin · Meshy | ✅ | API |
+
+**Enhancement and utility (🔧 settings, not prompts)**
+
+| Tool | Type |
+|---|---|
+| Real-ESRGAN · SUPIR · SeedVR2 · FlashVSR · Topaz · Magnific | upscale / restore |
+| FILM · RIFE | frame interpolation |
+| SAM3 · BiRefNet | segmentation / matting |
+| Depth Anything v2/v3 · MoGe | depth / geometry |
+| DWPose · Mediapipe | pose / landmarks |
+| IP-Adapter · LivePortrait | conditioning / portrait |
+| VOID | video object removal |
+
+Niche models still without a recipe (very new, thin docs) run from their template and borrow the closest family's
+approach; see [docs/MODEL_INDEX.md](docs/MODEL_INDEX.md) for the full per-variant breakdown.
 
 ## Prerequisites
 

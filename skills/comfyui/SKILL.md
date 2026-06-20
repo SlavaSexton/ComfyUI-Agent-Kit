@@ -184,6 +184,41 @@ ComfyUI reads models from one or more model roots. On a **source install** it is
 - After download, confirm ComfyUI sees it: re-query `/object_info/<LoaderNode>`. Most model folders refresh live;
   a brand-new subfolder may need a Workflows-sidebar refresh.
 
+## Pick a model variant that fits THIS machine (hardware-aware, recommend before downloading)
+
+Before installing or downloading a model, size it against the real hardware, then RECOMMEND, do not download
+blindly. Detect three numbers and compare them to the model's footprint.
+
+**Detect (reuse the bootstrap machine block, or refresh):**
+- **VRAM per GPU** (free + total): MCP `get_system_stats` / `health_check`, or `GET /system_stats`
+  (`devices[].vram_free` / `vram_total`). With two cards, note each separately.
+- **System RAM** (free + total): same `/system_stats`. RAM matters for weight offloading and spill.
+- **Free disk on the MODEL drive**: check the drive that holds the detected model root (not the system drive).
+  `df -h "<model root>"` in Git Bash, or the platform equivalent. Downloads run to tens of GB; never start one
+  that will not fit.
+
+**Estimate a model's footprint:**
+- VRAM needed roughly equals the diffusion model's on-disk weight size, plus VAE + text encoder + activations
+  (rule of thumb: weights size + ~2-6 GB headroom; video models need much more for the latent frames).
+- Precision ladder, smaller fits more: bf16/fp16 (full) > fp8 (~half) > GGUF Q8 > Q6 > Q4 (smallest). `MODELS.md`
+  lists the recommended variant and any VRAM note per model.
+- Download size on disk roughly equals the sum of every file (model + encoder(s) + VAE). Sum them first.
+
+**Decide and recommend:**
+- Fits one card with headroom -> use it, full precision.
+- Slightly over one card -> ComfyUI weight offloading (weights in RAM, streamed to VRAM) or the fp8 variant;
+  recommend that, do not force bf16.
+- Far over one card but fits across both -> MultiGPU DisTorch layer-split (only then; it is slower).
+- Over total VRAM even split, but RAM is large -> CPU/RAM offload (slow) or a GGUF Q4/Q5; recommend the quant.
+- Not enough VRAM at any precision, or not enough free disk -> DO NOT download. State the exact shortfall (e.g.
+  "LTX-2.3 fp8 is ~28 GB on disk and wants ~24 GB VRAM, but the model drive has only 12 GB free") and the
+  cheapest fix (smaller variant, free disk, or skip).
+- Coordinate with other GPU users (Ollama): free VRAM may be held, see the VRAM section.
+
+**Always, before a download:** compare the summed download size to the model drive's free space, and the model's
+VRAM need to the card it will run on. State the verdict so the owner sees the reasoning, not just a result:
+"fits, downloading" / "too big for 24 GB, using fp8" / "only 10 GB free on E:, cannot fit ~28 GB, stopping".
+
 ## Using multiple GPUs (it is NOT like a layer-split LLM server)
 
 One generation runs on ONE card; ComfyUI does not auto-spread a single small job across cards. Wins from the

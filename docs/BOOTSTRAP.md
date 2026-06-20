@@ -9,7 +9,13 @@ every later ComfyUI task starts from accurate facts instead of the kit author's 
 1. **Confirm the API is up.** MCP `health_check`, or `comfy_client.alive()` + `GET /system_stats`. If down,
    ask the owner to start ComfyUI (Desktop: open the app; source: run its launcher).
 
-2. **Detect GPUs + VRAM.** From `health_check` / `/system_stats`: how many CUDA devices, model, VRAM each.
+2. **Detect GPUs, VRAM, and RAM.** From `health_check` / `/system_stats`: how many CUDA devices, model, VRAM
+   each (free + total), and system RAM (free + total). Record per-card VRAM, it drives model-variant choice.
+
+2b. **Detect free disk on the model drive.** Find the drive that holds the model root (step 3) and record its
+   free space (`df -h "<model root>"`). This gates whether a multi-GB model download can fit. Together with VRAM,
+   this is what the "Pick a model variant that fits THIS machine" section in SKILL.md uses to recommend or refuse
+   a download.
 
 3. **Detect the ComfyUI paths.** From the MCP environment / startup log: the core ComfyUI path, the user dir,
    the `extra_model_paths` / shared models dir, and the GUI workflows folder `<ComfyUI>/user/default/workflows/`.

@@ -101,10 +101,16 @@ that model's entry in `MODELS.md` BEFORE writing the prompt, and follow its prom
 negative-prompt rule, and its settings. Never carry one model's style to another.
 
 `MODELS.md` covers (image) FLUX.1/.2 + Kontext, Z-Image-Turbo, Qwen-Image/Edit, SDXL, SD1.5, SD3.5, HiDream,
-Ideogram, Nano Banana Pro/2, Seedream 4.x/5 Lite, Recraft, GPT-Image, Grok, Reve, Kandinsky; (video) Wan 2.1-2.7,
-LTX-2.3 / 2 Pro, Hunyuan Video, Kling, Veo, Sora, Seedance, Luma, Runway, MiniMax, PixVerse, Vidu, Pika; (audio)
-Stable Audio, ACE-Step, ElevenLabs, ChatterBox; (3D) Hunyuan3D, Tripo, Rodin, Meshy. For any model not detailed
-there, the template library + `/object_info` is the fallback, and the matching official doc link is the source.
+Ideogram, Nano Banana Pro/2, Seedream 4.x/5 Lite, Recraft, GPT-Image, Grok, Reve, Kandinsky, BRIA, OmniGen,
+Chroma, Krea, ERNIE-Image; (image edit) FLUX Kontext, Qwen-Image-Edit, FireRed, LongCat, ChronoEdit; (video)
+Wan 2.1-2.7, LTX-2.3 / 2 Pro, Hunyuan Video, SVD, Kling, Veo, Sora, Seedance, Luma, Runway, MiniMax, PixVerse,
+Vidu, Pika; (audio) Stable Audio, ACE-Step, ElevenLabs, ChatterBox; (3D) Hunyuan3D, Tripo, Rodin, Meshy.
+
+It also has an **Enhancement and utility** section (not prompt-driven, use as pipeline steps with settings not
+prompts): upscale/restore/interpolation (Real-ESRGAN, SUPIR, SeedVR2, FlashVSR, Topaz, Magnific, FILM, RIFE) and
+segmentation/depth/pose/conditioning (SAM3, BiRefNet, Depth Anything, DWPose, MoGe, IP-Adapter, LivePortrait,
+Mediapipe). For any model not detailed there, the template library + `/object_info` is the fallback, and the
+matching official doc link is the source.
 
 ## In-graph Claude nodes (Layer 3) — pick the right one
 

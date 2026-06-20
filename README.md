@@ -64,10 +64,14 @@ prompting reference distilled from **official sources** (each maker's docs and m
 the per-model templates from the `anthropic-claude` node). When you name a model in a request or a workflow,
 Claude reads that model's entry first and prompts it correctly.
 
-Covered today: FLUX.1/.2 + Kontext, Z-Image, Qwen-Image/Edit, SDXL, SD1.5/3.5, HiDream, Ideogram, Nano Banana
-Pro/2, Seedream, Recraft, GPT-Image, Grok, Reve, Kandinsky, Wan 2.1-2.7, LTX-2.3/2 Pro, Hunyuan Video, Kling,
-Veo, Sora, Seedance, Luma, Runway, MiniMax, PixVerse, Vidu, Pika, Stable Audio, ACE-Step, ElevenLabs,
-ChatterBox, Hunyuan3D, Tripo, Rodin, Meshy. Anything else falls back to the template library.
+Covered today (53 models with recipes): FLUX.1/.2 + Kontext, Z-Image, Qwen-Image/Edit, SDXL, SD1.5/3.5, HiDream,
+Ideogram, Nano Banana Pro/2, Seedream, Recraft, GPT-Image, Grok, Reve, Kandinsky, BRIA, OmniGen, Chroma, Krea,
+ERNIE-Image, FireRed/LongCat/ChronoEdit (edit), Wan 2.1-2.7, LTX-2.3/2 Pro, Hunyuan Video, SVD, Kling, Veo, Sora,
+Seedance, Luma, Runway, MiniMax, PixVerse, Vidu, Pika, Stable Audio, ACE-Step, ElevenLabs, ChatterBox, Hunyuan3D,
+Tripo, Rodin, Meshy. Plus a separate **Enhancement and utility** section (not prompt-driven, settings not prompts):
+upscalers and restorers (Real-ESRGAN, SUPIR, SeedVR2, FlashVSR, Topaz, Magnific), frame interpolation (FILM, RIFE),
+and conditioning helpers (SAM3, BiRefNet, Depth Anything, DWPose, MoGe, IP-Adapter, LivePortrait, Mediapipe).
+Anything else falls back to the template library.
 
 <div align="center">
 

@@ -20,6 +20,13 @@ FLUX prose will not help SDXL).
 | SD 1.5 | comma tags, `(token:1.2)` weights | supported, heavily used |
 | SD 3.5 | natural language (no weighting syntax) | supported element |
 | HiDream-I1 | natural language | Full=yes, Dev/Fast inert (guidance 0) |
+| BRIA 3.x | natural language (short text) | supported (CFG>1) |
+| OmniGen v1/v2 | instruction + inline image tags | v2 yes |
+| Chroma | natural language | supported |
+| Krea 1 (FLUX Krea) | natural language, no weights | no (guidance-distilled) |
+| ERNIE-Image | instruction + prompt enhancer | not documented |
+| FireRed / LongCat / ChronoEdit (edit) | instruction (quote literal text) | mostly empty/unset |
+| SVD (video) | NONE, image + motion params | no |
 | Ideogram, Recraft | natural language, quoted text | Ideogram yes / Recraft no |
 | Nano Banana Pro/2 (Gemini) | rich descriptive prose | NOT used, phrase positively |
 | Seedream 4.x | structured spec (identity-lock) | describe positively |
@@ -191,6 +198,76 @@ FLUX prose will not help SDXL).
 - **Settings (FusionBrain API):** `query` + negative field, `style`, 1024x1024 default, sizes multiples of 64.
 - **Source:** fusionbrain.ai/docs/en ; ai-forever.github.io/Kandinsky-3.
 
+## More open image models
+
+### BRIA 3.x
+- **Prompt style:** natural-language descriptive sentences.
+- **Structure:** plain descriptive sentence; for text-in-image name the literal words + style/placement ("the words 'BRIA 3.2' in bold yellow 3D letters"). FLUX-derived MMDiT + T5-XXL.
+- **Strengths:** commercial-safe (licensed-data only), short 1-6 word text rendering, photorealism, prompt adherence.
+- **Avoid:** long text passages (optimized for 1-6 words). Negatives ARE supported (`negative_prompt`, active when guidance_scale > 1).
+- **Settings:** FlowMatchEulerDiscrete; guidance_scale 5.0; ~30-50 steps; 1024x1024; true CFG (not distilled); T5 precision-sensitive (bf16 + final layer fp32), VAE fp32; gated.
+- **Source:** huggingface.co/briaai/BRIA-3.2.
+
+### OmniGen (v1 / v2) - unified gen + edit
+- **Prompt style:** instruction + inline image placeholders.
+- **Structure:** v1 refs inline `<img><|image_1|></img>` (one per image), place the image BEFORE the instruction for edits. v2 edit template "Edit the first image: add/replace ... the [object] from the second image. [target]"; name sources explicitly; longer/detailed prompts beat short, English best.
+- **Avoid:** vague cross-image references. Negatives supported in v2 ("blurry, low quality, text, watermark").
+- **Settings:** v1 guidance_scale 2-3, img_guidance_scale ~1.6, output divisible by 16, 1024x1024; v2 text_guidance_scale + image_guidance_scale ~1.2-2.0 (edit) / ~2.5-3.0 (in-context), 50 steps, refs >512x512.
+- **Source:** github.com/VectorSpaceLab/OmniGen ; github.com/VectorSpaceLab/OmniGen2.
+
+### Chroma
+- **Prompt style:** natural-language.
+- **Structure:** descriptive sentence(s): subject, style, lighting, palette.
+- **Strengths:** Apache-2.0 open-weight 8.9B from FLUX.1-schnell; broad/less-censored aesthetic range; Chroma1-HD is the higher-quality variant.
+- **Avoid:** no official prompt-recipe doc (maker says users figure settings out), treat numbers as examples. Negatives supported (card example: "low quality, ugly, unfinished, out of focus, deformed, blurry, flat colors").
+- **Settings:** card example ~40 steps, CFG 3.0; ChromaPipeline; same optimizations as Flux.
+- **Source:** huggingface.co/lodestones/Chroma1-HD.
+
+### Krea 1 (FLUX.1 Krea [dev])
+- **Prompt style:** natural-language, no weighting syntax.
+- **Structure:** subject + style + scene + lighting + colors ("A linocut illustration of a forest clearing at sunset, soft natural light, earthy tones"); short imaginative prompts work.
+- **Strengths:** photorealism without the "AI look" (no plastic texture / blurred-bg artifacts); drop-in for FLUX.1 [dev].
+- **Avoid:** filler ("beautiful", "amazing"); ignores `(best quality:1.3)` / `[[masterpiece]]` brackets/colons; guidance-distilled so no true CFG/negative (like FLUX.1 [dev]).
+- **Settings:** guidance_scale 4.5 (official example); 1024x1024; FLUX.1 [dev] pipeline.
+- **Source:** huggingface.co/black-forest-labs/FLUX.1-Krea-dev ; docs.krea.ai.
+
+### ERNIE-Image (Baidu)
+- **Prompt style:** instruction / natural-language; built-in 3B Prompt Enhancer expands terse inputs.
+- **Structure:** describe the scene + exact text strings and their layout; handles multi-object relations and knowledge-intensive descriptions; EN/CN + mixed-language text in one image.
+- **Strengths:** layout-sensitive typography, multilingual text, complex/structured compositions (posters, storyboards, multi-panel); Apache-2.0 8B single-stream DiT.
+- **Avoid:** no official CFG/negative/resolution recipe published; lean on the prompt enhancer for terse inputs.
+- **Settings:** base ~50 steps; ERNIE-Image-Turbo 8 steps; Comfy repack needs ernie-image[-turbo], ernie-image-prompt-enhancer, ministral-3-3b, flux2-vae.
+- **Source:** docs.comfy.org/tutorials/image/ernie-image/ernie-image ; github.com/baidu/ERNIE-Image. (Baidu's text-to-image DiT, NOT the ERNIE-4.5-VL understanding models.)
+
+## Image editing models (instruction-based)
+
+Edit models take an input image + a change instruction, not a from-scratch prompt. Also see FLUX.1 Kontext,
+Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are instruction-based too.
+
+### FireRed Image Edit
+- **Prompt style:** instruction, bilingual CN-EN; state the change directly.
+- **Structure:** direct edit command; text edits name the literal string + placement ("add '2nd Edition' below 'Python'"); makeup/style transfer, virtual try-on, old-photo restoration, multi-element edits; no rigid template.
+- **Strengths:** precise instruction following, identity preservation, high-fidelity text-in-image (open-source SOTA edit).
+- **Avoid:** no official CFG/negative/resolution spec; Lightning-8steps variant for speed.
+- **Settings:** sparse official numbers (~4.5s/sample, ~30GB VRAM optimized); official ComfyUI workflow + quantized weights (v1.0/v1.1).
+- **Source:** github.com/FireRedTeam/FireRed-Image-Edit.
+
+### LongCat-Image / LongCat-Image-Edit (Meituan)
+- **Prompt style:** natural-language (T2I) / instruction (edit), bilingual; 6B.
+- **Structure:** CRITICAL text rule - enclose literal target text in quotes ('...' / "..."); a character-level encoder handles quoted content, unquoted text renders poorly. Edit instructions are direct ("turn the cat into a dog").
+- **Strengths:** multilingual text in images, photorealism, efficient (6B beats larger on several benchmarks).
+- **Avoid:** forgetting quotes around target text. Negative prompt can be empty.
+- **Settings (edit):** 50 steps, guidance_scale 4.5, bf16, ~18GB VRAM with CPU offload.
+- **Source:** huggingface.co/meituan-longcat/LongCat-Image-Edit ; huggingface.co/meituan-longcat/LongCat-Image.
+
+### ChronoEdit (NVIDIA)
+- **Prompt style:** instruction; optional Prompt Enhancer rewrites it.
+- **Structure:** image + short imperative ("Add sunglasses to the cat's face"); reframes the edit as a short video between input and edited frame so changes respect physics; up to ~300 tokens.
+- **Strengths:** physically/temporally consistent edits, action-conditioned "world simulation"; can output the reasoning frames.
+- **Avoid:** gated card, sparse on CFG/negatives; use `--use-prompt-enhancer` for terse instructions.
+- **Settings:** RGB input recommended <=1024x1024; Upscaler LoRA published; ComfyUI + diffusers (nvidia/ChronoEdit-14B-Diffusers).
+- **Source:** github.com/nv-tlabs/ChronoEdit.
+
 ## Video models (open / local-runnable)
 
 ### Wan 2.1 & 2.2 (Alibaba)
@@ -240,6 +317,14 @@ FLUX prose will not help SDXL).
 - **Avoid:** leans on positive description + Prompt Rewrite rather than negatives; FP8 the diffusion model if OOM.
 - **Settings (ComfyUI native T2V):** 1280x720x129f, 24 fps; steps ~20-30; sampler euler (default); scheduler simple; CFG ~6.0; denoise 1.0; encoders clip_l + llava_llama3 (fp8_scaled); VAE hunyuan_video_vae.
 - **Source:** huggingface.co/tencent/HunyuanVideo ; docs.comfy.org/tutorials/video/hunyuan/hunyuan-video.
+
+### SVD (Stable Video Diffusion, Stability)
+- **Prompt style:** NONE (image-conditioned only); motion controlled by numeric parameters, not words.
+- **Structure:** provide a conditioning image; tune motion/fps via parameters.
+- **Strengths:** animate a strong still into smooth short motion; `motion_bucket_id` is the main dial (higher = more motion).
+- **Avoid:** no text-prompt control, no negative prompt; high `noise_aug_strength` drifts away from the input image.
+- **Settings:** motion_bucket_id 127 (0-255); fps 7 (5-30); min/max_guidance_scale 1.0/3.0 (interpolated first->last frame); noise_aug_strength 0-1; svd = 14 frames, svd-xt = 25, both 576x1024.
+- **Source:** huggingface.co/docs/diffusers/using-diffusers/svd ; stabilityai/stable-video-diffusion-img2vid-xt.
 
 ## Video models (API / closed)
 
@@ -389,11 +474,71 @@ FLUX prose will not help SDXL).
 
 ---
 
+## Enhancement and utility (NOT prompt-driven)
+
+These are not text-prompted generators. They take an existing image/video, or run inside a graph, and improve or
+analyze it. They need the right SETTINGS and inputs, not a prompt recipe. Use them as pipeline steps (e.g. a final
+upscale on a hero, frame interpolation on a clip, a depth map to drive ControlNet).
+
+### Upscale, restore, interpolation
+
+- **Real-ESRGAN / ESRGAN family** (upscale): GAN super-resolution, deterministic and fast; one pass that enlarges
+  (2x/4x) and removes compression/blur. Use for a final 2x/4x on a good image or per-frame on video (detail
+  preserved, not hallucinated). ComfyUI: `UpscaleModelLoader` -> `ImageUpscaleWithModel`; scale is baked into the
+  model file (RealESRGAN_x2/x4plus, 4x-UltraSharp = 4x); add an ImageScale downsample for non-native targets.
+  Source: github.com/xinntao/Real-ESRGAN, OpenModelDB.
+- **SUPIR** (diffusion restore/upscale): SDXL-based, regenerates plausible high-frequency detail, optional caption.
+  Use on heavily degraded/low-res photos where ESRGAN stays soft; heavier/slower, a quality pass not a bulk step.
+  Settings: scale_by, ~30-45 steps, cfg, denoise, s_churn/s_noise; v0Q (quality) vs v0F (light degradation,
+  faithful); ~10GB (512->1024) to 24GB (~3072px), FP8 + VAE tiling cuts VRAM. Source: github.com/kijai/ComfyUI-SUPIR.
+- **SeedVR2** (video/image upscale+restore): one-step diffusion with temporal consistency (frames denoised
+  together). Target the short edge (default 1080); 3B (fast) vs 7B (quality); FP16/FP8/GGUF; batch follows the
+  4n+1 rule (1,5,9,13,21...); ~8GB to 24GB+. Source: github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.
+- **FlashVSR** (video super-res): one-step streaming diffusion, ~17 FPS at 768x1408 on an A100; designed for 4x SR
+  (use 4x for best stability); V1.1 recommended. Source: huggingface.co/JunhaoZhuang/FlashVSR.
+- **Topaz** (external API): commercial upscale/denoise/sharpen + frame interpolation via Topaz's API (built-in
+  `TopazVideoEnhance` node). Models Starlight/Astra; interpolation 15-240 fps, slow-mo 1-16x; needs a license.
+  Source: docs.comfy.org/built-in-nodes/TopazVideoEnhance.
+- **Magnific** (external API): cloud creative upscaler/enhancer (Freepik) up to 16K with prompt + creativity
+  controls; no first-party ComfyUI node (HTTP/SDK or community wrapper). Scale 2x/4x/8x/16x. Source: docs.magnific.com.
+- **FILM** (frame interpolation): Google, handles large motion; accepts as few as 2 frames, arbitrary multipliers.
+  Use for slow-mo / fps boost with large motion. ComfyUI: FILM VFI node (multiplier, clear_cache_after_n_frames).
+  Source: github.com/google-research/frame-interpolation.
+- **RIFE** (frame interpolation): fast optical-flow interpolation, the default speed-first choice (e.g. 16->32/60
+  fps over many frames). ComfyUI: RIFE VFI node (ckpt rife47/rife49, multiplier, ensemble). Source: github.com/hzwer/Practical-RIFE.
+
+### Segmentation, depth, pose, conditioning
+
+- **SAM3** (segmentation): detects/segments/tracks every instance matching a text noun phrase or visual prompt,
+  across images and video. Use to isolate subjects -> mask for inpaint/background-swap/compositing, or track an
+  object through a clip. Outputs masks, boxes, scores, per-object IDs. Source: github.com/facebookresearch/sam3.
+- **BiRefNet** (matting): high-res foreground mask with hair-level edges. Use for clean cutouts/background
+  replacement when you need sharper edges than a coarse segmenter. Variants general/portrait/matting/HR (up to
+  2048x2048). Source: github.com/ZhengPeng7/BiRefNet.
+- **Depth Anything V2 / V3** (depth/geometry): per-pixel relative depth from one image (V2); V3 adds consistent
+  depth + geometry + camera pose across multi-view/video and can export point clouds. Use to make a depth map to
+  drive a depth ControlNet, parallax, or masking. Source: github.com/DepthAnything/Depth-Anything-V2 ;
+  github.com/ByteDance-Seed/Depth-Anything-3.
+- **DWPose** (pose): whole-body 2D keypoints (18 body, 21/hand, 68 face) as a skeleton; a more accurate OpenPose
+  replacement to drive a pose ControlNet. Source: github.com/IDEA-Research/DWPose.
+- **MoGe** (geometry): monocular point map + depth + normals in one pass from a single photo, for 3D-aware
+  conditioning/reconstruction beyond a flat depth map. MoGe-2 adds metric scale. Source: github.com/microsoft/MoGe.
+- **IP-Adapter** (conditioning): ~22M adapter that lets a diffusion model take an IMAGE as a prompt (decoupled
+  cross-attention). Use to transfer style/subject/face from a reference without text; stack with ControlNet.
+  Variants base / Plus / Face / FaceID; main knob is conditioning weight. Source: github.com/tencent-ailab/IP-Adapter.
+- **LivePortrait** (portrait animation): drives a still portrait with a driving video's motion/expression (stitching
+  + eye/lip retargeting). Use to animate one portrait without per-subject training. Source: github.com/KwaiVGI/LivePortrait.
+- **Mediapipe** (landmarks): fast on-device face (478) / hand (21) / pose (33) landmarks (Holistic combines all).
+  Use for lightweight keypoints for conditioning/masking/alignment. Source: ai.google.dev/edge/mediapipe.
+
 ## Sources and provenance
 
 Per-model guidance above is distilled from official sources: each maker's documentation and model cards (Black
 Forest Labs, Stability, Alibaba / Tongyi, ByteDance / BytePlus / Volcengine, Google, OpenAI, xAI, Kuaishou,
 Lightricks, Tencent, Luma, Runway, MiniMax, Recraft, Ideogram, Reve, Sber / FusionBrain, Resemble AI, Tripo,
-Hyper3D, Meshy), the official ComfyUI tutorials at docs.comfy.org, and the per-model prompt templates shipped
-with the `anthropic-claude` ComfyUI node (by alexmunteanu), which are themselves distilled from official
-prompting guides. Specs change; when a model updates, re-check its source link.
+Hyper3D, Meshy, BRIA, Baidu, Meituan, NVIDIA, VectorSpaceLab, lodestones, Krea), the official ComfyUI tutorials
+at docs.comfy.org, and the per-model prompt templates shipped with the `anthropic-claude` ComfyUI node (by
+alexmunteanu), which are themselves distilled from official prompting guides. The enhancement/utility entries are
+sourced from each project's GitHub / HuggingFace (Real-ESRGAN, SUPIR, SeedVR2, FlashVSR, Topaz, Magnific, FILM,
+RIFE, SAM3, BiRefNet, Depth Anything, DWPose, MoGe, IP-Adapter, LivePortrait, Mediapipe). Specs change; when a
+model updates, re-check its source link.

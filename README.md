@@ -24,6 +24,28 @@ This is the portable, machine-independent, **multi-agent** version of a working 
 agents gets the same stack, wired to *your* hardware. GLM (z.ai) run through Claude Code is covered by the
 `claude` adapter. See **[docs/AGENTS.md](docs/AGENTS.md)** for how each agent connects.
 
+## What it can do
+
+- **Drive ComfyUI from four agents** — Claude Code, Codex, Gemini CLI, Qwen Code — off one shared core. GLM via
+  Claude Code is covered too. ([docs/AGENTS.md](docs/AGENTS.md))
+- **~90-tool MCP driver** — the agent operates ComfyUI directly: generate, build / edit / validate graphs, queue,
+  download models, manage VRAM, read logs, diagnose.
+- **Per-model "mega-brain"** — 65 prompt recipes distilled from **official sources** (image, video, audio, 3D);
+  the agent auto-pulls the right recipe when you name a model, so it prompts each one in its own dialect.
+- **Knows where each model runs** — a [full index](docs/MODEL_INDEX.md) of all 147 library models (recipe /
+  utility / template-only), local vs API.
+- **Hardware-aware model selection** — detects your VRAM, RAM, and free disk, then recommends the variant that
+  fits (fp8 / offload / multi-GPU / quant) and refuses a download that won't fit, before wasting the bandwidth.
+- **17 enhancement and utility tools** — upscale / restore (Real-ESRGAN, SUPIR, SeedVR2), frame interpolation
+  (FILM, RIFE), segmentation / depth / pose (SAM3, BiRefNet, Depth Anything), plus restoration chains.
+- **534-template library** as the source of truth, plus **fetch any shared workflow by hash** and a **model
+  shootout** (run a prompt through many models small, pick the winner, then scale up).
+- **GUI bridge** — the agent writes graphs straight into your ComfyUI canvas for you to open and tweak.
+- **Stays current on its own** — `check_updates.py` diffs the template repo + reads the blog RSS; an optional
+  weekly task adds recipes for new models and pushes them. ([docs/UPDATING.md](docs/UPDATING.md))
+- **Portable + idempotent** — one installer, auto-detects your agents, re-runnable. MIT, no vendored third-party
+  code (everything heavy is fetched at install).
+
 ## The four-layer stack
 
 <div align="center">

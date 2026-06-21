@@ -601,6 +601,17 @@ upscale on a hero, frame interpolation on a clip, a depth map to drive ControlNe
 - **RIFE** (frame interpolation): fast optical-flow interpolation, the default speed-first choice (e.g. 16->32/60
   fps over many frames). ComfyUI: RIFE VFI node (ckpt rife47/rife49, multiplier, ensemble). Source: github.com/hzwer/Practical-RIFE.
 
+**Picking an upscaler + ordering a restore chain** (general practice, not tool-specific). Choose by content, not
+only by scale: a GAN (Real-ESRGAN) is fast and faithful for photoreal footage, but x4 can look plastic on skin and
+fine fabric, so x2 is the safer pore-preserving pass; a diffusion upscaler (FlashVSR / SeedVR2 / SUPIR) handles
+stylized, anime, line-art, and AI-generated frames better and regenerates detail instead of only sharpening. Rough
+rule: source under ~540p or big jumps -> 4x GAN; 720p+ cleanup -> 2x GAN; animated / AI-gen -> diffusion. ORDER
+matters in a restore chain: denoise FIRST (4x grain becomes 4x larger grain, and noise turns into per-frame
+flicker), then deinterlace (QTGMC / yadif) and deblock if the source is heavily compressed, THEN upscale, and
+color-grade AFTER (more headroom). Stabilize on the original, not at 4x. Do not run x2 twice to fake x4 (it stacks
+artifacts), and do not expect an upscaler to deblur, it reconstructs detail, not motion. Cheap generation path:
+make it small, then upscale the keeper (e.g. LTX-2.3 at 512 -> Real-ESRGAN x4 -> ~2048).
+
 ### Segmentation, depth, pose, conditioning
 
 - **SAM3** (segmentation): detects/segments/tracks every instance matching a text noun phrase or visual prompt,

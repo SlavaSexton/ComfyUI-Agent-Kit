@@ -347,15 +347,37 @@ command (captured in the BOOTSTRAP machine block), then start it and wait for :8
 After launching, poll `GET /system_stats` until it answers (first start can take 10-30s for model load), then
 proceed, and tell the owner you started the server.
 
+## Session protocol (ask how to start, and SAVE so the owner can find it later)
+
+Two access modes plus one persistence rule. Be explicit with the owner so nothing gets lost.
+
+**Starting (ask first when ComfyUI is down).** If :8188 is already up, just use it (the owner has ComfyUI open, or
+a server runs) and do NOT start another. If it is down, ASK once: "open ComfyUI yourself and I connect, or should I
+start the server headless (you peek at `http://127.0.0.1:8188` in a browser)?" Follow their choice; if they say
+"just auto-start it", remember that preference and skip the question next time.
+
+**Persistence (ALWAYS, the important one).** Whenever you build or run a workflow for the owner, SAVE it as a
+GUI-format `.json` in `<ComfyUI>/user/default/workflows/` with a clear, dated name (e.g.
+`2026-06-21_zimage_hero.json`). That file is permanent in the user dir, so the owner can open it from the Workflows
+sidebar LATER, even after your headless server stops or in a future Desktop session. An API generation alone leaves
+NO artifact on the canvas, so without this save your work is invisible there. (See the bidirectional-bridge section
+for the GUI-format mechanics.)
+
+**Handover.** When you finish, tell the owner three things: the saved workflow name (under Workflows), where the
+output files are, and how to view now (browser :8188, or open the saved workflow any time). If they want the full
+Desktop app, STOP your headless server first so the app can take :8188.
+
 ## Procedure (do this each time)
 
-1. `health_check` (MCP) or `comfy_client.alive()`; if down, START the server yourself with the recorded launch
-   command (see "Start ComfyUI yourself"), wait for :8188, and proceed. Ask the owner to open the app only if no
-   launch command is recorded, the launch fails, or they want the GUI. Fresh machine -> do the BOOTSTRAP first.
+1. `health_check` (MCP) or `comfy_client.alive()`. If up, use it. If down, follow the Session protocol: ask the
+   owner how to start it, or auto-start the headless server with the recorded launch command if that is their
+   standing preference; wait for :8188, then proceed. Fresh machine -> do the BOOTSTRAP first.
 2. Pick or load the right template from the templates clone (match by model/tags via `_quick_index.json`). If
    none fits, build the graph and validate node types against `/object_info`.
 3. Check VRAM via `/system_stats`; coordinate with any other GPU workload if low.
 4. Parameterize (prompt, varied seed, dims), run, fetch outputs.
 5. Verify the output visually (Read the saved image / view via MCP) before using it. Never ship an unseen
    generation.
-6. If the owner should see the graph, also write the GUI-format JSON to the workflows folder (bridge).
+6. ALWAYS save the workflow you built or ran to `<ComfyUI>/user/default/workflows/` as a GUI-format `.json` with a
+   clear dated name (Session protocol), so the owner can find and open it later. Then hand over: name, outputs,
+   how to view.

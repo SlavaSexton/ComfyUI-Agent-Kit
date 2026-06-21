@@ -253,6 +253,7 @@ comfyui-agent-kit/
 ├── docs/UPDATING.md                 stay current: check_updates.py (templates diff + blog RSS) + the loop
 ├── docs/BOOTSTRAP.md / LAYERS.md / NODES.md
 ├── ATTRIBUTION.md                   credits for fetched third-party pieces
+├── CHANGELOG.md                     curated history of notable changes (Keep a Changelog)
 └── LICENSE                          MIT (this kit's original files)
 ```
 

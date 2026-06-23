@@ -140,6 +140,12 @@ Seedream) and saves each output side by side, so you pick the best look before c
 small / low-res first, compare, then scale up the winner. This pairs with the per-model recipes below and the
 hardware-aware fit check.
 
+**Real production graphs to study:** `Comfy-Org/creative-campus` (github.com/Comfy-Org/creative-campus) collects the
+actual workflows from Comfy Education Initiative case studies, real graphs from award-winning artists (e.g. Xindi
+Zhang's *Song of Drifters*, a Student Academy Award film: SD1.5 style transfer with IP-Adapter + ControlNet, plus a
+3D + AI morphing graph). Open and study them for production technique. Link-and-study only (no license file; shared
+with the artists' permission), so reference it, do not bundle the JSONs.
+
 ## Staying current (new models and workflows)
 
 ComfyUI ships new models constantly, and they land in the template library first. To see what is new: `git pull`

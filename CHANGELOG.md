@@ -14,6 +14,11 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+### Added
+- **Reference source: Comfy-Org Creative Campus.** Pointed the SKILL.md shared-workflows section at
+  `Comfy-Org/creative-campus`, the official Comfy Education Initiative case-study workflows from award-winning
+  artists (e.g. Xindi Zhang's Student Academy Award film) to open and study. Link-and-study only (no license file).
+
 ### Fixed
 - **Utility-tool count 17 -> 18.** The Z-Image Fun-ControlNet-Tile super-res model was added to the enhancement
   section, but the totals in the README and MODEL_INDEX still read 17. Corrected to 18. (The coverage chart image

@@ -14,7 +14,10 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+- **Stale coverage-table descriptions.** The README coverage table labeled the Krea row "Krea 1" where the
+  shipped recipe is Krea 2; corrected to "Krea 2 / FLUX.1 Krea Dev". Refreshed the stale "Updated:" date in the
+  README and MODEL_INDEX to 2026-06-23.
 
 ## [1.3.0] - 2026-06-23
 
@@ -38,8 +41,7 @@ Nothing yet.
 
 ### Fixed
 - **Utility-tool count 17 -> 18.** The Z-Image Fun-ControlNet-Tile super-res model was added to the enhancement
-  section, but the totals in the README and MODEL_INDEX still read 17. Corrected to 18. (The coverage chart image
-  still renders 17; regenerate on the next chart refresh.)
+  section, but the totals in the README and MODEL_INDEX still read 17. Corrected to 18 across the README, MODEL_INDEX, and the coverage chart.
 
 ## [1.2.0] - 2026-06-22
 

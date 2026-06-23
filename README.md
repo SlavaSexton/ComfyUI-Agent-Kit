@@ -121,7 +121,7 @@ template-only): **[docs/MODEL_INDEX.md](docs/MODEL_INDEX.md)**.
 ### Coverage table: every model and whether a prompt recipe is ready
 
 `✅ recipe` = a dedicated, up-to-date prompting guide in [MODELS.md](skills/comfyui/MODELS.md). `🔧 tool` = an
-enhancement/utility note (settings, not prompts). **Updated: 2026-06-19 23:08.**
+enhancement/utility note (settings, not prompts). **Updated: 2026-06-23.**
 
 One table, columns aligned to the widest row (the video models).
 
@@ -135,7 +135,7 @@ One table, columns aligned to the widest row (the video models).
 | Image | BRIA 3.x | ✅ | local |
 | Image | OmniGen v1/v2 | ✅ | local |
 | Image | Chroma | ✅ | local |
-| Image | Krea 1 | ✅ | local |
+| Image | Krea 2 / FLUX.1 Krea Dev | ✅ | local |
 | Image | ERNIE-Image | ✅ | local |
 | Image | Capybara (image+video) | ✅ | local |
 | Image | Bernini-R (relight) | ✅ | local |

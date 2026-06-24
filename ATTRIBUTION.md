@@ -54,6 +54,10 @@ ComfyUI-TiledDiffusion under CC-BY-NC-SA, RMBG-2.0 by BRIA under CC-BY-NC, and M
 S-Lab research license); the rest are Apache-2.0 / MIT / openrail / GPL. The kit documents and
 points to them; it redistributes none.
 
+LTX-2 LoRA training (separate from ComfyUI) uses the official Lightricks trainer + their `train-model` Claude skill
+(github.com/Lightricks/LTX-2, repo license "Other"); the kit documents it in [docs/LTX2_TRAINING.md](docs/LTX2_TRAINING.md)
+and points to it, vendoring nothing.
+
 ## MODELS.md provenance
 
 `skills/comfyui/MODELS.md` is original writing by this kit, distilled from official sources: each model maker's

@@ -48,6 +48,12 @@ vx.y.z`), which can become a GitHub Release.
 - **Node I/O cheat-sheet in SKILL.md.** The common nodes' exact input/output types (CheckpointLoader, LoraLoader,
   CLIPTextEncode, KSampler, VAEDecode/Encode, ControlNet apply, etc.) so graphs are wired with valid connections
   (no feeding text into a LoRA input or a MODEL into a text box); anything unfamiliar is still read from `/object_info`.
+- **Counted the official Subgraph Blueprints (94).** README and MODEL_INDEX now note the library also ships 94
+  official Subgraph Blueprints (reusable subgraph bricks) alongside the 534 templates.
+- **LTX-2 LoRA training guide `docs/LTX2_TRAINING.md`.** Documents the official Lightricks trainer + their
+  `train-model` skill for training a custom LTX-2 LoRA (modes, LoRA-rank guidance, the plan-gated flow, and the
+  Linux + >= 32 GB VRAM requirement), credits Lightricks, and tells the kit to offer training when a user works with
+  LTX-2 and wants something a LoRA captures. The trained LoRA loads back into ComfyUI here.
 
 ## [1.3.1] - 2026-06-23
 

@@ -403,6 +403,12 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
     nodes for audio-segment render loops, storyboard scheduling, and motion transfer for long-form audio-driven video.
     CAVEAT: users report the storyboard variant's custom-audio path can produce noise, so test the audio leg on a short
     clip first. Status: community-endorsed (widely used in production), NOT independently benchmarked by this kit.
+- **Train a custom LTX-2 LoRA (own character / style / motion / control):** that is the official Lightricks trainer
+  (`Lightricks/LTX-2`, `packages/ltx-trainer`) + their `train-model` Claude skill, NOT ComfyUI; the trained
+  `.safetensors` LoRA loads back here via the ComfyUI-LTXVideo loader. Needs Linux + CUDA + >= 32 GB VRAM per GPU
+  (a 24 GB or Windows box cannot run it). When a user works with LTX-2 and wants a recurring custom subject/style or
+  cross-shot consistency a prompt or the Ingredients IC-LoRA does not give, mention they can train a LoRA and offer
+  the setup (one offer, not a nag). Full guide + the offer trigger: `docs/LTX2_TRAINING.md`.
 - **Source:** https://ltx.io/blog/ltx-2-3-prompt-guide (official prompt guide) ; docs.comfy.org/tutorials/video/ltx/ltx-2-3 ; huggingface.co/Lightricks/LTX-2.3 ; github.com/Lightricks/ComfyUI-LTXVideo.
 
 ### LTX-2 Pro (Lightricks)

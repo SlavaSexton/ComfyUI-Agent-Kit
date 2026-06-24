@@ -27,6 +27,13 @@ vx.y.z`), which can become a GitHub Release.
   SKILL.md: collapse a selection into one super-node, expose only the needed widgets, publish it as a reusable
   Subgraph Blueprint (the kit's `blueprints/` bricks), nest and unpack. Notes that Subgraphs (official 2025-08)
   supersede the legacy Group Nodes. Verified against docs.comfy.org/interface/features/subgraph.
+- **Creator-level reference: `docs/ADVANCED.md`.** A new deep reference distilled from primary sources (multi-agent
+  research, each tool verified against its real page): ComfyUI's genuine strengths; the real limits and gotchas with
+  workarounds (Dynamic VRAM regressions, VAE black/NaN + color shift, the IS_CHANGED footgun, canvas lag, custom-node
+  malware/version-hell); temporal stability / anti-flicker for sequences (native video models + VACE + context windows
+  + FreeNoise, structure-lock ControlNet, deflicker/interpolation as finishers); the honest state of PBR/material-pass
+  generation from footage (not solved temporally in 2026; the realistic per-frame + optical-flow path, with license
+  flags); and max-detail/precision + sequence-native EXR I/O. SKILL.md now points to it and carries the top gotchas.
 
 ## [1.3.1] - 2026-06-23
 

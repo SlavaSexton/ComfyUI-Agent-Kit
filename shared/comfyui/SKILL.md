@@ -237,6 +237,20 @@ In the GUI (tell the owner, or do it yourself when driving):
 - **Nest** subgraphs inside subgraphs for hierarchical pipelines; **Unpack subgraph** (right-click or the selection toolbox) reverts it to raw nodes.
 
 When BUILDING the JSON yourself (not clicking): the inner graph lives in `definitions.subgraphs[]`; the outer SubgraphNode exposes params through `properties.proxyWidgets` and boundary I/O through the subgraph's input/output nodes (see the template-reading note above). Ship one clean brick per stage instead of 20 loose nodes. Sources: docs.comfy.org/interface/features/subgraph ; blog.comfy.org/p/subgraph-official-release.
+
+## Creator-level depth: strengths, real limits, and advanced sequence work
+
+The full creator-level reference (strengths, the real gotchas with workarounds, advanced sequence techniques, and a verified tool table with licenses) is `ADVANCED.md` (next to this file in the installed skill, or `docs/ADVANCED.md` in the repo). Read it for hard tasks. The load-bearing gotchas to remember even without opening it:
+- **Black/NaN images or a color/contrast shift after decode = the VAE.** Use `--fp32-vae` (or `--bf16-vae`), decode once at the end, and a histogram/LAB match to restore the source plate. Never fp16 VAE for VFX.
+- **A custom node that never re-runs** is the `IS_CHANGED` footgun: force a rerun with `return float("NaN")`. A seed change that does nothing = stale cache; bust an input.
+- **Per-generation model reload thrash or a 4090/5090 slowdown (early 2026+)** is Dynamic VRAM: `--disable-dynamic-vram` if it hurts.
+- **Single-digit canvas fps** on a huge graph is litegraph, not the backend: collapse into subgraphs, mute groups.
+- **Custom nodes carry real malware risk and break on core/numpy bumps:** install only from verified authors, pin versions.
+
+Advanced tasks the skill can now reason about (verified tools and recipes are in ADVANCED.md):
+- **Temporal stability / anti-flicker for sequences:** native video model (Wan 2.2 + VACE / HunyuanVideo 1.5 / LTX-2) > context windows + FreeNoise > per-frame depth/pose ControlNet to lock structure > light RIFE + light deflicker. SD-era: unsampling (Flip Sigma, Euler, add-noise OFF) + flow attention. Fine texture/identity and window seams still flicker.
+- **PBR / material passes from footage:** be honest, native temporally-stable PBR from a 2D sequence is NOT solved in 2026. Per-frame decompose (Apache-2.0 Marigold-IID + StableNormal + StableDelight) + optical-flow temporal smoothing is the realistic path; rgb2x / CHORD are higher-fidelity but noncommercial; UniRelight is the only true temporal method (albedo-only, noncommercial, no node); TRELLIS.2 (MIT) gives real PBR but on a 3D mesh, not per-frame.
+- **Max detail + precision:** tiled refine (Ultimate SD Upscale / Tiled Diffusion) + ControlNet Tile for seams, Detail Daemon / PAG / FreeU for micro-detail, `dpmpp_2m` + Karras ~20-35 steps, 32-bit EXR sequence I/O (HQ-Image-Save, CoCoTools) + sRGB/Linear conversion for VFX. Per-frame detail vs cross-frame stability is a real tradeoff (SeedVR2 batch >= 5, or lock structure + vary only fine detail).
 - Keep the two formats in sync: build once, emit both. Validate node names and inputs against
   `/object_info/<NodeType>` before writing, so the graph is not red/broken when he opens it.
 

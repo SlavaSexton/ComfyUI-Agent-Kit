@@ -1,0 +1,98 @@
+# ComfyUI at creator level: strengths, real limits, and advanced techniques
+
+Distilled from primary sources (official docs and blog, the ComfyUI GitHub and its issues, model cards) on
+2026-06-24. Every tool named below was checked against its real page; licenses are flagged because several are
+non-commercial. This is the "know the engine, including where it bites" reference. Pair it with
+[`MODELS.md`](../skills/comfyui/MODELS.md) (per-model prompting) and [`SKILL.md`](../skills/comfyui/SKILL.md)
+(driving and building). Where a claim is community consensus rather than a measured fact, it says so.
+
+## What ComfyUI is genuinely best at
+
+- **The graph IS the pipeline.** Every step (load, encode, sample, decode, save) is an exposed, rewireable node, so multi-model / multi-ControlNet / iterative-refine pipelines that are awkward in A1111/Forge/Invoke are first-class here. This is why it became the de-facto studio/automation backend.
+- **Headless API + batch.** The server is headless by default; the web UI is just one client. `POST /prompt` (validate + queue), `GET /history`, `GET /view`, `GET /object_info` (every node's schema), `/ws` (live progress). Any HTTP client can drive it and scale it horizontally.
+- **One graph across modalities.** image -> upscale -> video -> audio -> 3D in a single graph, mixing a different model per stage.
+- **Reproducibility.** The full workflow with seeds is embedded in output PNG/WebP/FLAC and drag-droppable back into the canvas; only changed branches re-execute (caching). Caveat: re-encoding to WebP/JPG or resizing strips the metadata, so share the `.json`, not a screenshot.
+- **Day-0 model support + the Registry.** A new architecture usually only needs a new loader node, so support often ships the day a model drops. The Comfy Registry adds semantic versioning ("reinstall the exact node version") and security scanning.
+- **Subgraphs / blueprints** (collapse a stage into one reusable super-node), **deep control** (stacked ControlNet + IPAdapter + per-region masks + direct latent surgery), **Dynamic VRAM** (run models larger than VRAM, default since ~March 2026), and **partner/API nodes** (closed SOTA models as native nodes in the same graph).
+
+Sources: github.com/comfyanonymous/ComfyUI ; docs.comfy.org/development/comfyui-server/comms_routes ; blog.comfy.org/p/subgraph-official-release ; blog.comfy.org/p/dynamic-vram-in-comfyui-saving-local ; blog.comfy.org/p/comfyui-native-api-nodes ; blog.comfy.org/p/launching-comfyui-registry.
+
+## Real limits and gotchas (and the workaround)
+
+- **Big graphs lag the canvas, not the backend.** litegraph renders the whole canvas on Canvas2D; 80+ node packs can drop to single-digit fps while the backend is fine. Workaround: collapse stages into subgraphs, mute/collapse groups, lower link-render quality in settings. (gh issues 7322, 4017)
+- **Dynamic VRAM fixed OOMs but added regressions.** On some setups it reloads the whole model every generation (full unload then reload), is slower per-image on 4090/5090, or forces multi-GPU onto one card. Workaround: `--disable-dynamic-vram`. (Comfy-Org/ComfyUI discussion 12699 ; desktop issue 1741)
+- **`--lowvram` / `--novram` still OOM at slightly higher res** because offload granularity does not cover peak activations. Workaround: tiled VAE decode, lower res, `--cache-none`.
+- **VAE round-trip shifts color and contrast and compounds across passes;** fp16 VAE can overflow to NaN -> black images (SD1.5's fp32-trained VAE is the classic offender, but it still happens on newer fp8 models). Workaround: `--fp32-vae` (or `--bf16-vae`); encode once, stay in latent, decode once at the end; a histogram/LAB color-match node to restore the source plate. (gh issues 500, 13116, 2229)
+- **The `IS_CHANGED` footgun.** A custom node that returns `True` to signal "I changed" reads as unchanged (`True == True`) and never re-runs; force a rerun with `return float("NaN")` (NaN != NaN). Caching can also serve a stale image after a seed change (queue runs in ~0.05s, nothing visibly happens). Workaround: bust an input, or `--cache-classic`. (docs/custom-nodes/backend/server_overview ; issue 11905)
+- **Custom-node version hell and real malware.** A core or numpy 1.x->2.x bump can break half your packs; ComfyUI does not guarantee backward compat for internal symbols custom nodes import. Verified malware has shipped through the node channel (ComfyUI_LLMVISION, ultralytics, and Akira Stealer packages). Workaround: install only from verified authors, pin versions, prefer per-pack isolation. (blog/comfyui-2025-jan-security-update ; issues 11791, 9156, 11660 ; docs/development/core-concepts/dependencies)
+- **No native layers / timeline / compositing, and no real color management** (sRGB/linear handled naively, ICC effectively ignored; production color needs OCIO/ACES nodes). Output is **not deterministic** even on one machine; `--deterministic` narrows it (slower). These are design choices, not bugs.
+- **Myth check:** ComfyUI is NOT slower than A1111 (roughly equal-to-faster, ~15-25% less VRAM in community benchmarks). The real cost is the steep curve and build/iteration friction, not throughput.
+
+## Temporal stability / anti-flicker for sequences
+
+The 2026 stack moved from SD-era flow hacks to native video models. Honest hierarchy, best first:
+
+1. **Use a native video model** (it enforces frame coherence inside the model, not as a post-pass): **Wan 2.2** (+ **VACE** for control / vid2vid / inpaint), **HunyuanVideo 1.5**, **LTX-2**. Far more stable than per-frame image diffusion. Wan 2.2 leads on photoreal humans, HunyuanVideo 1.5 on natural motion/physics, LTX-2 trades some coherence for speed (rankings are practitioner consensus, not a controlled flicker benchmark).
+2. **Length** via **WanVideoWrapper** context windows (`uniform_looped` / `uniform_standard` / `static_standard`, with blend masks) + **FreeNoise** (reuse/permute window noise so frames correlate). SD1.5/SDXL equivalent: **AnimateDiff-Evolved** sliding Context Options + FreeNoise.
+3. **Lock structure** with per-frame **depth/pose ControlNet** (`comfyui_controlnet_aux`: DepthAnythingV2, DWPose). This suppresses geometry flicker; it does NOT lock texture or identity.
+4. **SD-era vid2vid** (when not using a video model): **unsampling** (Flip Sigma node + a converging sampler like Euler, NOT Euler-a; turn add-noise OFF on the resample or you reintroduce flicker; weak ControlNet) + flow attention (**Veevee**, **FLATTEN**, both stale and SD-only now).
+5. **Finishers, not fixers:** RIFE / FILM interpolation smooths judder but can hide flicker and ghost on fast motion; **SuperBeasts** Deflicker / PixelDeflicker fixes luminance shimmer only (it is temporal blur and will smear fine detail). Use lightly.
+6. **Cheap levers:** fixed seed, "prompt lock" (tiny prompt deltas only), reuse stage-1's seed in a multi-stage upscale, and **SeedVR2** video upscaler (temporally coherent, needs batch >= 5 to engage).
+
+**What still flickers (say so):** fine texture and identity (hair, fabric weave, foliage) that depth/pose do not constrain, context-window seams despite blend masks, and high-denoise restyling. The realistic recipe: native video model + VACE depth/pose + context windows + FreeNoise, then optional light RIFE + a light Deflicker pass.
+
+## PBR / material passes from a sequence (the honest state)
+
+**Native, high-quality, temporally-stable PBR from arbitrary 2D footage is NOT solved in ComfyUI in 2026.** Tell users this plainly, then give the closest real path. The reason: every quality single-image material model is one independent diffusion sample per frame, so running it on a clip flickers (swimming normals, shifting albedo, jittery roughness).
+
+- **Single-image decomposition (run per-frame, then fight flicker externally):**
+  - **Marigold + IID** (`kijai/ComfyUI-Marigold`, Apache-2.0) - the practical route: depth, normals, and Intrinsic Image Decomposition into albedo + roughness + metallic (Appearance) or albedo + shading (Lighting).
+  - **StableNormal + StableDelight** (`Stable-X`, via `kijai/ComfyUI-StableXWrapper`, Apache-2.0) - sharp/stable normals and specular removal (de-light toward true albedo).
+  - **StableMaterials** (`gvecchio/StableMaterials`, openrail, commercial-OK) - basecolor/normal/height/roughness/metallic, tileable, but it SYNTHESIZES a material rather than faithfully decomposing your exact frame.
+  - **DeepBump** (`HugoTini/DeepBump` via `comfy_mtb`, GPL-3.0) - normal + height only, filter-grade.
+  - **QFX-PBRGenerator** / **TextureAlchemy** - full-channel packs, but their "intelligence" is mostly Marigold/Lotus underneath plus procedural tooling (tiling, channel-pack, AO/curvature).
+  - **Higher fidelity but NON-COMMERCIAL:** **rgb2x / RGB-X** (`zheng95z/rgbx` + `toyxyz/ComfyUI_rgbx_Wrapper`; albedo/normal/roughness/metallic/irradiance; Adobe Research, noncommercial) and **Ubisoft CHORD** (`ubisoft/ComfyUI-Chord`; full basecolor/normal/height/roughness/metalness; Ubisoft research-only license).
+- **The only true temporal method:** **NVIDIA UniRelight** (`nv-tlabs/UniRelight`) denoises the whole clip jointly so attention enforces cross-frame consistency. But it is NVIDIA noncommercial, has NO ComfyUI node, and outputs albedo + relit video only (no metallic/roughness/height).
+- **3D route (real PBR, but UV/mesh space, not aligned per-frame passes):** **TRELLIS.2** (`microsoft/TRELLIS.2-4B`, MIT, commercial-OK) and **Hunyuan3D-2.1** emit basecolor/roughness/metallic on a generated mesh. Cleaner PBR, but it solves "make a 3D asset," not "decompose my footage."
+- **Realistic recipe for a sequence today:** decompose each frame with the Apache-2.0 stack (Marigold-IID for albedo/roughness/metallic, StableNormal for normals, StableDelight to kill specular), then add an explicit temporal pass (optical-flow warp + blend, the `pablodawson/Marigold-Video` technique) to suppress flicker. It reduces, not eliminates, flicker; metallic and height are the least reliable channels (single-photo material is physically ambiguous, so there is a real precision ceiling). For commercial cleanliness stay on Apache/openrail tools and avoid rgb2x / CHORD / UniRelight.
+
+## Max detail, precision, and sequence-native VFX I/O
+
+- **Tiled detail at high res:** **Ultimate SD Upscale** (`ssitu/ComfyUI_UltimateSDUpscale`, GPL-3.0) or **Tiled Diffusion / MultiDiffusion + Tiled VAE** (`shiimizu/ComfyUI-TiledDiffusion`; note the MultiDiffusion part is CC-BY-NC-SA). Kill seams with a **ControlNet Tile** (conditions each tile on the source colors, the single biggest seam/drift reducer), higher tile overlap + mask blur, low denoise (~0.2-0.35), or SpotDiffusion / Context-Only-Overlap. For max detail prefer **upscale-then-refine** (ESRGAN-class upscale -> tiled img2img refine at low denoise) over hi-res fix.
+- **Detail injection (training-free):** **Detail Daemon** (`Jonseed/ComfyUI-Detail-Daemon`, MIT; biases the sigma schedule to keep fine detail, adds no noise), the **PAG / SEG / NAG / FDG** family (`pamparamm/sd-perturbed-attention`, MIT), and **FreeU** (core node). All are tuning knobs that can over-sharpen or over-saturate.
+- **Precision:** fidelity is fp32 >= bf16 >= fp8. Decode the VAE in fp32 or bf16, never fp16 for VFX. fp8 speeds sampling on FP8-tensor-core GPUs but loses quality (mostly in the UNet).
+- **Color and bit depth:** SaveImage clamps to 8-bit PNG by default (banding on gradients/depth). For VFX use 32-bit EXR I/O: **`spacepxl/ComfyUI-HQ-Image-Save`** (32-bit float EXR for images AND latents, `%04d` sequences, MIT) and **`Conor-Collins/ComfyUI-CoCoTools_IO`** (Load EXR Sequence, EXR layer / Cryptomatte, OCIO colorspace sRGB / Linear / ACEScg, MIT). Convert sRGB -> Linear before saving a linear EXR or you double-apply gamma.
+- **Samplers for detail:** `dpmpp_2m` (or `_sde`) with the **Karras** scheduler spends more steps in the low-sigma region where fine detail forms; ~20-35 steps is the sweet spot, more is diminishing returns.
+- **The core tension:** per-frame max detail flickers; cross-frame stability blurs detail. Resolve it three ways: (a) a sequence-native upscaler that does both (**SeedVR2**, batch >= 5, `temporal_overlap`); (b) lock structure (low denoise + ControlNet Tile) and vary only fine detail; (c) detail-pass then a light deflicker. The deflicker window and SeedVR2 batch size are the explicit dials.
+
+## Tool reference (verified 2026-06, with license)
+
+| Tool | Repo / model | Use | License |
+|---|---|---|---|
+| WanVideoWrapper | github.com/kijai/ComfyUI-WanVideoWrapper | Wan 2.x + context windows + FreeNoise | Apache-2.0 |
+| Wan VACE | huggingface.co/Wan-AI/Wan2.1-VACE-14B | control / vid2vid / inpaint, temporally stable | per HF page |
+| AnimateDiff-Evolved | github.com/Kosinkadink/ComfyUI-AnimateDiff-Evolved | SD1.5/SDXL long stable anim | Apache-2.0 |
+| comfyui_controlnet_aux | github.com/Fannovel16/comfyui_controlnet_aux | depth/pose/tile preprocessors for per-frame control | Apache-2.0 |
+| Frame-Interpolation | github.com/Fannovel16/ComfyUI-Frame-Interpolation | RIFE / FILM interpolation | MIT |
+| SuperBeasts | github.com/SuperBeastsAI/ComfyUI-SuperBeasts | Deflicker / PixelDeflicker (luminance only) | MIT |
+| SeedVR2 | github.com/numz/ComfyUI-SeedVR2_VideoUpscaler | temporally-coherent video upscale (batch >= 5) | check repo (ByteDance model) |
+| Veevee / FLATTEN | github.com/logtd/ComfyUI-Veevee , /ComfyUI-FLATTEN | SD-era unsample + flow attention (STALE, SD only) | no LICENSE file |
+| Marigold (+IID) | github.com/kijai/ComfyUI-Marigold | depth / normals / albedo+roughness+metallic | Apache-2.0 |
+| StableX (Normal+Delight) | github.com/kijai/ComfyUI-StableXWrapper | sharp normals + de-light to albedo | Apache-2.0 |
+| StableMaterials | huggingface.co/gvecchio/StableMaterials | image/text -> tileable PBR (synthesizes) | openrail |
+| rgb2x / RGB-X | github.com/toyxyz/ComfyUI_rgbx_Wrapper | albedo/normal/roughness/metallic/irradiance | Adobe, NONCOMMERCIAL |
+| Ubisoft CHORD | github.com/ubisoft/ComfyUI-Chord | full single-image PBR set | research-only |
+| UniRelight | github.com/nv-tlabs/UniRelight | temporally-stable albedo + relit video (no node) | NVIDIA NONCOMMERCIAL |
+| TRELLIS.2 | huggingface.co/microsoft/TRELLIS.2-4B | image -> 3D with real PBR (mesh, not per-frame) | MIT |
+| Ultimate SD Upscale | github.com/ssitu/ComfyUI_UltimateSDUpscale | tiled high-res detail refine | GPL-3.0 |
+| TiledDiffusion | github.com/shiimizu/ComfyUI-TiledDiffusion | MultiDiffusion / SpotDiffusion / Tiled VAE | CC-BY-NC-SA + GPLv3 |
+| Detail Daemon | github.com/Jonseed/ComfyUI-Detail-Daemon | sigma-schedule micro-detail | MIT |
+| PAG family | github.com/pamparamm/sd-perturbed-attention | PAG/SEG/NAG/FDG guidance | MIT |
+| HQ-Image-Save | github.com/spacepxl/ComfyUI-HQ-Image-Save | 32-bit float EXR (images + latents) | MIT |
+| CoCoTools_IO | github.com/Conor-Collins/ComfyUI-CoCoTools_IO | EXR sequence/layer, OCIO color management | MIT |
+
+Flag the NONCOMMERCIAL ones (rgb2x, CHORD, UniRelight, the MultiDiffusion part of TiledDiffusion) before any commercial use; everything else above is permissive (Apache/MIT/openrail/GPL).
+
+## Sources
+
+Strengths/limits: github.com/comfyanonymous/ComfyUI (+ issues 7322, 500, 11905, 11791, 9156, 11660, 13116, 2229) ; docs.comfy.org/development/comfyui-server/comms_routes ; docs.comfy.org/custom-nodes/backend/server_overview ; blog.comfy.org (subgraph-official-release, dynamic-vram-in-comfyui-saving-local, comfyui-native-api-nodes, launching-comfyui-registry, comfyui-2025-jan-security-update). Temporal: docs.comfy.org/tutorials/video/wan/vace ; deepwiki.com/kijai/ComfyUI-WanVideoWrapper ; civitai.com/articles/5906 (unsampling). PBR: blog.comfy.org/p/ubisoft-open-sources-the-chord-model ; research.nvidia.com/labs/toronto-ai/UniRelight ; the repos in the table. Detail/precision: the repos in the table ; neurocanvas.net/blog/fp8-vs-bf16-comfyui-guide.

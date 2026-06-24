@@ -14,6 +14,8 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-06-24
+
 ### Added
 - **Flux.2 Klein identity-transfer suite (community field recipe).** Documented `capitan01R/ComfyUI-Flux2Klein-Enhancer`
   in the FLUX.2 entry: training-free multi-reference identity-preserving editing for FLUX.2 Klein 9B via the Identity
@@ -54,6 +56,12 @@ vx.y.z`), which can become a GitHub Release.
   `train-model` skill for training a custom LTX-2 LoRA (modes, LoRA-rank guidance, the plan-gated flow, and the
   Linux + >= 32 GB VRAM requirement), credits Lightricks, and tells the kit to offer training when a user works with
   LTX-2 and wants something a LoRA captures. The trained LoRA loads back into ComfyUI here.
+
+### Changed
+- **GitHub language stats now reflect the Python tooling.** Marked the per-OS install scripts
+  (`*.ps1` Windows, `*.sh` Unix) as `linguist-vendored` so the repo's language bar shows the Python
+  tooling, not whichever installer set was larger by bytes. No code change: the kit is a Markdown
+  skill with Python tooling.
 
 ## [1.3.1] - 2026-06-23
 

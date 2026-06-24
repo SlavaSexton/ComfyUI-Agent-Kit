@@ -224,6 +224,19 @@ A graph that piles nodes at 0,0 or lets them overlap is unusable in the canvas. 
 - **One Group box per stage (this is what makes it read as blocks).** After placing a stage's nodes, add a group whose `bounding` wraps them with padding: `[minX-30, minY-50, (maxX+w)-minX+60, (maxY+h)-minY+80]` (extra top room for the title bar). Title by stage ("Load models", "Conditioning", "Sample", "Decode + Save", "Upscale", "Image to Video"); color-code (loaders grey, conditioning blue, sampler green, decode/save purple, post orange). Shared loaders sit in one group top-left, feeding every stage.
 - **Reroute long or crossing wires.** When a shared output must reach a far column, insert `Reroute` nodes and run the wire along a horizontal gutter between groups instead of a diagonal across the graph. Kills the spaghetti look.
 - **Tidy pass before saving.** Same node width per column, left edges aligned, seeds + savers last, no node outside its group box, no two group boxes overlapping. With the MCP, `visualize_workflow_hierarchical` renders the layout so you SEE overlaps before handing it to the owner.
+
+## Collapse a stage into one reusable node (Subgraphs)
+
+ComfyUI **Subgraphs** (official since 2025-08; they supersede the old **Group Nodes**, kept only for back-compat) let you select a pile of nodes and fold them into a single super-node that exposes ONLY the few params you care about. This is the cleanest way to build and reuse pipeline bricks: a tested 20-node upscale or video stage becomes one node with 3 knobs, nestable into a bigger pipeline.
+
+In the GUI (tell the owner, or do it yourself when driving):
+- **Collapse:** select the nodes (plus groups and reroutes), click the subgraph icon in the toolbar. ComfyUI auto-wires the boundary from the selection's external inputs/outputs.
+- **Edit inside:** double-click the subgraph's empty area to enter; `Esc` or the top nav bar to exit (the nav bar shows the nesting level).
+- **Expose only what matters:** the **Edit Subgraph Widgets** button (parameters panel) reorders and shows/hides widgets without entering; in edit mode, right-click a boundary slot to rename/delete/disconnect, and the labeled default slot adds a new input/output. Surface seed/steps/cfg/prompt, hide the rest.
+- **Make it a reusable brick:** **Add Subgraph to Library** (the publish/book icon, ComfyUI v1.27.7+) turns it into a **Subgraph Blueprint**, searchable and draggable like any node. This is exactly what this kit's `blueprints/` bricks are.
+- **Nest** subgraphs inside subgraphs for hierarchical pipelines; **Unpack subgraph** (right-click or the selection toolbox) reverts it to raw nodes.
+
+When BUILDING the JSON yourself (not clicking): the inner graph lives in `definitions.subgraphs[]`; the outer SubgraphNode exposes params through `properties.proxyWidgets` and boundary I/O through the subgraph's input/output nodes (see the template-reading note above). Ship one clean brick per stage instead of 20 loose nodes. Sources: docs.comfy.org/interface/features/subgraph ; blog.comfy.org/p/subgraph-official-release.
 - Keep the two formats in sync: build once, emit both. Validate node names and inputs against
   `/object_info/<NodeType>` before writing, so the graph is not red/broken when he opens it.
 

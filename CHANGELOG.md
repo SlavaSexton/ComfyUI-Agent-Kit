@@ -23,6 +23,10 @@ vx.y.z`), which can become a GitHub Release.
 - **Workflow layout discipline in the skill.** Expanded SKILL.md with a "Lay the graph out cleanly" section:
   columns by stage, a per-column y-cursor for zero node overlap, one Group box per stage, Reroute for long wires,
   and a tidy pass, so assembled graphs read as a structured pipeline instead of a pile of overlapping nodes.
+- **Subgraphs guidance in the skill.** Added a "Collapse a stage into one reusable node (Subgraphs)" section to
+  SKILL.md: collapse a selection into one super-node, expose only the needed widgets, publish it as a reusable
+  Subgraph Blueprint (the kit's `blueprints/` bricks), nest and unpack. Notes that Subgraphs (official 2025-08)
+  supersede the legacy Group Nodes. Verified against docs.comfy.org/interface/features/subgraph.
 
 ## [1.3.1] - 2026-06-23
 

@@ -206,13 +206,24 @@ Two JSON formats, keep both in mind:
 - **GUI format** (what the canvas loads and "Save" produces): top-level `nodes` (each with `id`, `type`, `pos`,
   `size`, `widgets_values`, `inputs`, `outputs`), `links`, `groups`. Write THIS to the workflows folder so the
   owner can OPEN and see the graph. Auto-layout nodes in left-to-right columns (loaders -> encode -> sampler ->
-  decode -> save), spacing ~ x+320 per column, so it reads cleanly.
+  decode -> save) with a Group box per stage and a per-column y-cursor so nodes never overlap. See "Lay the graph
+  out cleanly" below for the exact discipline.
 - **API format** (what `/prompt` runs): `{ "<id>": {class_type, inputs} }`. Send THIS to run headlessly.
 
 **Flow:**
 - Claude builds -> write the GUI-format `.json` to `user/default/workflows/<name>.json` -> tell the owner to
   refresh the built-in Workflows sidebar (folder icon) and open it -> he sees exactly what Claude built.
 - Owner builds/edits -> Save (API Format) into a shared `workflows/` folder -> Claude reads and runs it.
+
+## Lay the graph out cleanly (structured blocks, no overlap)
+
+A graph that piles nodes at 0,0 or lets them overlap is unusable in the canvas. Lay it out like a real pipeline. Every node carries `pos:[x,y]` + `size:[w,h]`; each block is a `groups` entry `{title, bounding:[x,y,w,h], color}`. COMPUTE positions, never eyeball them.
+
+- **Columns = stages, strictly left to right.** One pipeline stage per column (loaders -> conditioning -> sample -> decode -> save -> post). Column x = `x0 + col * COL_W`, `COL_W = widest node width + 80` (~360 typical). Data never flows backward (no right-to-left wire).
+- **Per-column y-cursor = zero overlap.** Stack a column top-down: `y = y0`; place a node; then `y += node_h + 60`. The next slot always clears the previous node's full height, so nodes in a column cannot overlap, and `COL_W >= widest + 80` clears them horizontally. Read real `size` from the template (assume ~[320,200], taller for KSampler / CLIPTextEncode). Never give two nodes the same pos.
+- **One Group box per stage (this is what makes it read as blocks).** After placing a stage's nodes, add a group whose `bounding` wraps them with padding: `[minX-30, minY-50, (maxX+w)-minX+60, (maxY+h)-minY+80]` (extra top room for the title bar). Title by stage ("Load models", "Conditioning", "Sample", "Decode + Save", "Upscale", "Image to Video"); color-code (loaders grey, conditioning blue, sampler green, decode/save purple, post orange). Shared loaders sit in one group top-left, feeding every stage.
+- **Reroute long or crossing wires.** When a shared output must reach a far column, insert `Reroute` nodes and run the wire along a horizontal gutter between groups instead of a diagonal across the graph. Kills the spaghetti look.
+- **Tidy pass before saving.** Same node width per column, left edges aligned, seeds + savers last, no node outside its group box, no two group boxes overlapping. With the MCP, `visualize_workflow_hierarchical` renders the layout so you SEE overlaps before handing it to the owner.
 - Keep the two formats in sync: build once, emit both. Validate node names and inputs against
   `/object_info/<NodeType>` before writing, so the graph is not red/broken when he opens it.
 

@@ -20,6 +20,9 @@ vx.y.z`), which can become a GitHub Release.
   Feature Transfer Final node (attention-output patch, up to 8 reference latents + per-subject masks, HARD/MID/SOFT_LOCK
   presets), plus Color Anchor, Sectioned Encoder, and reference controllers. Credited capitan01R in README and
   ATTRIBUTION and flagged the PolyForm Noncommercial 1.0.0 license.
+- **Workflow layout discipline in the skill.** Expanded SKILL.md with a "Lay the graph out cleanly" section:
+  columns by stage, a per-column y-cursor for zero node overlap, one Group box per stage, Reroute for long wires,
+  and a tidy pass, so assembled graphs read as a structured pipeline instead of a pile of overlapping nodes.
 
 ## [1.3.1] - 2026-06-23
 

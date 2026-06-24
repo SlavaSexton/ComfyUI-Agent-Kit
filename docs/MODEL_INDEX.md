@@ -109,7 +109,7 @@ template-only · plus text encoders / inference providers that are not generativ
 | Ovis-Image | image (text rendering t2i) | local |
 | Lens / Lens Turbo | image (t2i) | local |
 | Quiver | image (text/image to SVG) | API |
-| HappyHorse 1.0 | video (t2v/i2v/r2v/edit) | API |
+| HappyHorse 1.1 | video (t2v/i2v/r2v) + synced audio | API |
 | HuMo | video (audio+image+text, lip-sync) | local |
 | SCAIL-2 | video (character animation) | local |
 | Sonilo | audio (music / video soundtrack) | API |

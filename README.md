@@ -160,7 +160,7 @@ One table, columns aligned to the widest row (the video models).
 | Video | SVD (image-to-video) | ✅ | local |
 | Video | HuMo (lip-sync) | ✅ | local |
 | Video | SCAIL-2 (character) | ✅ | local |
-| Video | HappyHorse 1.0 | ✅ | API |
+| Video | HappyHorse 1.1 (synced audio) | ✅ | API |
 | Video | Kling (1.6-3.0, O1/O3) | ✅ | API |
 | Video | Veo 3/3.1 | ✅ | API |
 | Video | Sora 2 | ✅ | API |

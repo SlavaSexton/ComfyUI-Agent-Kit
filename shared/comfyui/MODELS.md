@@ -632,15 +632,21 @@ geometry; output is real editable vector paths. Source: docs.quiver.ai ; blog.co
 
 ### Video
 
-**HappyHorse 1.0**, Alibaba, 15B cinematic video model, API (muapi.ai / Model Studio partner nodes): T2V, I2V,
-reference-to-video (1-9 reference images), video edit; 3-15s at 720p/1080p. One natural-language paragraph, official
-formula `subject + environment + camera move + motion behavior + lighting + style`; keep motion small and specific
-("subtle wind in hair", not "dancing in a chaotic crowd"), ONE camera move (slow pan / dolly-in / handheld push-in,
-not "wild spinning drone"). Worked example: "young woman in red jacket on rainy neon street, medium shot, slow
-handheld push-in, slight head turn and blinking, wet pavement reflections, cinematic lighting, consistent face,
-stable background." R2V: 1-9 reference images lock identity/outfit/style across cuts (more refs = more consistency).
-Negatives not documented (hosted API); settings are API fields (720p/1080p, 3-15s), no sampler knobs.
-Source: docs.comfy.org/tutorials/partner-nodes/happyhorse/happyhorse1-0 ; happyhorsemodel.ai.
+**HappyHorse 1.1**, Alibaba, cinematic video model with native synchronized audio, API (muapi.ai / Model Studio
+partner nodes; ComfyUI nodes `HappyHorseTextToVideoApi` / `HappyHorseImageToVideoApi` / `HappyHorseReferenceVideoApi`):
+T2V, I2V, reference-to-video (up to 9 reference images, no cross-contamination); 3-15s at 720p/1080p, aspect
+16:9 / 9:16 / 1:1 / 4:3 / 3:4 / 21:9. **Audio generates in the same render pass** (dialogue, sound effects and
+background music synced to the video, no stitching in post). Long-context prompts (2,500+ chars, 6-8 consecutive
+scenes in one prompt) and full cinematic language (shot-reverse-shot, tracking shots, transitions); natural skin
+holds up for close-up commercial work. Prompt formula still `subject + environment + camera move + motion behavior +
+lighting + style`; keep each motion small and specific ("subtle wind in hair", not "dancing in a chaotic crowd"),
+ONE camera move per beat (slow pan / dolly-in / handheld push-in). Worked example: "young woman in red jacket on
+rainy neon street, medium shot, slow handheld push-in, slight head turn and blinking, wet pavement reflections,
+cinematic lighting, consistent face, stable background." R2V: feed identity/outfit/style refs into the
+`model.reference_images.image1..9` slots to lock them across cuts (more refs = more consistency). Negatives not
+documented (hosted API); settings are API fields (resolution, duration, aspect, audio), no sampler knobs. Official
+templates: `api_happyhorse1_1_t2v.json` / `_i2v.json` / `_r2v.json` (Comfy-Org/workflow_templates).
+Source: blog.comfy.org/p/happyhorse-11-is-now-available-in ; docs.comfy.org/tutorials/partner-nodes/happyhorse.
 
 **HuMo**, ByteDance + Tsinghua, human-centric video (HuMo-1.7B in ComfyUI): lip-synced video from text + image +
 audio. Text describes appearance/action/scene, image conditions identity, audio drives lip-sync; modes Text+Image /

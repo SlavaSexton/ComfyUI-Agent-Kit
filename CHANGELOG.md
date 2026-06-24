@@ -14,6 +14,13 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+### Changed
+- **HappyHorse recipe upgraded 1.0 -> 1.1 (synchronized audio).** Native in-pass audio (dialogue / SFX / music),
+  up to 9 reference images with no cross-contamination, long-context prompts (2,500+ chars, 6-8 scenes), full
+  cinematic language, and the shipped ComfyUI nodes (`HappyHorseTextToVideoApi` / `ImageToVideoApi` /
+  `ReferenceVideoApi`) plus the official `api_happyhorse1_1_{t2v,i2v,r2v}` templates. Verified against the
+  templates and blog.comfy.org/p/happyhorse-11-is-now-available-in.
+
 ## [1.4.0] - 2026-06-24
 
 ### Added

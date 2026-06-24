@@ -40,7 +40,7 @@ agents gets the same stack, wired to *your* hardware. GLM (z.ai) run through Cla
   fits (fp8 / offload / multi-GPU / quant) and refuses a download that won't fit, before wasting the bandwidth.
 - **18 enhancement and utility tools:** upscale / restore (Real-ESRGAN, SUPIR, SeedVR2), frame interpolation
   (FILM, RIFE), segmentation / depth / pose (SAM3, BiRefNet, Depth Anything), plus restoration chains.
-- **534-template library** as the source of truth, plus **fetch any shared workflow by hash** and a **model
+- **534-template library** (and **94 official Subgraph Blueprints**, reusable subgraph bricks) as the source of truth, plus **fetch any shared workflow by hash** and a **model
   shootout** (run a prompt through many models small, pick the winner, then scale up).
 - **Assembles new workflows from parts:** decomposes a task into stages, mixes templates and blueprint subgraphs,
   and wires the nodes correctly (output-to-input by type, with converters where needed), validated against
@@ -81,7 +81,7 @@ See [docs/LAYERS.md](docs/LAYERS.md) for each layer, and [docs/AGENTS.md](docs/A
 ## The template library is the source of truth
 
 The kit clones the official [Comfy-Org/workflow_templates](https://github.com/Comfy-Org/workflow_templates) and
-builds a compact lookup index so the agent can match any request to the right template. 534 templates span every
+builds a compact lookup index so the agent can match any request to the right template. 534 templates (plus **94 official Subgraph Blueprints**, reusable subgraph bricks) span every
 task, image, video, 3D, audio, utilities:
 
 <div align="center">

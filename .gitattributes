@@ -3,3 +3,11 @@
 *.sh  text eol=lf
 *.py  text eol=lf
 *.ps1 text eol=crlf
+
+# --- GitHub language bar (Linguist) ---
+# The only .ps1 / .sh files in this repo are the per-OS install scripts (Windows / Unix). They are
+# setup boilerplate, not the substance of the kit (a Markdown skill + Python tooling). Keep them out
+# of the language statistics so the bar reflects the Python tooling, not whichever installer set is
+# larger by bytes. (Markdown and images are already excluded by Linguist as prose / data.)
+*.ps1 linguist-vendored
+*.sh  linguist-vendored

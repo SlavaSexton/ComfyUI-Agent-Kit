@@ -34,6 +34,12 @@ vx.y.z`), which can become a GitHub Release.
   + FreeNoise, structure-lock ControlNet, deflicker/interpolation as finishers); the honest state of PBR/material-pass
   generation from footage (not solved temporally in 2026; the realistic per-frame + optical-flow path, with license
   flags); and max-detail/precision + sequence-native EXR I/O. SKILL.md now points to it and carries the top gotchas.
+- **High-detail matting recipe in `docs/ADVANCED.md`.** Multi-stage hair/fur/semi-transparent/motion-blur matting:
+  coarse select (SAM3/BiRefNet) -> trimap -> alpha matte (ViTMatte / SDMatte / Matte-Anything) -> edge refine
+  (LayerStyle), and video temporal matting (MatAnyone2 + a SAM2/SAM3/SeC keyframe, or RVM for clean humans). Notes
+  that the official template library ships image BiRefNet bg-removal + SAM3 segmentation but NO free local temporal
+  video matte (the video-matte templates are paid Bria API), and flags licenses (RMBG-2.0 CC-BY-NC, MatAnyone NTU
+  research-only, RVM GPL). Each model verified against its real page.
 
 ## [1.3.1] - 2026-06-23
 

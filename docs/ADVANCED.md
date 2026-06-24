@@ -65,6 +65,44 @@ The 2026 stack moved from SD-era flow hacks to native video models. Honest hiera
 - **Samplers for detail:** `dpmpp_2m` (or `_sde`) with the **Karras** scheduler spends more steps in the low-sigma region where fine detail forms; ~20-35 steps is the sweet spot, more is diminishing returns.
 - **The core tension:** per-frame max detail flickers; cross-frame stability blurs detail. Resolve it three ways: (a) a sequence-native upscaler that does both (**SeedVR2**, batch >= 5, `temporal_overlap`); (b) lock structure (low denoise + ControlNet Tile) and vary only fine detail; (c) detail-pass then a light deflicker. The deflicker window and SeedVR2 batch size are the explicit dials.
 
+## High-detail matting / alpha extraction (hair, fur, semi-transparent, motion blur)
+
+Pulling a clean alpha with hair/fur edges and fractional (semi-transparent) pixels is a multi-stage job, not one node. Trimap-free segmenters give near-binary silhouettes; true soft alpha needs a trimap/prompt model or a video-memory model. Per-frame matting of a sequence flickers unless the model is temporal.
+
+**Still image, VFX-grade edges (the pipeline):** coarse select (SAM3, BiRefNet, or GroundingDINO) -> build a trimap (erode/dilate the coarse mask, or auto-trimap) -> alpha matte (ViTMatte for trimap-driven; SDMatte or Matte-Anything for prompt-driven, both stronger on transparency) -> edge refine (LayerStyle `MaskEdgeUltraDetailV2`, a local ViTMatte pass that captures hair and semi-transparent edges).
+- One-node commercial-safe default: **BiRefNet_HR-matting** (2048, transparency-trained, MIT) or **InSPyReNet** (transparent-background, MIT).
+- Best modern soft alpha on transparent objects: **SDMatte** (vivo, ICCV 2025, diffusion prior, MIT) or **Matte-Anything** (SAM -> auto-trimap -> ViTMatte, MIT).
+- Hub pack bundling RMBG-2.0 / INSPYRENET / BEN2 / BiRefNet / SDMatte / SAM2 / SAM3: **ComfyUI-RMBG** (1038lab, GPL-3.0).
+
+**Video / temporal (stable alpha across frames):** the per-frame segmenters above shimmer on a sequence (no frame-to-frame coupling). Use a temporal model:
+- **MatAnyone** (CVPR 2025) and **MatAnyone2** (CVPR 2026 Highlight) - consistent memory propagation, true soft alpha that targets hair, semi-transparency, and motion blur. It is a PROPAGATOR, not a detector: it needs a first-frame (keyframe) mask from SAM2 / SAM3 / SeC. Memory flags `max_mem_frames` / `use_long_term` / `max_internal_size` trade quality for VRAM on long clips. Wrappers: FuouM/ComfyUI-MatAnyone (MIT), spiritform/comfy-matanyone2. **License: NTU S-Lab 1.0 (research-only).**
+- **Robust Video Matting (RVM)** - older, human-only, detector-free, very fast (4K@76fps); the zero-setup fallback for clean human shots. GPL-3.0; the ComfyUI-Video-Matting wrapper is stale (2024).
+- **Turnkey local pipeline:** `Code2Collapse/ComfyUI-CustomNodePacks` (Apache-2.0) ships a single "SeC + MatAnyone2" node (coarse concept-segment -> temporal matte) and a "SAM + ViTMatte" image node.
+- **Recipe:** SAM2/SAM3/SeC keyframe mask -> MatAnyone2 temporal alpha -> optional edge refine -> composite.
+
+**Ready workflows (checked the official library 2026-06):** Comfy-Org `workflow_templates` ships `remove_background_birefnet` (image, local BiRefNet matte) and `image/video_segmentation_sam3` (coarse, binary). There is **NO free local temporal video-matte template** - the only shipped video-matte templates are Bria API nodes (paid cloud: `api_bria_remove_video_background`). Build the local temporal pipeline yourself or use the Code2Collapse pack.
+
+**Honest limits:** true transparency (glass, smoke, veils) and fast motion-blur edges are where every one of these is weakest. MatAnyone CLAIMS them but it is research-grade and untested on arbitrary plates; thin flyaway wisps are the hardest case; per-frame models shimmer; trimap-free models bias interior alpha to opaque; 4K is checkpoint/tile dependent, not free; a bad coarse mask propagates as a bad matte. None replace hand roto on a hero transparency shot.
+
+**License map:** commercial-safe MIT - BiRefNet, ViTMatte, Matte-Anything, SDMatte, InSPyReNet, LayerStyle, SeC, the Code2Collapse pack. Flag: RMBG-2.0 (CC BY-NC, noncommercial), MatAnyone / MatAnyone2 (NTU S-Lab research-only), RVM and ComfyUI-RMBG (GPL-3.0 copyleft).
+
+| Matting tool | Repo / model | Use | License |
+|---|---|---|---|
+| BiRefNet (+ HR-matting) | github.com/ZhengPeng7/BiRefNet | trimap-free soft-alpha matte, hair edges, 2048 | MIT |
+| ViTMatte | github.com/hustvl/ViTMatte | trimap-driven true fractional alpha (edge-refine standard) | MIT |
+| Matte-Anything | github.com/hustvl/Matte-Anything | SAM -> auto-trimap -> ViTMatte, transparent objects | MIT |
+| SDMatte | github.com/vivoCameraResearch/SDMatte | diffusion-prior prompt matting, fine edges | MIT |
+| InSPyReNet | github.com/john-mnz/ComfyUI-Inspyrenet-Rembg | trimap-free RGBA, strong default | MIT |
+| ComfyUI-RMBG (hub) | github.com/1038lab/ComfyUI-RMBG | bundles RMBG2/BEN2/BiRefNet/SDMatte/SAM2-3 | GPL-3.0 |
+| LayerStyle (edge refine) | github.com/chflame163/ComfyUI_LayerStyle | MaskEdgeUltraDetailV2 ViTMatte refine | MIT |
+| RMBG-2.0 | huggingface.co/briaai/RMBG-2.0 | soft-alpha segmenter | CC BY-NC (NONCOMMERCIAL) |
+| MatAnyone / MatAnyone2 | github.com/pq-yang/MatAnyone , /MatAnyone2 | temporal video matte (hair / transparency / blur) | NTU S-Lab 1.0 (research) |
+| RVM | github.com/PeterL1n/RobustVideoMatting | fast detector-free human video matte | GPL-3.0 |
+| SAM3 / SAM2 / SeC | github.com/facebookresearch/sam3 , /sam2 , github.com/OpenIXCLab/SeC | coarse (binary) select / video tracking, feeds the matter | SAM: Meta ; SeC: Apache-2.0 |
+| Code2Collapse pack | github.com/Code2Collapse/ComfyUI-CustomNodePacks | turnkey SeC+MatAnyone2 + SAM+ViTMatte pipelines | Apache-2.0 |
+
+Sources: github.com/ZhengPeng7/BiRefNet ; huggingface.co/docs/transformers/model_doc/vitmatte ; github.com/vivoCameraResearch/SDMatte ; github.com/pq-yang/MatAnyone2 ; github.com/PeterL1n/RobustVideoMatting ; github.com/Code2Collapse/ComfyUI-CustomNodePacks ; github.com/Comfy-Org/workflow_templates.
+
 ## Tool reference (verified 2026-06, with license)
 
 | Tool | Repo / model | Use | License |

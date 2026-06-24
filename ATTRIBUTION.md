@@ -50,7 +50,8 @@ license from the author.
 The advanced-technique tools documented in [docs/ADVANCED.md](docs/ADVANCED.md) (temporal stability, PBR / material
 passes, max-detail and EXR I/O) are each credited inline there with author, repo, and license. Several are
 NONCOMMERCIAL (rgb2x / RGB-X by Adobe Research, Ubisoft CHORD, NVIDIA UniRelight, and the MultiDiffusion part of
-ComfyUI-TiledDiffusion under CC-BY-NC-SA); the rest are Apache-2.0 / MIT / openrail / GPL. The kit documents and
+ComfyUI-TiledDiffusion under CC-BY-NC-SA, RMBG-2.0 by BRIA under CC-BY-NC, and MatAnyone / MatAnyone2 under the NTU
+S-Lab research license); the rest are Apache-2.0 / MIT / openrail / GPL. The kit documents and
 points to them; it redistributes none.
 
 ## MODELS.md provenance

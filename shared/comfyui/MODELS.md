@@ -712,6 +712,11 @@ make it small, then upscale the keeper (e.g. LTX-2.3 at 512 -> Real-ESRGAN x4 ->
 - **BiRefNet** (matting): high-res foreground mask with hair-level edges. Use for clean cutouts/background
   replacement when you need sharper edges than a coarse segmenter. Variants general/portrait/matting/HR (up to
   2048x2048). Source: github.com/ZhengPeng7/BiRefNet.
+- **High-detail matting (hair / fur / semi-transparent / motion blur)** is a multi-stage VFX task, not one node:
+  coarse select (SAM3 / BiRefNet) -> trimap -> alpha matte (ViTMatte / SDMatte / Matte-Anything) -> edge refine
+  (LayerStyle `MaskEdgeUltraDetailV2`); for video use a temporal model (MatAnyone2, needs a SAM2/SAM3/SeC keyframe
+  mask; or RVM for clean humans). Full recipe, tool table, ready-template pointer, and license flags in
+  [`ADVANCED.md`](../../docs/ADVANCED.md).
 - **Depth Anything V2 / V3** (depth/geometry): per-pixel relative depth from one image (V2); V3 adds consistent
   depth + geometry + camera pose across multi-view/video and can export point clouds. Use to make a depth map to
   drive a depth ControlNet, parallax, or masking. Source: github.com/DepthAnything/Depth-Anything-V2 ;

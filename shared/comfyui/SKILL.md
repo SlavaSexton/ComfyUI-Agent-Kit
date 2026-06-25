@@ -10,6 +10,19 @@ metadata:
 Use this whenever the task involves generating or rendering images, video, or audio with ComfyUI, or
 building/running a ComfyUI workflow. Read it first, then act.
 
+## Files in this kit (pull the right one on demand)
+
+Only this SKILL.md auto-loads; everything else is read when relevant, so route to it instead of leaving it unread:
+
+- **`MODELS.md`** (next to this file) - a named model's prompt recipe + settings; read its entry BEFORE writing the prompt.
+- **`docs/MODEL_INDEX.md`** - the full classified list of all 147 models (recipe / utility / template-only); check whether a named model has a recipe, is a utility, or is template-only.
+- **`docs/ADVANCED.md`** - hard tasks: real strengths, gotchas + workarounds, temporal stability, high-detail matting, crop-and-stitch inpaint, PBR, and the verified tool table with licenses.
+- **`docs/KNOWN_ISSUES.md`** - read BEFORE building, so you do not wire around a currently-broken path.
+- **`docs/KIJAI.md`** - the kijai ecosystem (his ComfyUI wrappers and nodes: Wan / Hunyuan / CogVideoX / Florence2 / KJNodes / SUPIR / FramePack / SAM2 / FluxTrainer / IC-Light / DepthAnythingV2 and ~50 more) - what each does + node I/O, what is active vs legacy by date, and the supersede map (old -> better). Read it for ANY kijai tool, and to pick the current option over a sunset wrapper.
+- **`docs/LTX2_TRAINING.md`** - when the user works with LTX-2 and wants behavior a LoRA captures, offer to train one (official Lightricks trainer).
+- **`docs/EXAMPLE_WORKFLOWS.md`** - worked end-to-end examples + the multi-model image-edit shootout.
+- **`docs/NODES.md`** the in-graph Claude nodes (billing / purpose); **`docs/LAYERS.md`** the four install layers; **`docs/BOOTSTRAP.md`** first-run machine setup; **`docs/AGENTS.md`** per-agent matrix (Claude / Codex / Gemini / Qwen); **`docs/UPDATING.md`** the weekly model + bug update loop.
+
 ## Your machine (FILL THIS IN on first run: see docs/BOOTSTRAP.md)
 
 The facts below are placeholders. On the first ComfyUI task on a new machine, run the bootstrap once:

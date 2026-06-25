@@ -15,6 +15,14 @@ vx.y.z`), which can become a GitHub Release.
 ## [Unreleased]
 
 ### Added
+- **kijai ecosystem mega-brain (`docs/KIJAI.md`).** Deep-researched all 62 of kijai's ComfyUI repos (read live from
+  github.com/kijai on 2026-06-24, dated) into a structured reference: a "pick a tool by task" table, a supersede map
+  (old to better, e.g. HunyuanVideoWrapper to native HunyuanVideo, SUPIR to core SUPIR, CogVideoXWrapper to
+  WanVideoWrapper), per-tool node I/O + usage + compat for the 28 active tools, legacy one-liners, and a "what to
+  disable now" list. Built by a 62-agent deep-research workflow; every node list read from the real repo code.
+- **SKILL.md routing map ("Files in this kit").** SKILL.md now lists every supporting doc with a "when to read it"
+  trigger, so MODEL_INDEX / ADVANCED / KNOWN_ISSUES / KIJAI / LTX2_TRAINING / EXAMPLE_WORKFLOWS are pulled on demand
+  instead of sitting unread (four were previously orphaned with no pointer in SKILL.md).
 - **Crop-and-stitch inpainting technique + HallettVisual Smart Image Crop and Stitch.** New ADVANCED.md section on
   detailed inpainting of a high-res image: crop the masked region, size it to the model's native resolution, generate,
   stitch back. Documents the established `comfyui-inpaint-cropandstitch` and the auto-sizing alternative

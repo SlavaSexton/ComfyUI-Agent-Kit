@@ -185,18 +185,18 @@ FLUX prose will not help SDXL).
 - **Structure:** "A `<style>` of `<main content>`. `<detailed description>`. `<background>`. `<style description>`." general -> specific; exact text in quotes.
 - **Strengths:** long multi-word text with exact positioning/sizing; `style` param (`realistic_image`, `digital_illustration`, `vector_illustration`, `icon`) + 100+ presets + custom style refs; true scalable vector/SVG.
 - **Avoid:** negative phrasing confuses it (just omit unwanted elements, no negative field); ambiguous nouns; vague plurals.
-- **Source:** recraft.ai/blog/how-to-craft-prompts ; recraft.ai/api.
+- **Source:** recraft.ai/docs (prompting + styles) ; recraft.ai/api.
 
 ### GPT-Image (gpt-image-2, OpenAI)
 - **Prompt style:** structured natural-language ("structure beats length"), a labeled five-slot brief.
 - **Structure:** Scene -> Subject -> Important Details (lighting, camera, materials, exact text in quotes) -> Use Case -> Constraints (don'ts/preservation); include literal "photorealistic"; spell unusual names letter-by-letter + "render text verbatim".
 - **Strengths:** accurate dense/multi-font text, identity consistency, any size, up to 10 refs; `low` quality is production-grade.
 - **Avoid:** vague praise, generic style tags, one giant rewrite, negative subject phrasing. No negative field, state avoidances in Constraints.
-- **Settings (API):** `quality` (low/medium/high/auto), edges multiple of 16, max edge <3840px, <=3:1, reliable up to 2560x1440; `background`, `output_format`.
+- **Settings (API):** `quality` (low/medium/high/auto), edges multiple of 16, max edge 3840px, <=3:1, reliable up to 2560x1440; `background`, `output_format`.
 - **Source:** platform.openai.com/docs/guides/image-generation.
 
 ### Grok Image (Grok Imagine Image, xAI)
-- **Prompt style:** natural-language scene description, five-part formula.
+- **Prompt style:** natural-language scene description, six-part formula.
 - **Structure:** Subject -> Style -> Mood -> Lighting -> Camera/Framing -> Finishing; subject in the first words; 60-80 words (cut past 120); one style; in-image text ALL CAPS + quotes, 1-3 words.
 - **Strengths:** behavior-based light, concrete camera/lens, named aesthetics; `-quality` tier adds i2i (1-3 refs) and better non-English text.
 - **Avoid:** negatives IGNORED (rephrase positive); keyword stacking; mixed styles; buried subject.
@@ -224,13 +224,14 @@ FLUX prose will not help SDXL).
 - **Strengths:** commercial-safe (licensed-data only), short 1-6 word text rendering, photorealism, prompt adherence.
 - **Avoid:** long text passages (optimized for 1-6 words). Negatives ARE supported (`negative_prompt`, active when guidance_scale > 1).
 - **Settings:** FlowMatchEulerDiscrete; guidance_scale 5.0; ~30-50 steps; 1024x1024; true CFG (not distilled); T5 precision-sensitive (bf16 + final layer fp32), VAE fp32; gated.
-- **Source:** huggingface.co/briaai/BRIA-3.2 (GATED - fill the form + `hf auth login` to download; commercial Bria license, free trial at bria.ai) ; github.com/Bria-AI/BRIA-3.2 (pipeline source + ComfyUI nodes + API) ; huggingface.co/docs/diffusers/api/pipelines/bria_3_2 (`BriaPipeline`, public, no gate - recipe verified here).
+- **Source:** huggingface.co/briaai/BRIA-3.2 (GATED - fill the form + `hf auth login` to download; commercial Bria license, free trial at bria.ai) ; github.com/Bria-AI/BRIA-3.2 (pipeline source + API; no ComfyUI nodes in the repo) ; huggingface.co/docs/diffusers/api/pipelines/bria_3_2 (`BriaPipeline`, public, no gate - recipe verified here). **ComfyUI:** no native node ships; build via the diffusers BriaPipeline or an API node.
 
 ### OmniGen (v1 / v2) - unified gen + edit
 - **Prompt style:** instruction + inline image placeholders.
 - **Structure:** v1 refs inline `<img><|image_1|></img>` (one per image), place the image BEFORE the instruction for edits. v2 edit template "Edit the first image: add/replace ... the [object] from the second image. [target]"; name sources explicitly; longer/detailed prompts beat short, English best.
 - **Avoid:** vague cross-image references. Negatives supported in v2 ("blurry, low quality, text, watermark").
 - **Settings:** v1 guidance_scale 2-3, img_guidance_scale ~1.6, output divisible by 16, 1024x1024; v2 text_guidance_scale + image_guidance_scale ~1.2-2.0 (edit) / ~2.5-3.0 (in-context), 50 steps, refs >512x512.
+- **ComfyUI build (v2):** official templates `image_omnigen2_t2i.json` (t2i) and `image_omnigen2_image_edit.json` (editing) in the Comfy-Org template library. v1 has no native ComfyUI node (use diffusers).
 - **Source:** github.com/VectorSpaceLab/OmniGen ; github.com/VectorSpaceLab/OmniGen2.
 
 ### Chroma
@@ -244,7 +245,7 @@ FLUX prose will not help SDXL).
 
 ### Krea 1 (FLUX.1 Krea [dev])
 - **Prompt style:** natural-language, no weighting syntax.
-- **Structure:** subject + style + scene + lighting + colors; short imaginative prompts work. Official card gallery prompts: "Astronaut in a jungle, cold color palette, muted colors, detailed, 8k" and "A frog holding a sign that says hello world".
+- **Structure:** subject + style + scene + lighting + colors; short imaginative prompts work.
 - **Strengths:** photorealism without the "AI look" (no plastic texture / blurred-bg artifacts); drop-in for FLUX.1 [dev].
 - **Avoid:** filler ("beautiful", "amazing"); ignores `(best quality:1.3)` / `[[masterpiece]]` brackets/colons; guidance-distilled so no true CFG/negative (like FLUX.1 [dev]).
 - **Settings:** guidance_scale 4.5 (official example); 1024x1024; FLUX.1 [dev] pipeline.
@@ -276,9 +277,9 @@ FLUX prose will not help SDXL).
   `diffusion_models/krea2_turbo_fp8_scaled` (plus BF16 / NVFP4 variants), `text_encoders/qwen3vl_4b_fp8_scaled`,
   `vae/qwen_image_vae`. NINE official style LoRAs (`Comfy-Org/Krea-2/loras`), each with its trigger word at strength
   1.0 (put the trigger phrase in the prompt): `krea2_darkbrush` "monochrome ink wash style", `krea2_dotmatrix`
-  "monochrome stippling style", `krea2_kidsdrawing` "naive expressive sketch style", `krea2_neondrip` "textured abstract
-  style", `krea2_rainywindow` "rainy window style", `krea2_retroanime` "purple retro anime style", `krea2_softwatercolor`
-  "art deco watercolor style", `krea2_sunsetblur` "ethereal motion blur style", `krea2_vintagetarot` "vintage tarot style".
+  "Monochrome stippling style", `krea2_kidsdrawing` "naive expressive sketch style", `krea2_neondrip` "Textured abstract
+  style", `krea2_rainywindow` "rainy window style", `krea2_retroanime` "Purple retro anime style", `krea2_softwatercolor`
+  "Art Deco watercolor style", `krea2_sunsetblur` "ethereal motion blur style", `krea2_vintagetarot` "vintage tarot style".
 - **Community style LoRAs (fal, ~1503):** beyond the 9 official LoRAs, `ilkerzgi/fal-Krea-2-Style-LoRAs` indexes ~1503
   community style LoRAs for Krea 2 Turbo (Krea-2 Community License), each its own repo (e.g. `ilkerzgi/krea-2-airy-porcelain-blue-lora`).
   Put the style trigger at the END of the prompt, LoRA scale 1.0-1.25; run on fal `fal-ai/krea-2/turbo/lora` or download the individual LoRA.
@@ -334,6 +335,7 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
 - **Avoid:** forgetting quotes around target text. Negative prompt can be empty.
 - **Settings (T2I):** guidance_scale 4.0, 50 steps, 768x1344 canonical resolution, `enable_cfg_renorm=True`, `enable_prompt_rewrite=True` (LLM prompt-refine flag, improves quality), bf16, ~17GB VRAM with CPU offload.
 - **Settings (edit):** guidance_scale 4.5, 50 steps, bf16, ~18GB VRAM with CPU offload.
+- **ComfyUI build:** no official Comfy-Org template; run via diffusers, or a community repack/wrapper if one is installed.
 - **Source:** huggingface.co/meituan-longcat/LongCat-Image-Edit ; huggingface.co/meituan-longcat/LongCat-Image.
 
 ### ChronoEdit (NVIDIA)
@@ -531,7 +533,7 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
 - **Strengths:** camera-language response (surround, aerial, zoom, pan, follow, handheld); multi-shot consistency; 2.0 native audio with phoneme-level lip-sync (8+ langs), camera-motion replication, beat-synced editing.
 - **Avoid:** stacking motion verbs, vague mood as camera direction; on-screen text and fast hands glitch; set "not fixed camera" when moving. Constraints (3-5 bans) substitute for a negative field.
 - **Settings:** 480/720/1080p, **2.0 now up to 4K** (smoother gradients, richer tones, detail that holds through motion and into post; the templates default to 720p, raise the resolution field for 4K), 24fps; 2-12s (1.0) / 4-15s or auto (2.0); 2.0 inputs up to 9 images / 3 videos / 3 audio (`model.reference_images.image_1..9`, `reference_videos.video_*`, `reference_audios.audio_*`).
-- **2.0 official ComfyUI templates / modes:** T2V, reference-to-video (R2V), first-last-frame (FLF2V), each with a `_real_human` variant tuned for realistic people; `api_seedance2_0_{t2v,r2v,flf2v}(_real_human).json` (Comfy-Org/workflow_templates), plus community storyboard-to-video / character-swap / LLM-prompt-helper.
+- **2.0 official ComfyUI templates / modes:** T2V, reference-to-video (R2V), first-last-frame (FLF2V); R2V and FLF2V each also ship a `_real_human` variant tuned for realistic people (T2V does not); `api_seedance2_0_t2v.json` + `api_seedance2_0_{r2v,flf2v}(_real_human).json` (Comfy-Org/workflow_templates), plus community storyboard-to-video / character-swap / LLM-prompt-helper.
 - **Source:** docs.byteplus.com (Seedance 1.0 / 2.0) ; Comfy-Org/workflow_templates `api_seedance2_0_*` ; ComfyUI "Seedance 2.0 4K is live" announce (2026-06).
 
 ### Luma Ray 2 / Ray 3 (Dream Machine)
@@ -605,7 +607,7 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
 - **Prompt style:** TTS = plain text (voice/emotion via parameters). SFX = specific natural-language description (material, size, environment, distance, temporal arc, acoustic space); onomatopoeia helps.
 - **Strengths:** natural multilingual voices, instant cloning, precise SFX; node supports `eleven_multilingual_v2` and `eleven_v3`.
 - **Avoid:** over-long SFX prompts; expecting prompt words to control tone (use parameters).
-- **Settings (built-in TTS node):** `stability` (def 0.5), `similarity_boost` (def 0.75), `style` (def 0.0), `speed` (def 1.0), `use_speaker_boost`. Text-to-Effect: `duration` 1-22s (max 30s), `prompt_influence` 0-1 (def 0.3).
+- **Settings (built-in TTS node):** `stability` (def 0.5), `similarity_boost` (def 0.75), `style` (def 0.0), `speed` (def 1.0), `use_speaker_boost`. Text-to-Effect: `duration` 0.5-30s, `prompt_influence` 0-1 (def 0.3).
 - **Source:** elevenlabs.io/docs ; docs.comfy.org/built-in-nodes/ElevenLabsTextToSpeech.
 
 ### ChatterBox (Resemble AI)
@@ -613,7 +615,8 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
 - **Strengths:** zero-shot cloning, emotion intensity dial, multilingual (23+ in V3), fast.
 - **Avoid:** high `exaggeration` speeds up speech (lower `cfg_weight` to compensate); language mismatch causes accent bleed.
 - **Settings:** defaults `exaggeration=0.5`, `cfg_weight=0.5`; dramatic `exaggeration` 0.7+ with `cfg_weight` ~0.3.
-- **Source:** github.com/resemble-ai/chatterbox.
+- **ComfyUI build:** the cited repo is the Python library; for ComfyUI install `filliptm/ComfyUI_Fill-ChatterBox` (ComfyUI Manager), whose TTS node takes `text` + `reference_audio` + `exaggeration` + `cfg_weight` -> AUDIO.
+- **Source:** github.com/resemble-ai/chatterbox (Python library).
 
 ## 3D models
 
@@ -631,21 +634,24 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
 - **Strengths:** material/texture fidelity, multi-view fusion, smart retopology; texture on/off, face-limit budget.
 - **Avoid:** abstract adjectives, over-long prompts, cluttered/off-center input images.
 - **Settings:** texture on/off; `face_limit`; image input JPG/PNG/WEBP <5MB, solid background, centered.
-- **Source:** tripo3d.ai/blog (prompting guide / text-to-3D prompt engineering).
+- **ComfyUI node:** `VAST-AI-Research/ComfyUI-Tripo` (Comfy Registry: `comfyui-tripo`); key nodes `TripoAPIDraft` (text/image -> draft mesh), `TripoTextureModel`, `TripoRefineModel`; needs a Tripo API key.
+- **Source:** tripo3d.ai/blog/text-to-3d-prompt-engineering.
 
 ### Rodin (Hyper3D)
 - **Prompt style:** specific detailed object description; name materials/textures, include lighting, state style, give context; image upload switches to Image-to-3D.
-- **Strengths:** geometry quality (Gen-2), quad meshes, baked normals, HD/4K textures, broad export.
+- **Strengths:** geometry quality (Gen-2), quad meshes, HD/4K textures, PBR/Shaded/All material modes, broad export.
 - **Avoid:** vague prompts; cluttered backgrounds / low-res inputs (>=512x512, <=16MB); download links expire ~10 min.
 - **Settings:** topology Raw or Quad (def Quad); materials PBR/Shaded/All; quality tiers; formats GLB/USDZ/FBX/OBJ/STL; up to 5 images.
+- **ComfyUI node:** `DeemosTech/ComfyUI-Rodin`; key nodes `mLoadRodinAPIKEY` + `mRodin3D_Gen2` (text/image -> 3D mesh, GLB); needs a Hyper3D API key.
 - **Source:** github.com/DeemosTech/rodin3d-skills ; developer.hyper3d.ai.
 
 ### Meshy
 - **Prompt style:** Subject + Modifiers (materials, colors, details) + Style; 3-6 concrete physical details; reference anchors; style keywords (low-poly, photorealistic, cartoon, cyberpunk neon, anime cell shading).
 - **Structure:** one object, not a scene; add "T-Pose" to characters you plan to rig.
 - **Strengths:** style range, character/rigging support, iterative refine; prompts up to 800 chars, any language.
-- **Avoid:** describing whole scenes; evaluative adjectives; negatives not supported. Iterate (Generate -> Refine -> Adjust).
-- **Source:** help.meshy.ai (best practices) ; docs.meshy.ai/text-to-3d.
+- **Avoid:** describing whole scenes; evaluative adjectives. Negatives ARE supported (`negative_prompt`). Iterate (Generate -> Refine -> Adjust).
+- **ComfyUI node:** community `Kazama-Suichiku/ComfyUI-Meshy` (needs a Meshy API key); or call the Meshy REST API via a Python node.
+- **Source:** help.meshy.ai (best practices) ; docs.meshy.ai/en/api/text-to-3d.
 
 ---
 
@@ -722,13 +728,13 @@ templates: `api_happyhorse1_1_t2v.json` / `_i2v.json` / `_r2v.json` (Comfy-Org/w
 Source: blog.comfy.org/p/happyhorse-11-is-now-available-in ; docs.comfy.org/tutorials/partner-nodes/happyhorse.
 
 **HuMo**, ByteDance + Tsinghua, human-centric video (HuMo-1.7B in ComfyUI): lip-synced video from text + image +
-audio. Text describes appearance/action/scene, image conditions identity, audio drives lip-sync; modes Text+Image /
-Text+Audio / Text+Image+Audio (TIA = most control, best lip-sync). Up to 97 frames @ 25fps, 720p (~3.9s); TIA wants
->=24GB; negatives not documented. Source: github.com/Phantom-video/HuMo. **ComfyUI build:** HuMo-1.7B runs natively; for the audio-driven lip-sync add the `HuMoAudioAttentionControlV4` node from `ckinpdx/comfyui-humo-audio-motion` (patches the model with audio cross-attention; inputs `model` + `audio_blocks`). Open its example workflow for the full graph.
+audio. Text describes appearance/action/scene, image conditions identity, audio drives lip-sync; modes Text+Audio and Text+Image+Audio (TIA = most control, best
+lip-sync; standalone Text+Image is marked not-implemented for 1.7B in the repo Todo). Up to 97 frames @ 25fps, 720p (~3.9s); TIA wants
+>=24GB; negatives not documented. Source: github.com/Phantom-video/HuMo. **ComfyUI build:** HuMo-1.7B runs natively and lip-sync is built into TIA mode; `ckinpdx/comfyui-humo-audio-motion` adds the `HuMoAudioAttentionControlV4` node (audio cross-attention patch; inputs `model` + `audio_blocks`) as an optional experimental audio-driven body-motion enhancement, not the lip-sync itself.
 
 **SCAIL-2**, zai-org (Zhipu/GLM), Wan-based end-to-end character animation: animates a reference character with a
-driving video (also replacement, multi-character), no pose maps/masks. Control by inputs, not text: 1 reference image
-+ 1 driving video; tune `pose_strength` (exact-copy vs style adaptation); GGUF build for lower VRAM.
+driving video (also replacement, multi-character). Control by inputs, not text: 1 reference image
++ 1 driving video + a per-frame driving mask (generated by the bundled SCAIL-Pose preprocessor; the mask is a required input even in Animation Mode); tune `pose_strength` (exact-copy vs style adaptation).
 Source: github.com/zai-org/SCAIL-2. **ComfyUI build:** community all-in-one node `collbroGTR/comfyui-scail2-infinity` (also `TTPlanetPig/comfyui_scail2_multi_cond`); open its example workflow and feed the reference image + driving video + `pose_strength`.
 
 ### Audio
@@ -758,13 +764,13 @@ upscale on a hero, frame interpolation on a clip, a depth map to drive ControlNe
   NON-COMMERCIAL (XPixel Group); do not use in a commercial pipeline. Source: github.com/kijai/ComfyUI-SUPIR.
 - **SeedVR2** (video/image upscale+restore): one-step diffusion with temporal consistency (frames denoised
   together). Target the short edge (default 1080); 3B (fast) vs 7B (quality); FP16/FP8/GGUF; batch follows the
-  4n+1 rule (1,5,9,13,21...); ~8GB to 24GB+. Source: github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.
+  4n+1 rule (1,5,9,13,17,21...); ~8GB to 24GB+. Source: github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.
 - **FlashVSR** (video super-res): one-step streaming diffusion, ~17 FPS at 768x1408 on an A100; designed for 4x SR
   (use 4x for best stability); V1.1 recommended. CAVEAT: needs the Block-Sparse Attention (LCSA) module
   (`mit-han-lab/Block-Sparse-Attention`, a compile-and-install dependency, memory-intensive at build time); without it
   ComfyUI and other third-party implementations fall back to DENSE attention with noticeable quality degradation at
-  higher resolutions (the card calls out early ComfyUI versions as affected). GPU compatibility confirmed on A100/A800
-  only; RTX 40/50 and H800 untested. Source: huggingface.co/JunhaoZhuang/FlashVSR. **ComfyUI build:** runs through kijai `ComfyUI-WanVideoWrapper` (FlashVSR is a supported family there) - see KIJAI.md for the WanVideoWrapper loader / sampler nodes. (`OHLIA/flashvsr_mix_gui` is a standalone GUI, not a node pack.)
+  higher resolutions (the card calls out early ComfyUI versions as affected). GPU compatibility confirmed on A100/A800;
+  H200 (Hopper) also runs per the card (limited acceleration); RTX 40/50 and H800 currently unknown. Source: huggingface.co/JunhaoZhuang/FlashVSR. **ComfyUI build:** runs through kijai `ComfyUI-WanVideoWrapper` (FlashVSR is a supported family there) - see KIJAI.md for the WanVideoWrapper loader / sampler nodes. (`OHLIA/flashvsr_mix_gui` is a standalone GUI, not a node pack.)
 - **Z-Image-Turbo Fun-ControlNet-Tile** (diffusion tile SR): ControlNet-Tile super-res for the Z-Image-Turbo stack,
   trained to 2048x2048, 8-step distilled; tiled so structure holds while enlarging. Reuses the Z-Image loader
   (8 steps, low CFG), so no separate SR model stack. This is the IDENTITY-FAITHFUL path: unlike the Union
@@ -772,7 +778,7 @@ upscale on a hero, frame interpolation on a clip, a depth map to drive ControlNe
   enlarges without reinterpreting. See the Z-Image-Turbo entry above. Source:
   huggingface.co/alibaba-pai/Z-Image-Turbo-Fun-Controlnet-Union-2.1.
 - **Topaz** (external API): commercial upscale/denoise/sharpen + frame interpolation via Topaz's API (built-in
-  `TopazVideoEnhance` node). Models Starlight/Astra; interpolation 15-240 fps, slow-mo 1-16x; needs a license.
+  `TopazVideoEnhance` node). Upscale models Starlight (Astra) Fast/Creative + Starlight Precise 2.5; interpolation 15-240 fps, slow-mo 1-16x; needs a license.
   Source: docs.comfy.org/built-in-nodes/TopazVideoEnhance.
 - **Magnific** (external API): cloud creative upscaler/enhancer (Freepik) up to 16K with prompt + creativity
   controls; no first-party ComfyUI node (HTTP/SDK or community wrapper). Scale 2x/4x/8x/16x. Source: docs.magnific.com.
@@ -818,7 +824,7 @@ make it small, then upscale the keeper (e.g. LTX-2.3 at 512 -> Real-ESRGAN x4 ->
   cross-attention). Use to transfer style/subject/face from a reference without text; stack with ControlNet.
   Variants base / Plus / Face / FaceID; main knob is conditioning weight. Source: github.com/tencent-ailab/IP-Adapter.
 - **LivePortrait** (portrait animation): drives a still portrait with a driving video's motion/expression (stitching
-  + eye/lip retargeting). Use to animate one portrait without per-subject training. Source: github.com/KwaiVGI/LivePortrait.
+  + eye/lip retargeting). Use to animate one portrait without per-subject training. Source: github.com/KlingAIResearch/LivePortrait.
 - **Mediapipe** (landmarks): fast on-device face (478) / hand (21) / pose (33) landmarks (Holistic combines all).
   Use for lightweight keypoints for conditioning/masking/alignment. Source: ai.google.dev/edge/mediapipe.
 - **VOID** (video inpainting / object removal): Netflix open-source; removes a subject plus its shadows, reflections,

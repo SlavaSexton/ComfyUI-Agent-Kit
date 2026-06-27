@@ -48,8 +48,8 @@ The 2026 stack moved from SD-era flow hacks to native video models. Honest hiera
 **Native, high-quality, temporally-stable PBR from arbitrary 2D footage is NOT solved in ComfyUI in 2026.** Tell users this plainly, then give the closest real path. The reason: every quality single-image material model is one independent diffusion sample per frame, so running it on a clip flickers (swimming normals, shifting albedo, jittery roughness).
 
 - **Single-image decomposition (run per-frame, then fight flicker externally):**
-  - **Marigold + IID** (`kijai/ComfyUI-Marigold`, Apache-2.0) - the practical route: depth, normals, and Intrinsic Image Decomposition into albedo + roughness + metallic (Appearance) or albedo + shading (Lighting).
-  - **StableNormal + StableDelight** (`Stable-X`, via `kijai/ComfyUI-StableXWrapper`, Apache-2.0) - sharp/stable normals and specular removal (de-light toward true albedo).
+  - **Marigold + IID** (`kijai/ComfyUI-Marigold`, GPL-3.0 node wrapper; the Marigold model weights are Apache-2.0) - the practical route: depth, normals, and Intrinsic Image Decomposition into albedo + roughness + metallic (Appearance) or albedo + shading (Lighting).
+  - **StableNormal + StableDelight** (`Stable-X`, via `kijai/ComfyUI-StableXWrapper`, no LICENSE file; the Stable-X models are Apache-2.0) - sharp/stable normals and specular removal (de-light toward true albedo).
   - **StableMaterials** (`gvecchio/StableMaterials`, openrail, commercial-OK) - basecolor/normal/height/roughness/metallic, tileable, but it SYNTHESIZES a material rather than faithfully decomposing your exact frame. Load the pipeline with `trust_remote_code=True` (custom pipeline, won't run without it); recommended `guidance_scale=10.0`, `num_inference_steps=50` (or the LCM fast variant: load subfolder `unet_lcm` + swap in `LCMScheduler`, 4 steps); `inference: false` in the card means no hosted API, run it locally.
   - **DeepBump** (`HugoTini/DeepBump` via `comfy_mtb`, GPL-3.0) - normal + height only, filter-grade.
   - **QFX-PBRGenerator** / **TextureAlchemy** - full-channel packs, but their "intelligence" is mostly Marigold/Lotus underneath plus procedural tooling (tiling, channel-pack, AO/curvature).
@@ -129,9 +129,9 @@ Sources: github.com/HallettVisual/ComfyUI-Smart-Image-Crop-and-Stitch ; Comfy Re
 | Frame-Interpolation | github.com/Fannovel16/ComfyUI-Frame-Interpolation | RIFE / FILM interpolation | MIT |
 | SuperBeasts | github.com/SuperBeastsAI/ComfyUI-SuperBeasts | Deflicker / PixelDeflicker (luminance only) | MIT |
 | SeedVR2 | github.com/numz/ComfyUI-SeedVR2_VideoUpscaler | temporally-coherent video upscale (batch >= 5) | check repo (ByteDance model) |
-| Veevee / FLATTEN | github.com/logtd/ComfyUI-Veevee , /ComfyUI-FLATTEN | SD-era unsample + flow attention (STALE, SD only) | no LICENSE file |
-| Marigold (+IID) | github.com/kijai/ComfyUI-Marigold | depth / normals / albedo+roughness+metallic | Apache-2.0 |
-| StableX (Normal+Delight) | github.com/kijai/ComfyUI-StableXWrapper | sharp normals + de-light to albedo | Apache-2.0 |
+| Veevee / FLATTEN | github.com/logtd/ComfyUI-Veevee , /ComfyUI-FLATTEN | SD-era unsample + flow attention (STALE, SD only) | Veevee GPL-3.0 ; FLATTEN no LICENSE file |
+| Marigold (+IID) | github.com/kijai/ComfyUI-Marigold | depth / normals / albedo+roughness+metallic | GPL-3.0 (model: Apache-2.0) |
+| StableX (Normal+Delight) | github.com/kijai/ComfyUI-StableXWrapper | sharp normals + de-light to albedo | no LICENSE file (models: Apache-2.0) |
 | StableMaterials | huggingface.co/gvecchio/StableMaterials | image/text -> tileable PBR (synthesizes) | openrail |
 | rgb2x / RGB-X | github.com/toyxyz/ComfyUI_rgbx_Wrapper | albedo/normal/roughness/metallic/irradiance | Adobe, NONCOMMERCIAL |
 | Ubisoft CHORD | github.com/ubisoft/ComfyUI-Chord | full single-image PBR set | research-only |
@@ -146,7 +146,7 @@ Sources: github.com/HallettVisual/ComfyUI-Smart-Image-Crop-and-Stitch ; Comfy Re
 
 Flag the NONCOMMERCIAL ones (rgb2x, CHORD, UniRelight, the MultiDiffusion part of TiledDiffusion) before any commercial use; everything else above is permissive (Apache/MIT/openrail/GPL).
 
-**Wan2.1-VACE-14B (Apache-2.0) recipe:** three input modes - R2V (`src_ref_images`, no preprocessing), V2V (`src_video`, needs preprocessing for depth/pose), MV2V (masked video editing, needs preprocessing); V2V/MV2V run the `vace_preproccess.py` step, R2V skips it. Resolution targets: 480P (~81x480x832) and 720P (~81x720x1280) - the 14B supports both, the 1.3B is 480P only. CLI: `--task vace-14B` (or `vace-1.3B`) with `--src_ref_images` / `--src_video` / `--src_mask`; a negative prompt is recommended (same boilerplate as T2V/I2V). Full per-task parameter docs: github.com/ali-vilab/VACE/blob/main/UserGuide.md.
+**Wan2.1-VACE-14B (Apache-2.0) recipe:** three input modes - R2V (`src_ref_images`, no preprocessing), V2V (`src_video`, needs preprocessing for depth/pose), MV2V (masked video editing, needs preprocessing); V2V/MV2V run the `vace_preproccess.py` step, R2V skips it. Resolution targets: 480P (~81x480x832) and 720P (~81x720x1280) - the 14B supports both, the 1.3B is 480P only. CLI: `--model_name vace-14B` (or `vace-1.3B`) with `--src_ref_images` / `--src_video` / `--src_mask`; a negative prompt is recommended (same boilerplate as T2V/I2V). Full per-task parameter docs: github.com/ali-vilab/VACE/blob/main/UserGuide.md.
 
 ## Sources
 

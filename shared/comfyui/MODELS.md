@@ -392,7 +392,11 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
   ground -> sea; >= 1.5 maximizes drama but warps faces). **CRITICAL recipe:** render the distilled **stage-1 ONLY at native
   resolution** (1920x1088 / 1088x1920, 24 fps), CFG 1.0, 8 fixed sigmas, no negative - the two-stage path applies the
   reference only in stage 1, and the stage-2 upscaler drifts the subject's identity; lowering strength does NOT fix it
-  (structural). Trained on real water, so other liquids (lava / slime / paint) generalize only loosely. Source:
+  (structural). Trained on real water, so other liquids (lava / slime / paint) generalize only loosely. **Higher res without the
+  stage-2 identity drift (kit tip, inferred, not card-tested):** the drift comes from the LTX stage-2 upscaler
+  re-diffusing the subject from the prompt, so render the identity-safe stage-1 at native, then upscale OUTSIDE the LTX
+  two-stage with a NON-re-diffusing / identity-preserving upscaler (SeedVR2, a tile-GAN like 4x-UltraSharp, or SUPIR at
+  low denoise). Resolution rises and the subject stays put. Source:
   huggingface.co/Lightricks/LTX-2.3-22b-IC-LoRA-Water-Simulation ; docs.ltx.video IC-LoRA guide ; github.com/Lightricks/ComfyUI-LTXVideo.
 - **Multi-shot / timeline direction (Prompt Relay + LTX Director 2.0):** several TIMED events in ONE clip without
   temporal entanglement (one paragraph for many events smears them). **Prompt Relay** (arXiv 2604.10030, S-Lab NTU)

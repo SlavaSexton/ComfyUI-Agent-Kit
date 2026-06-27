@@ -14,6 +14,8 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-06-27
+
 ### Fixed
 - **Bernini-R ComfyUI tutorial URL** corrected to `docs.comfy.org/tutorials/video/bytedance/bernini-r`
   (it had pointed at the Anima tutorial). Caught by the post-release completeness re-check.

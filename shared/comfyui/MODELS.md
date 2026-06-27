@@ -677,7 +677,7 @@ prompt guide; prompt like a Wan/Qwen-edit relight: describe target lighting (dir
 carry lighting across a set. Treat steps/CFG like a Wan2.2 edit workflow. Quantized variants for VRAM-constrained
 setups (in the repo beyond the fp16 high/low-noise files): `wan2.2_bernini_r_high_noise_fp8_scaled.safetensors`,
 `wan2.2_bernini_r_high_noise_mxfp8.safetensors`, `wan2.2_bernini_r_low_noise_fp8_scaled.safetensors`,
-`wan2.2_bernini_r_low_noise_mxfp8.safetensors`. Source: huggingface.co/Comfy-Org/Bernini-R. **ComfyUI build:** official tutorial docs.comfy.org/tutorials/image/anima/anima; the Comfy-Org repack runs on the standard Wan2.2 graph (the high-noise / low-noise UNETLoader pair).
+`wan2.2_bernini_r_low_noise_mxfp8.safetensors`. Source: huggingface.co/Comfy-Org/Bernini-R. **ComfyUI build:** official tutorial docs.comfy.org/tutorials/video/bytedance/bernini-r; the Comfy-Org repack runs on the standard Wan2.2 graph (the high-noise / low-noise UNETLoader pair).
 
 **Anima** (anime t2i), CircleStone Labs, 2B (Qwen-3 0.6B encoder). Danbooru tags, natural language, or mix; order
 `[quality/meta/year/safety] [char count] [character] [series] [artist] [general]`; positive prefix `masterpiece,

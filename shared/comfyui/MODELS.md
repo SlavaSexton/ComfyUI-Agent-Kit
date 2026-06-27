@@ -364,12 +364,7 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
   conditioning. Useful IC-LoRAs (into `models/loras`, run via the ic_lora workflow): **Ingredients** (official,
   cross-clip character/prop consistency; two-part prompt "Reference sheet: ... / Generated video: ...", strength
   ~1.4); **MotionDeblur** (oumoumad, community, KEY for RESTORATION: reduces/removes motion blur and reconstructs
-  sharper frames; file `ltx-2.3-22b-ic-lora-motiondeblur.safetensors`); **Water Simulation** (official Lightricks,
-  `ltx-2.3-22b-ic-lora-water-simulation-0.9.safetensors`, gated `license:other`; video-to-video that adds realistic
-  water / seawater / wet dynamics to a clip - example pairs show hands in seawater, a dog in a marsh, goats by a
-  river; NEW 2026-06-25, no dedicated pack workflow yet, so run it through the generic
-  `LTX-2.3_V2V_ICLoRA_Single_Stage_Distilled.json` via `LTXICLoRALoaderModelOnly`; the gated model card holds the
-  exact trigger/strength). Pair MotionDeblur with the LTX-2.3 restore
+  sharper frames; file `ltx-2.3-22b-ic-lora-motiondeblur.safetensors`). Pair MotionDeblur with the LTX-2.3 restore
   templates (restore_archival_footage, remove_watermark) and the SeedVR2/SUPIR upscalers for a restoration chain.
 - **HDR IC-LoRA (SDR -> HDR video):** `Lightricks/LTX-2.3-22b-IC-LoRA-HDR` (files `ltx-2.3-22b-ic-lora-hdr-0.9.safetensors`
   + `ltx-2.3-22b-ic-lora-hdr-scene-emb.safetensors`; `license:other`, GATED on HF, so accept the license + use a token
@@ -379,6 +374,21 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
   `hdr.py` node + an `hdr_input_video.mp4` example); needs a CURRENT ComfyUI-LTXVideo (the `LTXICLoRALoaderModelOnly`
   node, absent in older installs). Save to an HDR-capable format (EXR / 16-bit / HDR video), NOT 8-bit PNG. Source:
   huggingface.co/Lightricks/LTX-2.3-22b-IC-LoRA-HDR ; hdr-lumivid.github.io ; github.com/Lightricks/ComfyUI-LTXVideo.
+- **Water Simulation IC-LoRA (add water to a live shot):** `Lightricks/LTX-2.3-22b-IC-LoRA-Water-Simulation` (file
+  `ltx-2.3-22b-ic-lora-water-simulation-0.9.safetensors`; gated LTX-2-community-license; v2v reference-conditioned).
+  Adds rivers / surf / rain / waterfalls / floods / splashes / wet specularities to a "dry" reference clip while keeping
+  identity, clothing, pose, camera framing and background geometry identical. Control = the dry video VAE-encoded (24 fps,
+  no mask, whole-frame, downscale 1), conditioning on the first `F` frames where `(F-1) % 8 == 0` (e.g. 121 / 153 / 185,
+  ~7.7s max). Prompt is dual-panel and MUST contain the trigger `ADD WATER`: "Reference shows <dry scene>. Edited shows the
+  same scene with water added. ADD WATER <concrete water: type, motion, how it interacts with the subject>. Subject
+  identity, clothing, framing and background are identical to the reference." Run via a V2V IC-LoRA workflow from the
+  `ComfyUI-LTXVideo` pack (`LTX-2.3_V2V_ICLoRA_Single_Stage_Distilled.json` + `LTXICLoRALoaderModelOnly`); no water-specific
+  workflow ships yet. **Strength sweet spot 1.2** (1.0-1.05 natural / identity-safe; 1.1-1.5 hard surface replacement like
+  ground -> sea; >= 1.5 maximizes drama but warps faces). **CRITICAL recipe:** render the distilled **stage-1 ONLY at native
+  resolution** (1920x1088 / 1088x1920, 24 fps), CFG 1.0, 8 fixed sigmas, no negative - the two-stage path applies the
+  reference only in stage 1, and the stage-2 upscaler drifts the subject's identity; lowering strength does NOT fix it
+  (structural). Trained on real water, so other liquids (lava / slime / paint) generalize only loosely. Source:
+  huggingface.co/Lightricks/LTX-2.3-22b-IC-LoRA-Water-Simulation ; docs.ltx.video IC-LoRA guide ; github.com/Lightricks/ComfyUI-LTXVideo.
 - **Multi-shot / timeline direction (Prompt Relay + LTX Director 2.0):** several TIMED events in ONE clip without
   temporal entanglement (one paragraph for many events smears them). **Prompt Relay** (arXiv 2604.10030, S-Lab NTU)
   is a training-free, inference-time method: it routes each prompt to its time segment via a distance penalty in

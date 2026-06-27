@@ -19,8 +19,9 @@ vx.y.z`), which can become a GitHub Release.
   `ltx-2.3-22b-ic-lora-water-simulation-0.9.safetensors`, gated `license:other`, video-to-video, published
   2026-06-25) in the LTX-2.3 IC-LoRA list: adds realistic water / seawater to a clip. No dedicated workflow ships in
   ComfyUI-LTXVideo yet (pack last updated 2026-06-17), so it runs via the generic
-  `LTX-2.3_V2V_ICLoRA_Single_Stage_Distilled.json` + `LTXICLoRALoaderModelOnly`. Metadata confirmed via the HF API;
-  the model card is gated, so the exact trigger/strength is not captured yet.
+  `LTX-2.3_V2V_ICLoRA_Single_Stage_Distilled.json` + `LTXICLoRALoaderModelOnly`. Full recipe read from the (authenticated)
+  gated model card: the `ADD WATER` trigger in a dual-panel reference/edited prompt, strength sweet spot 1.2, and the
+  critical "distilled stage-1 only at native resolution" recipe (the two-stage upscaler drifts subject identity).
 
 ## [1.5.0] - 2026-06-25
 

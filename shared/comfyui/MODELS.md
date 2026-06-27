@@ -713,7 +713,7 @@ geometry; output is real editable vector paths. Source: docs.quiver.ai ; blog.co
 
 **HappyHorse 1.1**, Alibaba, cinematic video model with native synchronized audio, API (muapi.ai / Model Studio
 partner nodes; ComfyUI nodes `HappyHorseTextToVideoApi` / `HappyHorseImageToVideoApi` / `HappyHorseReferenceVideoApi`):
-T2V, I2V, reference-to-video (up to 9 reference images, no cross-contamination); 3-15s at 720p/1080p, aspect
+T2V, I2V, reference-to-video (up to 9 reference images, no cross-contamination; the official ComfyUI template wires 3, image1-3); 3-15s at 720p/1080p, aspect
 16:9 / 9:16 / 1:1 / 4:3 / 3:4 / 21:9. **Audio generates in the same render pass** (dialogue, sound effects and
 background music synced to the video, no stitching in post). Long-context prompts (2,500+ chars, 6-8 consecutive
 scenes in one prompt) and full cinematic language (shot-reverse-shot, tracking shots, transitions); natural skin

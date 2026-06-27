@@ -17,6 +17,8 @@ vx.y.z`), which can become a GitHub Release.
 ### Fixed
 - **Bernini-R ComfyUI tutorial URL** corrected to `docs.comfy.org/tutorials/video/bytedance/bernini-r`
   (it had pointed at the Anima tutorial). Caught by the post-release completeness re-check.
+- **HappyHorse reference-image count** clarified: the official ComfyUI template wires 3 slots
+  (image1-3), now noted alongside the API's "up to 9".
 
 ## [1.6.0] - 2026-06-27
 

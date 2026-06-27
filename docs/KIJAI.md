@@ -57,7 +57,7 @@ Every legacy/superseded card with a known replacement. "(inferred)" marks ecosys
 | ComfyUI-ELLA-wrapper | TencentQQGYLab/ComfyUI-ELLA | explicitly superseded |
 | ComfyUI-DiffusionLight | (no named replacement) | stale since 2024-04 |
 | ComfyUI-APISR-KJ | Real-ESRGAN, BSRGAN, or diffusion upscalers | unmaintained since 2024-04 |
-| ComfyUI-DDColor | colorization in comfyui-art-venture / comfyui-extra-nodes | standalone DDColor rarely used now |
+| ComfyUI-DDColor | grayscale colorization via the maintained fork hay86/ComfyUI_DDColor | art-venture does color-grading, not ML colorization |
 | ComfyUI-llama-cpp | modern ComfyUI LLM nodes / comfyui-agent-kit | legacy |
 | ComfyUI-DiffusersStableCascade | native ComfyUI StableCascade nodes | built into core as of 2024 |
 
@@ -136,7 +136,7 @@ Every legacy/superseded card with a known replacement. "(inferred)" marks ecosys
 #### ComfyUI-LBMWrapper  -  last commit 2025-05-14, CC-BY-NC-4.0, experimental
 - Latent Bridge Matching relighting (single image) via a UNet flow-matching model (jasperai/LBM_relighting).
 - **Nodes:** `LoadLBMModel` (from models/diffusion_models, precision/device) -> LBM_MODEL; `LBMSampler` (model + image, steps) -> relit IMAGE.
-- **Use:** place lbm_relight.safetensors in models/diffusion_models -> LoadLBMModel -> LBMSampler (steps ~20) -> Preview/Save. Example composites foreground on a new background before relighting.
+- **Use:** place model.safetensors (the only weight at jasperai/LBM_relighting) in models/diffusion_models -> LoadLBMModel -> LBMSampler (steps ~20) -> Preview/Save. Example composites foreground on a new background before relighting.
 - **Compat / watch out:** deps diffusers, accelerate. Open breakage: import fails on ComfyUI 0.3.39; `set_timesteps() got unexpected kwarg sigmas` on newer diffusers (2025-06-20); bf16 mismatch on cards without native bf16 (2080 Ti); sampler stuck for some. Not updated since 2025-05-14; likely fails on current ComfyUI + recent diffusers.
 
 #### ComfyUI-HFRemoteVae  -  last commit 2026-05-08, no license, experimental
@@ -181,7 +181,7 @@ Every legacy/superseded card with a known replacement. "(inferred)" marks ecosys
 
 #### ComfyUI-Marigold  -  last commit 2025-05-16, GPL-3.0, active
 - Marigold diffusion depth and normals, with a legacy custom-pipeline path (v1) and a modern diffusers-native path (v2) that adds normals and intrinsic decomposition.
-- **Nodes:** `MarigoldModelLoader` (10 prs-eth/GonzaloMG depth/normals/intrinsics repos) -> MARIGOLDMODEL; `MarigoldDepthEstimation_v2` (+ TAESD VAE) -> depth/normals IMAGE; `MarigoldDepthEstimation_v2_video` (temporal blend); `MarigoldDepthEstimation` (legacy v1); `MarigoldDepthEstimationVideo` (legacy v1 + optical flow); `ColorizeDepthmap`; `RemapDepth`; `SaveImageOpenEXR`.
+- **Nodes:** `MarigoldModelLoader` (11 prs-eth/GonzaloMG depth/normals/intrinsics repos) -> MARIGOLDMODEL; `MarigoldDepthEstimation_v2` (+ TAESD VAE) -> depth/normals IMAGE; `MarigoldDepthEstimation_v2_video` (temporal blend); `MarigoldDepthEstimation` (legacy v1); `MarigoldDepthEstimationVideo` (legacy v1 + optical flow); `ColorizeDepthmap`; `RemapDepth`; `SaveImageOpenEXR`.
 - **Use:** LoadImage -> MarigoldModelLoader (pick marigold-depth-lcm for speed) -> MarigoldDepthEstimation_v2 -> depth IMAGE -> ColorizeDepthmap / RemapDepth / SaveImageOpenEXR. Video uses the _v2_video node with blend_factor.
 - **Compat / watch out:** deps accelerate, diffusers>=0.33 (v2 raises if <0.28), torch>=2.0.1, transformers, matplotlib, scipy, huggingface-hub. No core API breakage in open issues; the protobuf-import issue is a user-env conflict, not a repo bug. v1 nodes still work but v2 is the recommended path.
 
@@ -286,7 +286,7 @@ Light (wave3) cards:
 - `ComfyUI-MuseTalk-KJ` (last commit 2024-04-05) - MuseTalk lip-sync - no named replacement.
 - `ComfyUI-DiffusionLight` (last commit 2024-04-02, stale) - DiffusionLight HDR/light estimation - no named replacement.
 - `ComfyUI-APISR-KJ` (last commit 2024-04-19) - APISR anime upscaling - use Real-ESRGAN / BSRGAN / diffusion upscalers instead.
-- `ComfyUI-DDColor` (last commit 2024-01-18) - DDColor colorization - use colorization in comfyui-art-venture / comfyui-extra-nodes instead.
+- `ComfyUI-DDColor` (last commit 2024-01-18) - DDColor colorization - use the maintained fork `hay86/ComfyUI_DDColor` (ComfyUI Manager, Apache-2.0); comfyui-art-venture only does color-grading/blending, not ML colorization.
 - `ComfyUI-llama-cpp` (last commit 2024-04-19) - llama.cpp LLM nodes - use modern ComfyUI LLM nodes / comfyui-agent-kit instead.
 - `ComfyUI-DiffusersStableCascade` (last commit 2024-02-17) - Stable Cascade via diffusers - use native ComfyUI StableCascade nodes instead.
 

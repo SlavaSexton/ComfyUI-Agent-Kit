@@ -282,16 +282,23 @@ FLUX prose will not help SDXL).
 - **Community style LoRAs (fal, ~1503):** beyond the 9 official LoRAs, `ilkerzgi/fal-Krea-2-Style-LoRAs` indexes ~1503
   community style LoRAs for Krea 2 Turbo (Krea-2 Community License), each its own repo (e.g. `ilkerzgi/krea-2-airy-porcelain-blue-lora`).
   Put the style trigger at the END of the prompt, LoRA scale 1.0-1.25; run on fal `fal-ai/krea-2/turbo/lora` or download the individual LoRA.
-- **Weak VAE, much better decode (RECOMMENDED, big quality jump):** Krea 2 ships the Qwen-Image VAE, which is its weak link;
-  swapping the decoder is a large, clearly visible quality jump (practitioner-confirmed, not subtle). Best result:
-  **NVIDIA PiD** (Pixel Diffusion Decoder, replaces the VAE with a pixel-diffusion decode + super-res in one pass;
-  `nvidia/PiD` / `nv-tlabs/PiD`, ComfyUI nodes `tsolful/ComfyUI-PiD`, `Merserk/ComfyUI-PiD`); or the simpler **WAN 2.1 VAE**
-  swap. PiD's official presets are FLUX / Z-Image / SD3, but it works very well on Krea 2 in practice. Sources: Reddit
-  r/StableDiffusion (thread 1ue8rns), t.me/GreenNeuralRobots/12656.
-- **Reference-image control (image+mask):** `ComfyUI-Krea2TextEncoder` (ethanfel, MIT) adds the `TextEncodeKrea2` node: it
-  forces the Krea2 descriptor template and pushes reference image+mask pairs through Krea 2's Qwen3-VL-4B vision path for
-  visually-aware conditioning (the core `TextEncodeQwenImageEdit` mis-handles this: its VAE input does nothing because Krea 2's
-  DiT has no reference-latent slot, and it falls back to the plain Qwen template instead of the Krea2 descriptor one).
+- **Weak VAE, much better decode (RECOMMENDED, big quality jump):** Krea 2's stock Qwen-Image VAE is the weak link;
+  swapping the decoder is a large, clearly visible jump (practitioner-confirmed, not subtle). Use **NVIDIA PiD** (Pixel
+  Diffusion Decoder: latent-conditioned pixel-diffusion decode + super-res in one pass) via **`Merserk/ComfyUI-PiD`**
+  (MIT, Comfy-Org/PixelDiT loading; prefer over `tsolful/ComfyUI-PiD`, which is thinner + license "other"). **Build it:**
+  PiD needs the latent AND its sigma, so replace the stock `KSampler -> VAEDecode` tail with `PiD KSampler Capture` (a
+  drop-in sampler, outputs `pid_latent` + `pid_sigma`) -> `PiD Decode` (latent + caption + sigma -> `IMAGE`), caption from
+  `PiD Text Prompt`. Krea 2 rides the Qwen-Image VAE latent, so use PiD's Qwen-Image path at `model_precision=bf16` (fp8 is
+  Flux-only); weights auto-download (`auto_download=true`) into `models/vae/nvidia_pid/`. Simpler alternative: swap the VAE
+  node for the **WAN 2.1 VAE**. (PiD's official backbones are flux/flux2/sd3/zimage; Krea 2 is community-applied, works very
+  well.) Sources: github.com/Merserk/ComfyUI-PiD ; github.com/nv-tlabs/PiD ; Reddit r/StableDiffusion 1ue8rns ; t.me/GreenNeuralRobots/12656.
+- **Reference-image control (image+mask), buildable:** `ComfyUI-Krea2TextEncoder` (ethanfel, MIT) adds the
+  **`TextEncodeKrea2`** node (category `model/conditioning/krea2`). **Wire it in place of the text encode:** inputs `clip`
+  (the Krea2 CLIP) + `prompt` (multiline) + optional reference pairs `image1`/`mask1` (a fresh `image2`/`mask2` appears as
+  you connect each) + `mask_padding` (0 = tight crop to the mask, ~0.1 = ~10% margin per side); output `CONDITIONING` -> the
+  sampler's positive. It forces the Krea2 descriptor template and routes the reference image+mask through Krea 2's
+  Qwen3-VL-4B vision path, fixing the core `TextEncodeQwenImageEdit` (whose VAE input does nothing, since Krea 2's DiT has no
+  reference-latent slot, and which falls back to the plain Qwen template).
 - **License:** the code is Apache-2.0; the WEIGHTS use the Krea 2 Community License: commercial use needs a separate
   Enterprise License (community use is non-commercial), with acceptable-use / content-filter obligations.
 - **Source:** github.com/krea-ai/krea-2 (incl. `docs/prompting.md`) ; huggingface.co/Comfy-Org/Krea-2 (ComfyUI repackaged) ;

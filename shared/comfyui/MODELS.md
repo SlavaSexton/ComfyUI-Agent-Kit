@@ -381,7 +381,12 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
   no mask, whole-frame, downscale 1), conditioning on the first `F` frames where `(F-1) % 8 == 0` (e.g. 121 / 153 / 185,
   ~7.7s max). Prompt is dual-panel and MUST contain the trigger `ADD WATER`: "Reference shows <dry scene>. Edited shows the
   same scene with water added. ADD WATER <concrete water: type, motion, how it interacts with the subject>. Subject
-  identity, clothing, framing and background are identical to the reference." Run via a V2V IC-LoRA workflow from the
+  identity, clothing, framing and background are identical to the reference." Worked gallery examples (vary the subject +
+  the ADD-WATER clause, keep the wrapper): brown rabbit on mossy rocks -> fast river with white foam over the rocks; hands
+  drawing lines in dry sand -> clear shallow water filling the lines; goats on a dirt path -> shallow clear stream
+  splashing around their hooves; a hand over dry sand -> calm rippling water, hand dipping and dripping; people and a cart
+  in a narrow alley -> murky flood submerging the cart wheels and splashing legs; dogs on a dry pine-needle forest floor ->
+  calm reflective flood, dogs in a shallow marsh. Run via a V2V IC-LoRA workflow from the
   `ComfyUI-LTXVideo` pack (`LTX-2.3_V2V_ICLoRA_Single_Stage_Distilled.json` + `LTXICLoRALoaderModelOnly`); no water-specific
   workflow ships yet. **Strength sweet spot 1.2** (1.0-1.05 natural / identity-safe; 1.1-1.5 hard surface replacement like
   ground -> sea; >= 1.5 maximizes drama but warps faces). **CRITICAL recipe:** render the distilled **stage-1 ONLY at native

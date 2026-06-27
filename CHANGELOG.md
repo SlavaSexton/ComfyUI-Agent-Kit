@@ -14,7 +14,14 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-06-27
+
 ### Added
+- **ComfyUI build paths for entries that were missing them.** Cited the verified ComfyUI graph for
+  model/tool entries that named the model + repo but no build path: official Comfy-Org templates
+  (ChronoEdit, FireRed, Capybara, Bernini-R, VOID, OmniGen2), community nodes (HuMo, SCAIL-2,
+  ChatterBox, Tripo `TripoAPIDraft`, Rodin `mRodin3D_Gen2`, Meshy), and kijai WanVideoWrapper
+  (FlashVSR). Every node class was read from the repo's `NODE_CLASS_MAPPINGS`, not invented.
 - **Krea 2 community ecosystem + LTX-2.3 3DREAL.** Enriched the Krea 2 entry: fal's ~1503 community style LoRAs
   (`ilkerzgi/fal-Krea-2-Style-LoRAs`, trigger at prompt end, scale 1.0-1.25), the weak-VAE workaround (swap the
   Qwen-Image VAE for the WAN 2.1 VAE or NVIDIA PiD / Pixel Diffusion Decoder, `nv-tlabs/PiD`), and reference image+mask
@@ -29,6 +36,22 @@ vx.y.z`), which can become a GitHub Release.
   gated model card: the `ADD WATER` trigger in a dual-panel reference/edited prompt, strength sweet spot 1.2, and the
   critical "distilled stage-1 only at native resolution" recipe (the two-stage upscaler drifts subject identity), plus
   the 6 official gallery example prompts (read from the card's `widget:` frontmatter).
+
+### Fixed
+- **Full-kit audit: 206 entries across 15 sections, adversarially verified.** Each error was
+  re-checked at the primary source before fixing (additive/corrective, no degradation): removed a
+  fabricated "+ ComfyUI nodes" claim (BRIA) and unverified Krea-1 gallery prompts; corrected Grok
+  (five-part to six-part), Seedance (`_real_human` only on r2v/flf2v), ElevenLabs (`duration`
+  0.5-30s), SeedVR2 (4n+1 adds 17), the four Krea-2 LoRA trigger capitalizations, and Meshy
+  (negatives ARE supported); fixed three licenses against the GitHub API (Marigold GPL-3.0, StableX
+  no-LICENSE, Veevee GPL-3.0); Wan2.1-VACE `--model_name` (not `--task`); the LBM weight filename;
+  the DDColor maintained fork; the LivePortrait repo move; and several stale source URLs. Four of
+  the fixes were errors in this release's own new build paths (Bernini-R URL, HuMo modes, SCAIL-2
+  masks, FlashVSR GPU list). The audit also flagged 17 `node template X.md` refs as phantom; they
+  were left untouched, being valid pointers to the external `alexmunteanu/comfyui-anthropic-claude`
+  templates (a false positive, verified present at source).
+- **HF model-card corrections (token-authenticated).** Re-read the full gated cards (frontmatter
+  `widget:` prompts + body) and fixed the entries that had drifted from them.
 
 ## [1.5.0] - 2026-06-25
 

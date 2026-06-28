@@ -1,6 +1,6 @@
 # Model index: every model in the library and what the kit has for it
 
-The template library names **147 distinct models** across 534 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
+The template library names **149 distinct models** across 545 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
 provides: a full prompt recipe in [`MODELS.md`](../skills/comfyui/MODELS.md), an enhancement/utility note, or
 template-only coverage (runnable via a template, no dedicated recipe yet).
 
@@ -10,7 +10,7 @@ template-only coverage (runnable via a template, no dedicated recipe yet).
 | 🔧 **Utility** | enhancement / utility tool, has a "when to use + settings" note (not prompt-driven) |
 | 📋 **Template only** | runnable via a workflow template, no dedicated recipe yet (niche / thin official docs) |
 
-**Totals:** ✅ 66 recipe families (covering ~119 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
+**Totals:** ✅ 67 recipe families (covering ~122 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
 template-only · plus text encoders / inference providers that are not generative models.
 
 **Updated: 2026-06-25.** Every ✅ entry has a current prompting recipe in
@@ -35,6 +35,7 @@ template-only · plus text encoders / inference providers that are not generativ
 | Chroma | Chroma, Chroma1-HD | local |
 | Krea | Krea 2 / FLUX.1 Krea Dev | local |
 | ERNIE-Image | ERNIE-Image (+ Turbo) | local |
+| Boogu | Boogu Image 0.1 (Base / Turbo / Edit) | local |
 
 ### Image (API / closed)
 | Family | Variants seen in templates | Run |

@@ -142,6 +142,16 @@ FLUX prose will not help SDXL).
 - **Setup:** requires Flash Attention installed (a hard dependency, not optional) + CUDA 12.4 recommended; inference auto-downloads `meta-llama/Meta-Llama-3.1-8B-Instruct` as the LLM text encoder, which needs a separate HF token with Meta Llama access approved at huggingface.co/meta-llama/Meta-Llama-3.1-8B-Instruct. License: MIT for the transformer weights; the Llama 3.1 Community License governs the text-encoder component.
 - **Source:** github.com/HiDream-ai/HiDream-I1 ; huggingface.co/HiDream-ai/HiDream-I1-Full.
 
+### Boogu Image 0.1
+- **Prompt style:** natural-language descriptive (Qwen3-VL-8B text encoder); a built-in prompt rewriter (instruction reasoner, Qwen3-VL-32B-Instruct) expands terse inputs, so plain prompts work but detail steers better.
+- **Structure:** subject + scene + style + lighting + composition in complete sentences; the VLM encoder favors natural language over tags.
+- **Strengths:** open-weight Apache-2.0 (commercial-OK, not gated); three variants - Base (quality), Turbo (few-step distilled, competitive with Z-Image-Turbo), Edit (instruction image edit at 1K/1.5K/2K); rides the Qwen3-VL stack + FLUX VAE.
+- **Avoid:** no tag-weighting / bracket syntax (natural language only); negative-prompt support not documented.
+- **Settings:** Base ~50 steps, text_guidance 4.0; Turbo is few-step distilled (ships a turbo LoRA `boogu_image_turbo_lora_rank_128`); Edit at 1K / 1.5K / 2K.
+- **ComfyUI build:** official templates `image_boogu_image_0_1_turbo_t2i.json` (t2i) and `image_boogu_image_0_1_edit.json` (edit). Comfy-Org repack `huggingface.co/Comfy-Org/Boogu-Image`: `diffusion_models/boogu_image_{base,turbo,edit}_fp8_scaled` (bf16 / nvfp4 also) + `text_encoders/qwen3vl_8b_fp8_scaled` + `vae/flux1_vae` (the FLUX ae). GGUF for low VRAM: `realrebelai/Boogu-Image-{Turbo,Edit}_GGUFs`.
+- **License:** Apache-2.0 (commercial use OK), open weights, not gated.
+- **Source:** huggingface.co/Boogu (maker) ; huggingface.co/Comfy-Org/Boogu-Image (ComfyUI repack) ; demo-turbo.boogu.org.
+
 ## Image models (API / closed)
 
 ### Ideogram (2.x and 3.0)
@@ -533,7 +543,7 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
 - **Strengths:** camera-language response (surround, aerial, zoom, pan, follow, handheld); multi-shot consistency; 2.0 native audio with phoneme-level lip-sync (8+ langs), camera-motion replication, beat-synced editing.
 - **Avoid:** stacking motion verbs, vague mood as camera direction; on-screen text and fast hands glitch; set "not fixed camera" when moving. Constraints (3-5 bans) substitute for a negative field.
 - **Settings:** 480/720/1080p, **2.0 now up to 4K** (smoother gradients, richer tones, detail that holds through motion and into post; the templates default to 720p, raise the resolution field for 4K), 24fps; 2-12s (1.0) / 4-15s or auto (2.0); 2.0 inputs up to 9 images / 3 videos / 3 audio (`model.reference_images.image_1..9`, `reference_videos.video_*`, `reference_audios.audio_*`).
-- **2.0 official ComfyUI templates / modes:** T2V, reference-to-video (R2V), first-last-frame (FLF2V); R2V and FLF2V each also ship a `_real_human` variant tuned for realistic people (T2V does not); `api_seedance2_0_t2v.json` + `api_seedance2_0_{r2v,flf2v}(_real_human).json` (Comfy-Org/workflow_templates), plus community storyboard-to-video / character-swap / LLM-prompt-helper.
+- **2.0 official ComfyUI templates / modes:** T2V, reference-to-video (R2V), first-last-frame (FLF2V); R2V and FLF2V each also ship a `_real_human` variant tuned for realistic people (T2V does not); `api_seedance2_0_t2v.json` + `api_seedance2_0_{r2v,flf2v}(_real_human).json` (Comfy-Org/workflow_templates), plus community storyboard-to-video / character-swap / LLM-prompt-helper. A faster, cheaper **Seedance 2.0 Mini** is selectable in the same `ByteDance2TextToVideoNode` / `ByteDance2ReferenceNode` (templates `api_seedance2_0_mini_{t2v,r2v}.json`).
 - **Source:** docs.byteplus.com (Seedance 1.0 / 2.0) ; Comfy-Org/workflow_templates `api_seedance2_0_*` ; ComfyUI "Seedance 2.0 4K is live" announce (2026-06).
 
 ### Luma Ray 2 / Ray 3 (Dream Machine)
@@ -542,6 +552,7 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
 - **Strengths:** photorealism, composable multi-motion camera, Loop + Video Extension (~60s); Ray 3 reasoning + 16-bit EXR HDR.
 - **Avoid:** camera in the prompt text; multiple primary actions; negative phrasing. No negative field, no CFG, no seed, no native audio.
 - **Settings:** 540/720/1080p; 5s or 9s; many aspects; Ray 2 Flash 3x faster; image inputs `frame0`/`frame1`.
+- **ComfyUI:** Ray 3.x runs via `LumaRay32TextToVideoNode` (+ `LumaRay32ExtendVideoNode` to extend a clip, chained by the upstream `generation_id`); template `api_luma_ray3_3_t2v.json`.
 - **Source:** docs.lumalabs.ai/docs/video-generation ; node template `luma.md`.
 
 ### Runway Gen-4 / Gen-4.5
@@ -831,6 +842,7 @@ make it small, then upscale the keeper (e.g. LTX-2.3 at 512 -> Real-ESRGAN x4 ->
   and the motion it caused. Control is a 4-value greyscale "quadmask" (remove / overlap / physically-affected / keep),
   NOT a binary mask or text prompt. Two passes: Pass 1 base, Pass 2 optical-flow refinement for longer/textured clips.
   Source: docs.comfy.org/tutorials/utility/void-video-inpainting. **ComfyUI build:** the linked tutorial IS the official Comfy-Org template - open it for the quadmask input node and the two-pass (generate + optical-flow refine) graph.
+- **Qwen3-VL TextGenerate** (in-graph local VLM, NOT an image/video model): a `TextGenerate` node fed by `CLIPLoader(qwen3vl_4b_fp8_scaled.safetensors)` runs Qwen3-VL locally to generate text from a prompt + optional `image` / `video` / `audio` input. Use it in-graph for captioning, VQA, or prompt generation / rewriting with no API call. Params: `max_tokens` (def 512), `temperature` 0.7, `top_k` 64, `top_p` 0.95. Template `llm_qwen3vl_text_gen.json`; weights `Comfy-Org/Qwen3-VL` (Apache-2.0). The local, no-cost counterpart to the in-graph Claude / API prompt nodes.
 
 ## Sources and provenance
 

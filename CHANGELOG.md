@@ -14,6 +14,16 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-06-27
+
+### Added
+- **Four new models from the official Comfy source sweep** (the pre-release check that the v1.6.x cuts had skipped; run now against the live `Comfy-Org/workflow_templates` + blog):
+  - **Boogu Image 0.1** - new open-weight (Apache-2.0, not gated) image recipe: Base / Turbo (few-step distilled) / Edit variants, Qwen3-VL-8B text encoder + FLUX VAE, official Comfy-Org templates, GGUF for low VRAM. Recipe families 66 -> 67.
+  - **Seedance 2.0 Mini** - faster, cheaper variant noted in the Seedance entry (same `ByteDance2*Node`, `api_seedance2_0_mini_{t2v,r2v}` templates).
+  - **Luma Ray 3.3** - added to the Luma entry via `LumaRay32TextToVideoNode` (+ the extend node, chained by `generation_id`).
+  - **Qwen3-VL TextGenerate** - in-graph local VLM (caption / VQA / prompt generation), the no-API counterpart to the Claude prompt nodes.
+  Counts refreshed everywhere (67 recipes, 545 templates, 149 models) including the cover and both breakdown charts, recomputed from the official template manifest. The REDACTED side was clean (export already triaged through its latest message).
+
 ## [1.6.1] - 2026-06-27
 
 ### Fixed

@@ -118,6 +118,15 @@ Inpainting or detail-fixing a small region of a large image directly is wasteful
 
 Sources: github.com/HallettVisual/ComfyUI-Smart-Image-Crop-and-Stitch ; Comfy Registry: comfyui-inpaint-cropandstitch.
 
+## Combine two specific people (multi-reference identity compositing)
+
+Putting two named faces (the user + a target person) into one believable image is reference-conditioning, not a from-scratch prompt. Recipe (adapted from `Comfy-Org/comfy-skills`, MIT):
+- **Two real references are essential.** Without a reference of the second person the model leans on training data and misses the likeness. Have only a name? Generate a clean reference portrait first (Nano Banana 2 / Pro, or a strong edit model), then feed THAT back as reference 2.
+- **Batch then edit.** Combine both refs with `ImageBatch` (`image1` = the user, `image2` = the other person) and feed the batch into a reference-capable edit model.
+- **Face accuracy (from testing):** Nano Banana 2 at `thinking_level: HIGH` (best) > Nano Banana Pro > Kling O3 (`kling-v3-omni`) > FLUX Kontext (single-ref only, moderate) > SDXL img2img (poor). Fully local path: Qwen-Image-Edit handles two-image edits, identity accuracy below Nano Banana 2.
+- **Name which ref is which in the prompt:** "The first image is [A] - reproduce this face EXACTLY (features, hair, ...); the second image shows [B] - reproduce their face exactly; they pose together in [setting], [style]. Important: NO glare on glasses, NO lens reflections." Stating which image is whom dramatically improves the likeness.
+- **Run 3 seeds in parallel** (face reproduction varies by seed), let the user pick, then refine on the same seed (stay close) plus new ones.
+
 ## Tool reference (verified 2026-06, with license)
 
 | Tool | Repo / model | Use | License |

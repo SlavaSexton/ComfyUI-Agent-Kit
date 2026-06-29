@@ -15,6 +15,7 @@ building/running a ComfyUI workflow. Read it first, then act.
 Only this SKILL.md auto-loads; everything else is read when relevant, so route to it instead of leaving it unread:
 
 - **`MODELS.md`** (next to this file) - a named model's prompt recipe + settings; read its entry BEFORE writing the prompt.
+- **`docs/TASKS.md`** - a named common job (generate image / video / audio / 3D, upscale, remove background): the local end-to-end flow for that task, a shortcut layer over this manual.
 - **`docs/MODEL_INDEX.md`** - the full classified list of all 147 models (recipe / utility / template-only); check whether a named model has a recipe, is a utility, or is template-only.
 - **`docs/ADVANCED.md`** - hard tasks: real strengths, gotchas + workarounds, temporal stability, high-detail matting, crop-and-stitch inpaint, PBR, and the verified tool table with licenses.
 - **`docs/KNOWN_ISSUES.md`** - read BEFORE building, so you do not wire around a currently-broken path.
@@ -143,7 +144,11 @@ duplicate the same model); then wire the seam (stage A's final output -> stage B
 own VAE / encoder with it (a Wan VAE is not an SDXL VAE; LTX bundles its VAE in the checkpoint).
 
 **5. Validate before running.** Check: every `class_type` exists in `/object_info`; every input is a literal or a
-`[node, slot]` ref to an existing node; every seam's types match; model filenames exist locally. Then run SMALL /
+`[node, slot]` ref to an existing node; every seam's types match; model filenames exist locally; and the graph has
+at least one INPUT node carrying the user's intent AND at least one OUTPUT/save node wired to the final tensor
+(`SaveImage` / `SaveAudio` / `SaveVideo` / `VHS_VideoCombine`, or a `PreviewImage`). **API / partner nodes (Kling,
+Nano Banana, Veo, Gemini, ...) often emit a tensor but include NO save node by default - add and wire one, or the
+job runs "successfully" and produces nothing retrievable, wasting the compute.** Then run SMALL /
 low-res FIRST to confirm the wiring, before the full render. Emit both formats: GUI to show in the canvas, API to
 run. When unsure of a node's exact inputs/outputs, query `/object_info/<NodeType>` rather than guessing.
 

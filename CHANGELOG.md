@@ -14,6 +14,25 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-06-29
+
+### Added
+- **Task-recipe layer (`docs/TASKS.md`).** A shortcut over the operating manual: each common job (generate
+  image / video / audio / 3D, upscale, remove background) mapped to its local end-to-end flow (find a template,
+  hardware-aware model pick, read the MODELS.md dialect, validate, run small, save). Local-first; complements the
+  model-centric MODELS.md and is wired into the SKILL.md routing map.
+- **Multi-reference identity-compositing technique (`docs/ADVANCED.md`).** Combining two specific faces into one
+  image: two real references + `ImageBatch` + explicit "the first image is X" prompting + the face-accuracy
+  ranking (Nano Banana 2 HIGH thinking > Nano Banana Pro > Kling O3 > FLUX Kontext > SDXL).
+
+### Changed
+- **SKILL.md validation now checks for an output/save node.** Before running, confirm the graph has an input AND
+  an output/save node; API and partner nodes (Kling, Nano Banana, Veo, Gemini, ...) often emit a tensor but include
+  no save node by default, so the job runs and produces nothing retrievable.
+
+The task-layer shape, the save-node guard, and the compositing technique are adapted from `Comfy-Org/comfy-skills`
+(MIT) for the local stack, credited in README + ATTRIBUTION. No files vendored.
+
 ## [1.7.0] - 2026-06-27
 
 ### Added

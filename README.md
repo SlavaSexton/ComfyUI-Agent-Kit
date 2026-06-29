@@ -276,6 +276,8 @@ lifting is theirs. Huge thanks to:
   [jtydhr88 / Terry Jia](https://github.com/jtydhr88), the node-building skills (Layer 4).
 - **[workflow_templates](https://github.com/Comfy-Org/workflow_templates)** by Comfy-Org, the template library
   that is the source of truth.
+- **[comfy-skills](https://github.com/Comfy-Org/comfy-skills)** by Comfy-Org, whose output-node validation guard
+  and multi-reference compositing technique this kit adapts (for the local stack) in SKILL.md and ADVANCED.md.
 - **[comfyui-anthropic-claude](https://github.com/alexmunteanu/comfyui-anthropic-claude)** by
   [alexmunteanu](https://github.com/alexmunteanu) and
   **[comfyui_claude_prompt_generator](https://github.com/PauldeLavallaz/comfyui_claude_prompt_generator)** by

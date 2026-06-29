@@ -69,3 +69,10 @@ and points to it, vendoring nothing.
 documentation and model cards, the ComfyUI tutorials at docs.comfy.org, and the per-model prompt templates from
 the `anthropic-claude` node (credited above). Its own "Sources and provenance" section lists the makers. Model
 specs change over time, so each entry links its official source for re-verification.
+
+## Adapted patterns (no files vendored)
+
+Two patterns are adapted from **`Comfy-Org/comfy-skills`** (Comfy Org, MIT, https://github.com/Comfy-Org/comfy-skills):
+the "validate the graph has an output/save node before running, since API and partner nodes omit one" guardrail in
+`SKILL.md`, and the multi-reference identity-compositing technique in `docs/ADVANCED.md`. Their repo targets Comfy
+Cloud (a hosted MCP); the patterns are re-expressed here for the local stack. No files are copied or vendored.

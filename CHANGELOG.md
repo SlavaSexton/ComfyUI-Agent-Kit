@@ -14,6 +14,10 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+### Added
+- **Node knowledge library (`docs/NODE_LIBRARY/`).** A per-node reference in the spirit of The Foundry's Nuke node docs: for each node, what each input / output is for, how it behaves, strengths, bugs + fixes, anti-patterns, and where it slots in a graph. Live I/O stays sourced from `get_node_info` / `/object_info`; the library holds the durable curated layer on top. Ships the index (`_INDEX.md`), the format + rules (`_SCHEMA.md`), the core text-to-image chain (`core.md`, all I/O confirmed on ComfyUI 0.25.1), and color / transform (`color-and-transform.md`). Routed from `SKILL.md`; grows on encounter (use or meet an undocumented node, add its entry).
+- **Log-space transform technique.** Manual (non-AI) pixel geometry (scale, rotate, distort, warp, skew, any resample) should be done in a log-encoded space (Linear->Log, transform, Log->Linear) to preserve highlight / shadow detail, a Nuke / OCIO production practice. Documented in `docs/ADVANCED.md` and `docs/NODE_LIBRARY/color-and-transform.md`, with the native EXR / linear path via `SaveImageAdvanced`.
+
 ## [1.9.0] - 2026-06-29
 
 ### Added

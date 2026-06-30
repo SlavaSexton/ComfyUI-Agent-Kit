@@ -1,39 +1,50 @@
 #!/usr/bin/env python3
 """
 Workflow layout: auto-arrange a ComfyUI (litegraph UI-format) node graph so nodes NEVER overlap, the flow
-reads left-to-right by dependency depth, parallel branches stack vertically, and edge crossings are minimised.
-Plus a code-only inspector so layout is verified from the JSON coordinates, never from a screenshot (cheap,
-deterministic, no tokens spent looking at the canvas).
+reads left-to-right by dependency depth, parallel branches stack vertically (left-aligned per column), and a
+node with a shared input/output sits in the MIDDLE of what it connects to. Plus a code-only inspector so
+layout is verified from the JSON coordinates, never from a screenshot (cheap, deterministic, no tokens spent
+looking at the canvas, and clients hit the same wall reading a canvas).
 
-Rules implemented (a layered / Sugiyama layout):
+Rules implemented (a layered / Sugiyama layout with barycenter coordinate assignment):
   - Columns by dependency depth: sources on the left, each node one column right of its deepest input.
-  - Within a column, nodes stack top-to-bottom with a gap >= node height, so two nodes can never overlap.
-  - Column order is reordered by the median of connected nodes (barycenter passes) to reduce branch crossings.
-  - Node sizes are estimated from real widget / slot counts (a CDL with 12 widgets is tall), so the spacing
-    matches what ComfyUI will actually render. Auto-layout also writes the estimated size back onto each node
-    so the canvas and the layout agree.
+    Next column clears the WIDEST node in the current one, so a wide node never overlaps the column to its
+    right. Nodes in a column share the same x (left-aligned).
+  - Within a column, nodes keep a vertical gap >= node height, so two nodes can never overlap.
+  - Coordinate assignment centers every node on the nodes it connects to: a single input that fans out to N
+    nodes sits at their vertical middle (not at the top); a sink fed by N nodes sits at their middle; a node
+    sits aligned with its one neighbour. Then each column is de-overlapped, preserving order.
+  - Node sizes are estimated from real widget / slot counts AND from whether the node renders a big image
+    preview (PreviewImage, LoadImage, etc. are ~230px taller than their widgets imply). Auto-layout writes
+    the estimated size back so the canvas and the layout agree.
 
 Usage:
   from workflow_layout import auto_layout, inspect
-  wf = auto_layout(wf)                  # returns the same dict with new pos/size, no overlaps
-  rep = inspect(wf); print(rep["summary"])   # overlaps / crossings / bounds, all from coordinates
+  wf = auto_layout(wf)                        # same dict, new pos/size, no overlaps
+  print(inspect(wf)["summary"])               # overlaps / crossings / bounds, all from coordinates
 
 CLI:
-  python workflow_layout.py graph.json            # inspect only (report overlaps + crossings)
-  python workflow_layout.py graph.json --apply     # auto-layout in place (writes graph.json)
+  python workflow_layout.py graph.json                 # inspect only
+  python workflow_layout.py graph.json --apply          # auto-layout in place
   python workflow_layout.py graph.json --apply --out fixed.json
 """
 import json
 import sys
 
 # litegraph-approximate metrics (px)
-TITLE_H = 30
+TITLE_H = 32
 SLOT_H = 22          # per i/o row (rows = max(inputs, outputs))
 WIDGET_H = 26        # per widget row
-PAD_H = 14
-H_GAP = 90           # horizontal gap between columns
-V_GAP = 50           # vertical gap between stacked nodes
+PAD_H = 16
+H_GAP = 110          # horizontal gap between columns
+V_GAP = 55           # vertical gap between stacked nodes
 DEFAULT_W = 250
+# nodes that render a large image / preview area, far taller than their widget count implies
+IMAGE_PREVIEW_TYPES = {
+    "PreviewImage", "SaveImage", "LoadImage", "PreviewAny", "MaskPreview", "Preview3D", "Load3D",
+    "SaveAnimatedWEBP", "VHS_VideoCombine", "ImageCompare", "SaveImageWebsocket", "SaveVideo", "PreviewVideo",
+}
+IMAGE_PREVIEW_H = 230
 
 
 def _pos(node):
@@ -44,13 +55,14 @@ def _pos(node):
 
 
 def est_size(node):
-    """Estimate (w, h) the node will render at in ComfyUI, from its slots and widgets."""
+    """Estimate (w, h) the node renders at in ComfyUI, from its slots, widgets, and image-preview area."""
     n_in = len(node.get("inputs", []) or [])
     n_out = len(node.get("outputs", []) or [])
     n_widg = len(node.get("widgets_values", []) or [])
     rows = max(n_in, n_out)
     h = TITLE_H + rows * SLOT_H + n_widg * WIDGET_H + PAD_H
-    # keep a declared size if it is taller/wider (the node may know better)
+    if node.get("type") in IMAGE_PREVIEW_TYPES:
+        h += IMAGE_PREVIEW_H
     sz = node.get("size")
     if isinstance(sz, dict):
         sz = [sz.get("0"), sz.get("1")]
@@ -63,7 +75,7 @@ def est_size(node):
 
 
 def _edges(wf):
-    """Return list of (src_id, dst_id) from the links array (litegraph: [lid, src, sslot, dst, dslot, type])."""
+    """(src_id, dst_id) per link. litegraph link: [lid, src, sslot, dst, dslot, type]."""
     out = []
     for lk in wf.get("links", []) or []:
         if isinstance(lk, list) and len(lk) >= 5:
@@ -80,7 +92,7 @@ def inspect(wf):
     box = {}
     for nid, n in nodes.items():
         x, y = _pos(n)
-        w, h = est_size(n)  # real render footprint (widget-driven), not the optimistic declared size
+        w, h = est_size(n)  # real render footprint, not the optimistic declared size
         box[nid] = (x, y, x + float(w), y + float(h))
 
     ids = list(box)
@@ -94,7 +106,6 @@ def inspect(wf):
             if ox > 0 and oy > 0:
                 overlaps.append((ids[i], ids[j], round(ox * oy)))
 
-    # edge crossings: segment-intersection between right-edge of src and left-edge of dst
     def seg(a, b):
         ax0, ay0, ax1, ay1 = box[a]
         bx0, by0, bx1, by1 = box[b]
@@ -113,7 +124,7 @@ def inspect(wf):
     for i in range(len(segs)):
         for j in range(i + 1, len(segs)):
             if edges[i][0] in edges[j] or edges[i][1] in edges[j]:
-                continue  # shared endpoint, not a crossing
+                continue
             if crosses(segs[i], segs[j]):
                 crossings += 1
 
@@ -146,7 +157,7 @@ def auto_layout(wf, origin=(40, 40)):
         if nid in rank:
             return rank[nid]
         if nid in seen:
-            return 0  # cycle guard (DAG expected)
+            return 0
         seen = seen | {nid}
         r = 0 if not pred[nid] else 1 + max(depth(p, seen) for p in pred[nid])
         rank[nid] = r
@@ -155,49 +166,81 @@ def auto_layout(wf, origin=(40, 40)):
     for nid in nodes:
         depth(nid, set())
 
-    layers = {}
+    order = {}
     for nid, r in rank.items():
-        layers.setdefault(r, []).append(nid)
+        order.setdefault(r, []).append(nid)
+    for r in order:
+        order[r].sort()
 
-    # 2. ordering within each layer: barycenter passes to reduce crossings
-    order = {r: sorted(layers[r]) for r in layers}
-    pos_in_layer = {nid: i for r in order for i, nid in enumerate(order[r])}
+    # 2. ordering within a layer: barycenter passes to reduce crossings
+    pil = {nid: i for r in order for i, nid in enumerate(order[r])}
     for _ in range(4):
         for r in sorted(order):
-            if r == 0:
-                continue
-            order[r].sort(key=lambda n: (
-                sum(pos_in_layer[p] for p in pred[n]) / len(pred[n]) if pred[n] else pos_in_layer[n]))
-            for i, nid in enumerate(order[r]):
-                pos_in_layer[nid] = i
+            if r > 0:
+                order[r].sort(key=lambda n: (sum(pil[p] for p in pred[n]) / len(pred[n]) if pred[n] else pil[n]))
+                for i, nid in enumerate(order[r]):
+                    pil[nid] = i
         for r in sorted(order, reverse=True):
-            if not succ:
-                break
-            order[r].sort(key=lambda n: (
-                sum(pos_in_layer[s] for s in succ[n]) / len(succ[n]) if succ[n] else pos_in_layer[n]))
+            order[r].sort(key=lambda n: (sum(pil[s] for s in succ[n]) / len(succ[n]) if succ[n] else pil[n]))
             for i, nid in enumerate(order[r]):
-                pos_in_layer[nid] = i
+                pil[nid] = i
 
-    # 3. set sizes, then assign coordinates (x by column width, y stacked with gaps)
+    # 3. sizes, then x by column width (next column clears the widest node in this one)
     for n in nodes.values():
         n["size"] = est_size(n)
+    H = {nid: nodes[nid]["size"][1] for nid in nodes}
 
     ox, oy = origin
     col_x = {}
     x = ox
     for r in sorted(order):
         col_x[r] = x
-        col_w = max((nodes[nid]["size"][0] for nid in order[r]), default=DEFAULT_W)
-        x += col_w + H_GAP
+        x += max((nodes[nid]["size"][0] for nid in order[r]), default=DEFAULT_W) + H_GAP
 
+    # 4. y: stack each column, then center each node on its neighbours (shared input/output -> middle),
+    #    de-overlapping each column on every pass. A few passes converge.
+    ypos = {}
     for r in sorted(order):
         y = oy
         for nid in order[r]:
-            n = nodes[nid]
-            n["pos"] = [round(col_x[r]), round(y)]
-            y += n["size"][1] + V_GAP
+            ypos[nid] = y
+            y += H[nid] + V_GAP
 
-    # refresh last_node_id / last_link_id if present (harmless)
+    def ctr(nid):
+        return ypos[nid] + H[nid] / 2.0
+
+    def place(col, desired):
+        """Lay a column out as a non-overlapping stack, then shift the whole block so its centroid matches the
+        mean desired center (centers a shared input/output on what it connects to; no downward drift)."""
+        col = sorted(col, key=lambda n: desired.get(n, ypos[n]))
+        tmp = {}
+        y = 0.0
+        for nid in col:
+            tmp[nid] = y
+            y += H[nid] + V_GAP
+        cur = sum(tmp[n] + H[n] / 2.0 for n in col) / len(col)
+        des = sum(desired.get(n, ctr(n)) for n in col) / len(col)
+        sh = des - cur
+        for nid in col:
+            ypos[nid] = tmp[nid] + sh
+        return col
+
+    cols = sorted(order)
+    for _ in range(10):
+        for r in cols:  # forward: center each node on its predecessors
+            desired = {n: sum(ctr(p) for p in pred[n]) / len(pred[n]) for n in order[r] if pred[n]}
+            order[r] = place(order[r], desired)
+        for r in reversed(cols):  # backward: center each node on its successors
+            desired = {n: sum(ctr(s) for s in succ[n]) / len(succ[n]) for n in order[r] if succ[n]}
+            order[r] = place(order[r], desired)
+
+    if ypos:
+        shift = oy - min(ypos.values())
+        for nid in ypos:
+            ypos[nid] += shift
+
+    for nid, n in nodes.items():
+        n["pos"] = [round(col_x[rank[nid]]), round(ypos[nid])]
     return wf
 
 
@@ -225,6 +268,8 @@ if __name__ == "__main__":
         wf = auto_layout(wf)
         after = inspect(wf)
         print("AFTER :", after["summary"])
+        if after["overlaps"]:
+            print("  STILL overlapping:", after["overlaps"][:12])
         with open(out, "w", encoding="utf-8") as f:
             json.dump(wf, f, indent=2)
         print("wrote:", out)

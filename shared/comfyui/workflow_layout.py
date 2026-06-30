@@ -31,20 +31,23 @@ CLI:
 import json
 import sys
 
-# litegraph-approximate metrics (px)
-TITLE_H = 32
-SLOT_H = 22          # per i/o row (rows = max(inputs, outputs))
-WIDGET_H = 26        # per widget row
-PAD_H = 16
-H_GAP = 110          # horizontal gap between columns
-V_GAP = 55           # vertical gap between stacked nodes
+# litegraph-approximate metrics (px). Estimates are deliberately GENEROUS: if a node renders SHORTER than the
+# estimate the only cost is empty space, but if it renders TALLER than the estimate it overlaps the node below.
+# The extra headroom also covers widgets added by a node's own JS at runtime (e.g. the OCIO swap button), which
+# are not in widgets_values and so are invisible to this estimator.
+TITLE_H = 36
+SLOT_H = 24          # per i/o row (rows = max(inputs, outputs))
+WIDGET_H = 30        # per widget row
+PAD_H = 28           # base padding + headroom for a possible runtime-added button row
+H_GAP = 120          # horizontal gap between columns
+V_GAP = 70           # vertical gap between stacked nodes
 DEFAULT_W = 250
 # nodes that render a large image / preview area, far taller than their widget count implies
 IMAGE_PREVIEW_TYPES = {
     "PreviewImage", "SaveImage", "LoadImage", "PreviewAny", "MaskPreview", "Preview3D", "Load3D",
     "SaveAnimatedWEBP", "VHS_VideoCombine", "ImageCompare", "SaveImageWebsocket", "SaveVideo", "PreviewVideo",
 }
-IMAGE_PREVIEW_H = 230
+IMAGE_PREVIEW_H = 260
 
 
 def _pos(node):

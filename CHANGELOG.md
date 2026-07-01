@@ -14,6 +14,30 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+### Added
+- **LTX-2.3 360 VR / equirectangular panorama (field technique).** Documented two community routes to a full
+  360 equirect VR video on LTX-2.3 - text-to-360 via a 360 LoRA (the route in a Floyo-platform template) and
+  flat-to-360 outpaint via the public `TheBurgstall/VR-360-Outpaint-LTX2.3-IC-LoRA` (`cc-by-nc-4.0`, v0.1
+  proof-of-concept) - plus the `panorama-stickers` pack (`nomadoor/ComfyUI-Panorama-Stickers`, Comfy Registry
+  v1.2.3, node `PanoramaPreview`) for in-canvas 360 preview. Added under the LTX-2.3 field techniques in
+  MODELS.md. Neither route is official Lightricks; the Floyo text-to-360 LoRA has no confirmed public download
+  (noted inline), and the Floyo template's 19B-dev-checkpoint / 22B-named-LoRA mismatch is flagged with the
+  standard-install path.
+- **Flux2-Klein-9B-True-V3 (community fine-tune) recipe.** A wikeeyang aesthetics / composition fine-tune of
+  FLUX.2 [Klein] 9B (text-to-image + prompt-only instruct edit + LoRA face-swap / try-on + Mask+LoRA regional
+  edit), with its full quant ladder (`bf16` / `fp8mixed` / `int8mixedrow` / `INT8-ConvRot` / `mxfp8` / `nvfp4` /
+  GGUF `Q4_K..Q8_0`). Added under FLUX.2 in MODELS.md, with a license caveat: the card is tagged Apache-2.0 but
+  the weights derive from FLUX.2 [Klein], so verify the base license before commercial use.
+- **INT8 inference acceleration note (ADVANCED.md).** INT8 weight quantization is now native in ComfyUI
+  (~1.5-2x over fp8 on 40-series+ per the source pack), which largely supersedes the `ComfyUI-INT8-Fast` pack;
+  documented when to use the native loader vs the pack, the loader/naming mismatch, and `convert_to_comfy.py`
+  for old quants, using the Flux2-Klein-V3 dual INT8 quants as the worked example.
+
+Recipe / model counts are unchanged (still 68 recipes / 149 models): these are field additions inside existing
+families (FLUX.2, LTX-2.3) and one acceleration tool - a community fine-tune, a community LoRA technique, and a
+tool - which are excluded from the public numbers by the same rule as the kijai ecosystem and private / client
+-trained models. The cover banner therefore does not change.
+
 ## [2.1.3] - 2026-07-01
 
 ### Fixed

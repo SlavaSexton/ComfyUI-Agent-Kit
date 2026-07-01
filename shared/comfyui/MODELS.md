@@ -75,6 +75,18 @@ FLUX prose will not help SDXL).
   weights), **Ref / Mask Ref Controllers**, and an experimental resolution-aware Euler sampler. No extra Python deps.
   **License: PolyForm Noncommercial 1.0.0 (personal/research free; commercial use needs a separate license).**
   Community workflows, not official BFL recipes.
+- **Community fine-tune - Flux2-Klein-9B-True-V3 (wikeeyang):** an aesthetics / composition fine-tune of
+  `black-forest-labs/FLUX.2-klein-9B` (base_model_relation: finetune; card labeled `apache-2.0`, en/zh,
+  text-to-image). V3 markedly improves aesthetics and composition over V1/V2 per the card's comparison grids. It
+  does text-to-image, prompt-only **instruct editing** (edit an input image from a plain instruction, no
+  ControlNet), and with a companion LoRA **face-swap / try-on / try-off** (`bfs_head_v1` at ~0.75) plus **Mask +
+  LoRA** regional editing. Prompt it like Flux.2 [Klein]. Ships a wide quant ladder so it fits most cards: `bf16`
+  (full), `fp8mixed`, **`int8mixedrow`** (loads with ComfyUI's OFFICIAL / native INT8 loader), **`INT8-ConvRot`**
+  (loads with the third-party `ComfyUI-INT8-Fast`; quant by Milor123), `mxfp8`, `nvfp4`, and GGUF
+  `Q4_K/Q5_K/Q6_K/Q8_0`; the card claims INT8 is ~2x faster than fp8 at low quality loss (see ADVANCED.md "INT8
+  acceleration"). LICENSE CAVEAT (inferred): the card is tagged Apache-2.0, but the weights derive from FLUX.2
+  [Klein] - confirm the base Klein license before commercial use rather than trusting the fine-tune's tag alone.
+  Mirrors on HF + Modelscope. Source: huggingface.co/wikeeyang/Flux2-Klein-9B-True-V3.
 - **Source:** docs.bfl.ml/guides/prompting_guide_flux2 ; github.com/black-forest-labs/skills ; github.com/capitan01R/ComfyUI-Flux2Klein-Enhancer (Klein enhancer suite, PolyForm NC).
 
 ### FLUX.1 Kontext (image edit)
@@ -478,6 +490,24 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
     nodes for audio-segment render loops, storyboard scheduling, and motion transfer for long-form audio-driven video.
     CAVEAT: users report the storyboard variant's custom-audio path can produce noise, so test the audio leg on a short
     clip first. Status: community-endorsed (widely used in production), NOT independently benchmarked by this kit.
+  - **Text / footage to 360 VR (equirectangular panorama):** LTX-2.3 can render a full 360 equirectangular
+    video (2:1, look-around VR) with synced audio via a 360-trained LoRA; preview it in-canvas with the
+    **`panorama-stickers`** pack (`nomadoor/ComfyUI-Panorama-Stickers`, on the Comfy Registry v1.2.3, node
+    `PanoramaPreview` - projects the flat equirect frame onto a draggable 360 sphere so you can judge VR
+    coverage without a headset). Two community routes, both on LTX-2.3, NEITHER official Lightricks: (a) **text
+    -> 360** - a text-to-360 LoRA at strength ~0.6 over the base t2v graph (Gemma-3 text encoder + the spatial
+    x2 upscaler), stacked with the distilled speed LoRA (~0.5); this is the route in a Floyo-platform template,
+    whose LoRA file (`LTX2.3_360vr-...-for-text-to-360-*.safetensors`) is Floyo-hosted and I could NOT confirm a
+    canonical public download (inferred - if you lack it, train an equirect LoRA with the LTX-2 trainer, or use
+    route b). Note the Floyo template pairs a 19B-dev checkpoint with 22B-named LoRAs (platform-internal naming);
+    on a standard install use the LTX-2.3 22B base + the ComfyUI-LTXVideo LoRA loader. (b) **flat footage -> 360
+    outpaint** - `TheBurgstall/VR-360-Outpaint-LTX2.3-IC-LoRA` (public, `cc-by-nc-4.0`, **v0.1 proof-of-concept**,
+    file `ltx-2.3-22b-ic-lora-360-equirect-poc-step3500.safetensors`): an IC-LoRA that takes a flat 2.39:1 clip +
+    a masked equirect reference and fills the unknown regions into a plausible 360 sphere (ready graphs
+    `Equirect-Outpaint.json` / `Burgstall-VR-Outpaint.json` ship in the repo). Expect rough edges outside its
+    sweet spot; noncommercial only. For either route prompt a "seamless equirectangular 2:1 360 panorama" and keep
+    width/height divisible by 32. Source: registry.comfy.org/nodes/panorama-stickers ;
+    github.com/nomadoor/ComfyUI-Panorama-Stickers ; huggingface.co/TheBurgstall/VR-360-Outpaint-LTX2.3-IC-LoRA.
 - **Train a custom LTX-2 LoRA (own character / style / motion / control):** that is the official Lightricks trainer
   (`Lightricks/LTX-2`, `packages/ltx-trainer`) + their `train-model` Claude skill, NOT ComfyUI; the trained
   `.safetensors` LoRA loads back here via the ComfyUI-LTXVideo loader. Needs Linux + CUDA + >= 32 GB VRAM per GPU

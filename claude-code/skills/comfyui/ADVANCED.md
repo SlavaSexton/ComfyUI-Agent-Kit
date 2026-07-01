@@ -64,6 +64,17 @@ The 2026 stack moved from SD-era flow hacks to native video models. Honest hiera
 - **Tiled detail at high res:** **Ultimate SD Upscale** (`ssitu/ComfyUI_UltimateSDUpscale`, GPL-3.0) or **Tiled Diffusion / MultiDiffusion + Tiled VAE** (`shiimizu/ComfyUI-TiledDiffusion`; note the MultiDiffusion part is CC-BY-NC-SA). Kill seams with a **ControlNet Tile** (conditions each tile on the source colors, the single biggest seam/drift reducer), higher tile overlap + mask blur, low denoise (~0.2-0.35), or SpotDiffusion / Context-Only-Overlap. For max detail prefer **upscale-then-refine** (ESRGAN-class upscale -> tiled img2img refine at low denoise) over hi-res fix.
 - **Detail injection (training-free):** **Detail Daemon** (`Jonseed/ComfyUI-Detail-Daemon`, MIT; biases the sigma schedule to keep fine detail, adds no noise), the **PAG / SEG / NAG / FDG** family (`pamparamm/sd-perturbed-attention`, MIT), and **FreeU** (core node). All are tuning knobs that can over-sharpen or over-saturate.
 - **Precision:** fidelity is fp32 >= bf16 >= fp8. Decode the VAE in fp32 or bf16, never fp16 for VFX. fp8 speeds sampling on FP8-tensor-core GPUs but loses quality (mostly in the UNet).
+- **INT8 acceleration (faster than fp8 on 40-series+, small quality loss):** INT8 weight quantization is now
+  **native in ComfyUI** (merged upstream) - an `int8mixedrow`-style checkpoint loads with the stock loader and,
+  per the source pack, runs ~1.5-2x faster than fp8 on 40-series and newer tensor cores, with quality loss the
+  model authors report as small. The community pack **`BobJohnson24/ComfyUI-INT8-Fast`** pioneered this (speeds
+  up Flux.2 / Ideogram4 / Chroma / Z-Image / Ernie Image, works with LoRA + `torch.compile`, and fixed LTX-2.x
+  `.bias`-layer OOM), but with INT8 in core it is now **largely superseded** - prefer a native-format INT8
+  checkpoint, and keep the pack only for older INT8-Fast quants (convert them with its `convert_to_comfy.py`) or
+  its pre-LoRA path. Loader/naming matters: a quant packaged for one loader may not load in the other (the pack's
+  own note), so match the file to the loader - e.g. `Flux2-Klein-9B-True-V3` ships BOTH `int8mixedrow` (native
+  loader) AND `INT8-ConvRot` (INT8-Fast). Quality still trails bf16/fp16, so keep INT8 for speed passes, not
+  final-grade VFX plates. Source: github.com/BobJohnson24/ComfyUI-INT8-Fast ; huggingface.co/wikeeyang/Flux2-Klein-9B-True-V3.
 - **Color and bit depth:** SaveImage clamps to 8-bit PNG by default (banding on gradients/depth). For VFX use 32-bit EXR I/O: **`spacepxl/ComfyUI-HQ-Image-Save`** (32-bit float EXR for images AND latents, `%04d` sequences, MIT) and **`Conor-Collins/ComfyUI-CoCoTools_IO`** (Load EXR Sequence, EXR layer / Cryptomatte, OCIO colorspace sRGB / Linear / ACEScg, MIT). Convert sRGB -> Linear before saving a linear EXR or you double-apply gamma.
 - **Samplers for detail:** `dpmpp_2m` (or `_sde`) with the **Karras** scheduler spends more steps in the low-sigma region where fine detail forms; ~20-35 steps is the sweet spot, more is diminishing returns.
 - **The core tension:** per-frame max detail flickers; cross-frame stability blurs detail. Resolve it three ways: (a) a sequence-native upscaler that does both (**SeedVR2**, batch >= 5, `temporal_overlap`); (b) lock structure (low denoise + ControlNet Tile) and vary only fine detail; (c) detail-pass then a light deflicker. The deflicker window and SeedVR2 batch size are the explicit dials.

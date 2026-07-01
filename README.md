@@ -82,6 +82,8 @@ guide to building your own custom nodes.
 
 </div>
 
+<br>
+
 | Layer | What | Installed as |
 |------:|------|--------------|
 | 1 | **Knowledge + client** the operating manual and a zero-dependency HTTP client | the agent's skill / extension dir |

@@ -10,7 +10,7 @@ template-only coverage (runnable via a template, no dedicated recipe yet).
 | 🔧 **Utility** | enhancement / utility tool, has a "when to use + settings" note (not prompt-driven) |
 | 📋 **Template only** | runnable via a workflow template, no dedicated recipe yet (niche / thin official docs) |
 
-**Totals:** ✅ 67 recipe families (covering ~122 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
+**Totals:** ✅ 68 recipe families (covering ~123 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
 template-only · plus text encoders / inference providers that are not generative models.
 
 **Updated: 2026-06-25.** Every ✅ entry has a current prompting recipe in
@@ -72,7 +72,7 @@ template-only · plus text encoders / inference providers that are not generativ
 |---|---|---|
 | Kling | Kling 1.6, 2.0, 2.6, 3.0, O1, O3 | API |
 | Veo | Veo 3 / 3.1 | API |
-| Gemini Omni Flash (Google) | any-to-any video + conversational edit, audio-native; NOT in official templates - Comfy Cloud or third-party muapi only | API |
+| Gemini Omni Flash (Google) | any-to-any T2V / I2V / video-edit, audio-native; official node `GeminiVideoOmni` + templates `api_google_gemini_omni_flash_*` (needs a current ComfyUI) | API |
 | Sora | Sora 2 | API |
 | Seedance | Seedance 1.0 Pro, 1.5 Pro, 2.0 (4K) | API |
 | Luma | Luma Ray, UNI-1 | API |

@@ -45,7 +45,7 @@ guide to building your own custom nodes.
   Claude Code is covered too. ([docs/AGENTS.md](docs/AGENTS.md))
 - **~90-tool MCP driver.** The agent operates ComfyUI directly: generate, build / edit / validate graphs, queue,
   download models, manage VRAM, read logs, diagnose.
-- **Per-model "mega-brain":** 67 prompt recipes distilled from **official sources** (image, video, audio, 3D);
+- **Per-model "mega-brain":** 68 prompt recipes distilled from **official sources** (image, video, audio, 3D);
   the agent auto-pulls the right recipe when you name a model, so it prompts each one in its own dialect.
 - **Knows where each model runs:** a [full index](docs/MODEL_INDEX.md) of all 149 library models (recipe /
   utility / template-only), local vs API.
@@ -116,7 +116,7 @@ prompting reference distilled from **official sources** (each maker's docs and m
 the per-model templates from the `anthropic-claude` node). When you name a model in a request or a workflow,
 the agent reads that model's entry first and prompts it correctly.
 
-Covered today (67 models with recipes): FLUX.1/.2 + Kontext, Z-Image, Boogu, Qwen-Image/Edit, SDXL, SD1.5/3.5, HiDream,
+Covered today (68 models with recipes): FLUX.1/.2 + Kontext, Z-Image, Boogu, Qwen-Image/Edit, SDXL, SD1.5/3.5, HiDream,
 Ideogram, Nano Banana Pro/2, Seedream, Recraft, GPT-Image, Grok, Reve, Kandinsky, BRIA, OmniGen, Chroma, Krea 1/2,
 ERNIE-Image, FireRed/LongCat/ChronoEdit (edit), Capybara, Bernini-R, Anima, NewBie, PixelDiT, Ovis-Image, Lens,
 Quiver, Wan 2.1-2.7, LTX-2.3/2 Pro, Hunyuan Video, SVD, Kling, Veo, Sora, Seedance, Luma, Runway, MiniMax, PixVerse,
@@ -221,7 +221,7 @@ Claude Code users can add the kit straight from the marketplace, no clone needed
 ```
 
 That registers the local `comfyui-mcp` driver (launched with `npx`, no manual npm step) and loads the full
-`comfyui` skill (the 67-recipe brain + the docs). You still need a local ComfyUI on `http://127.0.0.1:8188`; the
+`comfyui` skill (the 68-recipe brain + the docs). You still need a local ComfyUI on `http://127.0.0.1:8188`; the
 skill fills in your machine block on the first task. Plugins are Claude Code only, so for **Codex / Gemini CLI /
 Qwen Code** use the multi-agent installer below.
 

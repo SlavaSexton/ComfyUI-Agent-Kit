@@ -27,6 +27,11 @@ This is the portable, machine-independent, **multi-agent** version of a working 
 agents gets the same stack, wired to *your* hardware. GLM (z.ai) run through Claude Code is covered by the
 `claude` adapter. See **[docs/AGENTS.md](docs/AGENTS.md)** for how each agent connects.
 
+**Local-first, for everyday users and experts alike.** It scales from one-command image / video generation to a
+professional VFX color pipeline: v2 ships **[ComfyUI-OCIO](https://github.com/SlavaSexton/ComfyUI-OCIO)** (eight
+Nuke-style OpenColorIO nodes - Read a sequence, grade in ACES, write ProRes, fully color-managed) and the field
+guide to building your own custom nodes.
+
 > **Local-first by design.** Prefer the cloud? The official **Comfy Cloud MCP** runs your workflows on Comfy's
 > GPUs, no local setup. This kit is the local-first counterpart: everything runs on hardware *you* control, with no
 > account and no per-generation cost, the model picker sizes each job to your VRAM, and it serves four agents, not
@@ -51,6 +56,10 @@ agents gets the same stack, wired to *your* hardware. GLM (z.ai) run through Cla
 - **Assembles new workflows from parts:** decomposes a task into stages, mixes templates and blueprint subgraphs,
   and wires the nodes correctly (output-to-input by type, with converters where needed), validated against
   `/object_info` before running. Not a preset runner.
+- **Expert color + custom nodes (new in v2):** ships **[ComfyUI-OCIO](https://github.com/SlavaSexton/ComfyUI-OCIO)**
+  - eight Nuke-style OpenColorIO nodes (Read / Write a still, sequence or video, grade in ACES, write ProRes / EXR,
+  fully color-managed) - and the agent knows each node's I/O plus the field guide to *building* a custom node pack.
+  ([docs/NODE_LIBRARY/ocio.md](docs/NODE_LIBRARY/ocio.md), [docs/BUILDING_NODES.md](docs/BUILDING_NODES.md))
 - **Starts ComfyUI for you:** when the server is down, the agent launches it headless in the background and
   generates (no need to open the app first); to peek, you open `http://127.0.0.1:8188` in a browser. For an
   unattended pipeline the start policy is configurable per project (env vars or a `.comfyui-agent.json`), so it
@@ -286,6 +295,10 @@ generated visuals. Fetched at install time from their own sources (not redistrib
 package, the node-building skills, the workflow templates, and the in-graph Claude nodes.
 
 ## Credits and thanks
+
+**Our own companion pack:** **[ComfyUI-OCIO](https://github.com/SlavaSexton/ComfyUI-OCIO)** - eight Nuke-style
+OpenColorIO nodes - is by **Slava Sexton**, this kit's author (MIT). It is credited to him wherever the kit uses,
+recommends, or builds on it; see **[ATTRIBUTION.md](ATTRIBUTION.md)**.
 
 This kit stands on excellent open-source work. It is a thin wiring layer over these projects, and the heavy
 lifting is theirs. Huge thanks to:

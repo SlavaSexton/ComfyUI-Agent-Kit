@@ -14,6 +14,8 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+## [2.1.4] - 2026-07-01
+
 ### Added
 - **360 / VR equirectangular panorama - Flux.2 Klein AND LTX-2.3 (two separate routes).** The shared
   `nomadoor/ComfyUI-Panorama-Stickers` pack (MIT, Comfy Registry v1.3.0; four ERP nodes: Panorama Stickers /

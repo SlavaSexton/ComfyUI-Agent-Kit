@@ -140,3 +140,39 @@ graph from a screenshot (see SKILL.md "Lay the graph out cleanly"). Bundle any a
 LUT) in the repo and make the paths portable (relative to the input folder), with a one-line "copy these into
 input" note. Then **run the whole workflow once** (convert the UI graph to the `/prompt` API format and enqueue)
 to confirm it opens and executes - that is what the user does.
+
+## Lessons from radiance (reverse-engineered, 2026-07-01)
+
+Patterns worth adopting, learned by reading `fxtdstudios/radiance` (full breakdown in `NODE_LIBRARY/radiance.md`).
+Learn the technique; it is GPL-3.0, so do not copy code verbatim into an MIT pack.
+
+- **A real 32-bit viewer beats a baked thumbnail.** Mount a `<div>` with `node.addDOMWidget("viewer", ...,
+  {serialize:false})` in `onNodeCreated`, instantiate a per-node JS class, and feed frames through the standard
+  `onExecuted(message)`. Render on a **WebGL2 `RGBA32F` / `gl.FLOAT`** texture (gate on `EXT_color_buffer_float`,
+  fall back f32->f16->u8) so exposure / a view transform run in-shader on true float data. Ship HDR pixels to the
+  browser as a small binary sidecar (header + zlib float32), not an 8-bit PNG.
+- **`PromptServer` aiohttp routes for config introspection.** `@PromptServer.instance.routes.get("/mypack/config")`
+  lets the JS populate dropdowns (displays / views / colorspaces) from the ACTUAL loaded config, not a static
+  list. Cheap, high-polish. If a route runs code (`exec`), gate it behind an explicit env var - never open by default.
+- **Cache the expensive object.** An OCIO `getProcessor()` (or a model load) costs 200-500 ms; a thread-safe
+  **bounded-LRU** (OrderedDict + RLock, keyed by every parameter that changes the result) is the single biggest
+  speedup for sequence / video nodes that would otherwise rebuild it per frame.
+- **Float32 hygiene:** keep float32 end-to-end, default any `clamp_output` to **False** (scene-linear has valid
+  negatives and > 1.0 highlights), use a **sign-preserving** power for gamma so HDR survives, and clamp NaN/Inf to
+  **65504** (max half) before an EXR-HALF write. Never let an 8-bit `*255` cast into the processing path.
+- **The log-curve correctness rule:** a piecewise log curve's decode threshold must be `encode(cut)`, computed
+  exactly - NOT a guessed constant. radiance shipped and later fixed 5 curve bugs (operator precedence, wrong
+  `cut_encoded`) that all trace to skipping this. Our OCIO `logc3` does it right (`cut_log = E*CUT+F`); keep that
+  discipline for any new curve (LogC4).
+- **Declarative registration + feature flags:** a catalog list (group -> module, with an env feature-flag for
+  dev-only nodes) + a loader that isolates a failing group and detects duplicate keys beats a hardcoded import
+  list - and does not crash the whole pack when one node's dep is missing.
+- **Security defaults worth copying:** store a secret as an **env-var NAME**, not the value (workflow JSON never
+  leaks it); traversal-safe `safe_join` with base-escape rejection; `weights_only=True` on every checkpoint load;
+  confine any file output to the ComfyUI output dir.
+- **A model-arch SSOT** (one table: arch -> latent_channels / scale / shift / log_curve / VAE factors) + a
+  **safetensors-header auto-detect** (read only the header keys, ordered heuristics) removes hardcoded per-model
+  constants from loaders and nodes. Relevant if we ever add a smart loader.
+- **Do NOT copy their mistakes:** an approximate LogC4, "ACES" tonemappers that are not the RRT, two divergent
+  DaVinci Intermediate implementations, and a declared-but-unused `colour-science` dep. Reverse-engineering means
+  taking the good patterns and naming the flaws, not cloning the repo.

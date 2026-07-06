@@ -1,18 +1,31 @@
 # OCIO color management (ComfyUI-OCIO, our own pack)
 
-**Eight** OpenColorIO nodes we build and maintain, modelled 1:1 on The Foundry Nuke's node set. Pack:
-**`ComfyUI-OCIO`**, author **Slava Sexton** (https://github.com/SlavaSexton/ComfyUI-OCIO), MIT, **released v1.0.1
-2026-07-01** (v1.0.0 was 2026-06-30). Category `OCIO`. Built to fill a real gap: the ComfyUI registry had no OCIO
+**Nine** OpenColorIO nodes we build and maintain, modelled 1:1 on The Foundry Nuke's node set. Pack:
+**`ComfyUI-OCIO`**, author **Slava Sexton** (https://github.com/SlavaSexton/ComfyUI-OCIO), MIT, **released v1.2.0
+2026-07-06** (v1.0.0 was 2026-06-30). Category `OCIO`. Built to fill a real gap: the ComfyUI registry had no OCIO
 pack (`search_custom_nodes "OCIO"` / `"OpenColorIO"` both return nothing).
 
-**New in v1.0.1** (all on OCIO Write / OCIOLogConvert, detailed below): write LTX-2's HDR video straight to an
-**ACEScg EXR sequence** - either automatically (`auto_colorspace`, when wired from LTX's HDR decode) or by hand
-(the new `logc3` ARRI LogC3 curve on OCIOLogConvert); put the **colorspace in the file name** before the frame
-number (`name_acescg.0086.exr`, `colorspace_in_name`); and pick the **EXR compression** Nuke-Write-style
-(`compression`: zip / zips / piz / pxr24 / dwaa / dwab / rle / none). Confirmed against the shipped v1.0.1 source
-(io_nodes.py / nodes.py). NOTE: the pack's `pyproject.toml` still reads `1.0.0` at the v1.0.1 tag - a version
-string not bumped with the release, so the Comfy Registry would show 1.0.0; the git tag / GitHub Release are
-v1.0.1. (Flaw in the pack, not the docs.)
+**New in v1.2.0 - native ComfyUI VIDEO pipeline + an on-node viewer.**
+- **All nine nodes are on the native VIDEO wire.** Each of the six color nodes (ColorSpace, LogConvert, Display,
+  CDLTransform, FileTransform, LookTransform) plus Write and Player carries a **mutually-exclusive IMAGE-or-VIDEO
+  input pair**: connect one and the other auto-disconnects, and the socket matching the live input carries the
+  data (VIDEO in -> VIDEO out, IMAGE in -> IMAGE out). VIDEO uses ComfyUI's native `comfy_api`
+  `VideoFromComponents` - the SAME type Load Video emits - so the nodes drop straight into a native video graph
+  (`Load Video -> OCIO color node -> Video Combine / Save Video`) and interop with Load / Save Video, Video
+  Combine, Get Video Components, VHS. Slot labels read `OCIO Img/Seq/Vid` (image) and `ComfyUI Video` (video).
+- **OCIO Player (the 9th node)** - an on-node WebGL viewport: exposure + the OCIO display transform run in the
+  fragment shader on the real HALF-float values (a 3D LUT baked server-side from `getProcessor`), with a
+  **scene-linear HDR log shaper** so highlights above 1.0 do NOT clip flat in the display LUT.
+- **LogConvert curves now carry readable labels** ("Sony S-Log3", "ARRI LogC3", "Linear to Log", ...).
+- **Bit-exact accuracy, measured:** worst max-abs error **0.000e+00** across 9 transforms x 4 fixtures (OCIO
+  parity), plus a full color-accuracy suite (`tools/accuracy`) and charts (`docs/assets/accuracy/`, incl. a 3D
+  gamut-volume chart of sRGB / ACEScg / ACES2065-1 / ARRI Wide Gamut 3 in CIE Lab).
+- **Since v1.0.1** (still current): OCIO Write can write LTX-2 HDR straight to an **ACEScg EXR sequence** -
+  automatically (`auto_colorspace` from LTX's HDR decode) or by hand (the `logc3` ARRI LogC3 curve on
+  OCIOLogConvert); **colorspace in the file name** (`name_acescg.0086.exr`, `colorspace_in_name`); Nuke-Write-style
+  **EXR compression** (`compression`: zip / zips / piz / pxr24 / dwaa / dwab / rle / none). `pyproject.toml` is now
+  correctly `1.2.0` (the earlier v1.0.1 version-string lag is fixed). Full node I/O for Player / the video sockets:
+  the pack README + `io_nodes.py` / `nodes.py` at tag `v1.2.0`.
 
 **The two that make it a pipeline:** **OCIO Read** and **OCIO Write** - load a still / image sequence / video
 off disk, color-manage it, and write it back out in EXR / TIFF / PNG / JPEG or ProRes / DNxHR / h264 / hevc. The
@@ -147,8 +160,9 @@ OCIO Read (source=D:\shots\beauty.####.exr, input=ACEScg, output=sRGB - Display,
 ```
 
 `auto_range=ON` pulls the frame range + fps from OCIO Read through the wire, so the ProRes carries the right
-count and rate. The example workflow `example_workflows/OCIO_Nodes.json` in the repo shows all eight nodes on one
-image (copy its `nyc_skyline.png` + `warm_demo.cube` into ComfyUI's input folder, then open it).
+count and rate. The example workflow `example_workflows/OCIO_Nodes.json` in the repo shows the pre-Player eight
+nodes on one image (copy its `nyc_skyline.png` + `warm_demo.cube` into ComfyUI's input folder, then open it); the
+9th node **OCIO Player** and the native VIDEO sockets (v1.2.0) are covered in "New in v1.2.0" above.
 
 ## Worked example (v1.0.1) - LTX-2 HDR video to an ACEScg EXR sequence
 

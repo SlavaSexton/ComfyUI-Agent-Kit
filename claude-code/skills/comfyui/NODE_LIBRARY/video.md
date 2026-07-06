@@ -95,3 +95,24 @@ The core `video` family: nodes that assemble an `IMAGE` batch (plus optional `AU
 - **bugs / lags + fixes:** none known beyond it being flagged experimental in this build (`experimental: true`), so its inputs or behavior may shift between ComfyUI versions; re-confirm with get_node_info if a graph that used it breaks after an update.
 - **anti-patterns:** expecting alpha with av1; transparency is vp9-only here, so a transparent export must use vp9. Feeding it a `VIDEO` object; this node takes an `IMAGE` batch (use `GetVideoComponents` to get frames from a `VIDEO`, or use `SaveVideo` for a `VIDEO`). Muxing audio here; this is a frames-to-WebM encoder with no audio input, so for audio use the `CreateVideo` + `SaveVideo` path. Leaving crf at a high value when quality matters (raise quality by lowering crf).
 - **placement:** a leaf at the end of the graph, fed by an `IMAGE` frame batch (straight from `VAEDecode`, or from `GetVideoComponents.images`).
+
+## Building a node on the native VIDEO wire (patterns, from ComfyUI-OCIO v1.2.0)
+
+When you WRITE a node that should live on ComfyUI's native video graph (full lessons in `BUILDING_NODES.md`
+"Lessons from the ComfyUI-OCIO v1.2.0 video pipeline"):
+
+- **Emit the SAME `VIDEO` type Load Video emits - do not invent one.** Unwrap an incoming `VIDEO` with
+  `video.get_components()` (gives `.images`, `.frame_rate`, `.audio`), run your op on the frames, then re-wrap:
+  `from comfy_api.latest import InputImpl, Types` ->
+  `InputImpl.VideoFromComponents(Types.VideoComponents(images=frames, frame_rate=Fraction(fps).limit_denominator(600000), audio=audio))`.
+  That object flows straight into `SaveVideo`, `CreateVideo`, `Video Combine`, `GetVideoComponents`, VHS - no
+  conversion node needed. Carry the source `frame_rate` and `audio` through so a round-trip keeps them.
+- **A dual IMAGE-or-VIDEO node:** two OPTIONAL inputs (`image`, `video`), `RETURN_TYPES=("IMAGE","VIDEO")`, only
+  the matching output populated; the frontend auto-disconnects the other input on connect (with the
+  `app.configuringGraph` reload guard - see BUILDING_NODES.md, or a page reload wipes the whole graph's links).
+- **Preview a video node with a SERVABLE temp file, never the real output path.** `/view` only serves
+  `output`/`temp`/`input`, so a user-chosen absolute path gives "Invalid URL". Render a small throwaway preview
+  into the temp dir and return core's animated-preview contract (matches `SaveVideo`'s `ui.PreviewVideo`):
+  `{"ui": {"images": [{"filename": name, "subfolder": "", "type": "temp"}], "animated": (True,)}, "result": (real_path,)}`.
+- On Windows, decode ffmpeg to a TEMP FILE + `np.fromfile()`, not `subprocess capture_output` (12-25x faster on
+  multi-GB clips - see BUILDING_NODES.md).

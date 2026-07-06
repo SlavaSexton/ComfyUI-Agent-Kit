@@ -176,3 +176,62 @@ Learn the technique; it is GPL-3.0, so do not copy code verbatim into an MIT pac
 - **Do NOT copy their mistakes:** an approximate LogC4, "ACES" tonemappers that are not the RRT, two divergent
   DaVinci Intermediate implementations, and a declared-but-unused `colour-science` dep. Reverse-engineering means
   taking the good patterns and naming the flaws, not cloning the repo.
+
+## Lessons from the ComfyUI-OCIO v1.2.0 video pipeline (2026-07-05)
+
+Hard-won and UNIVERSAL (any pack), from putting a color pack onto ComfyUI's native VIDEO wire. Confirmed in code
+and verified live in a browser.
+
+- **Dual mutually-exclusive IMAGE-or-VIDEO socket** - one node that slots into both an image-sequence graph AND a
+  native video graph. Two OPTIONAL inputs (`image`, `video`), `RETURN_TYPES=("IMAGE","VIDEO")`, only the matching
+  output carries data. Backend: unwrap a VIDEO to `(frames, fps, audio)` via `video.get_components()`, apply your
+  op to `frames`, re-wrap with `comfy_api.latest` `InputImpl.VideoFromComponents(Types.VideoComponents(images=...,
+  frame_rate=Fraction(fps).limit_denominator(600000), audio=...))` - the SAME type Load Video emits, so it
+  interops for free with Load / Save Video, Video Combine, Get Video Components, VHS. Frontend enforces
+  exclusivity in `onConnectionsChange`: when one input connects and the other is already connected,
+  `disconnectInput` the other (guard it, next point).
+- **RELOAD SAFETY (the most dangerous gotcha).** ComfyUI restores every saved link on load by firing
+  `onConnectionsChange(..., connected=true)` for each one. If your handler calls `disconnectInput` /
+  `disconnectOutput` during that restore, it mutates the link map while ComfyUI is still rebuilding it and wipes
+  links across the WHOLE graph, not just your node. Two guards, both required: (1) `if (app.configuringGraph)
+  return;` (ComfyUI sets it true during load); (2) only disconnect on a genuine conflict (the OTHER input already
+  connected) - a valid saved graph never has both, so a normal load never reaches the disconnect branch. ANY pack
+  that mutates links from `onConnectionsChange` needs this.
+- **You cannot safely hide/show an OUTPUT slot.** `removeOutput(idx)` re-indexes later outputs, but ComfyUI
+  serializes a link by `origin_slot` INDEX - hide output 0, output 1 reindexes to 0, its saved link now points at
+  the wrong slot on reload. Only the LAST output can be removed without a reindex. Fallback: keep both outputs
+  always visible, auto-disconnect only the inactive one's LINK; for a visual cue change `color_on` / `color_off`,
+  never the slot count.
+- **Vue-nodes (ComfyUI >=1.45) does not reliably apply a post-creation label mutation to an OUTPUT.** Setting
+  `output.label` after node creation is reliable for INPUTS, flaky for outputs. Put the display name directly in
+  **`RETURN_NAMES`** (display-only; connections resolve by slot index + type, so changing it is not a saved-graph
+  break).
+- **A video node's PREVIEW needs a servable TEMP file, not the real output.** ComfyUI's `/view` serves only
+  `output` / `temp` / `input`; a user-chosen absolute output path gives "Invalid URL", and a still `ui.images`
+  entry fails inside a `<video>`. Render a small throwaway preview into the TEMP dir (downscaled, frame-capped)
+  and return core's animated-preview shape: `{"ui": {"images": [{"filename": name, "subfolder": "", "type":
+  "temp"}], "animated": (True,)}, "result": (real_path,)}` (matches core `SaveVideo`'s `ui.PreviewVideo`). The
+  real result is untouched; only the UI preview is a separate artifact.
+- **Renaming a COMBO's VALUES (not just labels) breaks saved graphs unless you add `VALIDATE_INPUTS`.** Changing
+  dropdown strings (`lin_to_log` -> `Linear to Log`) makes ComfyUI reject any saved workflow holding the OLD value
+  at validation time, BEFORE your function runs (`value_not_in_list`) - a `dict.get(old, old)` fallback inside the
+  function is too late. Add `@classmethod def VALIDATE_INPUTS(cls, curve=None): ...` that checks `curve` against a
+  set of BOTH old AND new strings and returns `True`; listing an input there makes ComfyUI skip its own
+  combo-membership check. Also fix any frontend JS (a swap button) that toggles the combo by its OLD string value.
+- **Windows perf: `subprocess.run(capture_output=True)` on multi-GB stdout is pathologically slow.** ffmpeg piped
+  through `capture_output` measured ~61 s for 3.9 GB; the same decode to `/dev/null` was 1.6 s - reading a big
+  pipe on Windows is the bottleneck, not the decode. Fix: **decode to a TEMP FILE, then `np.fromfile()`** (4.8 s
+  16-bit / 2.4 s 8-bit, 12-25x faster). `os.makedirs` the temp dir first (it may not exist on a fresh install).
+  Pick the pixel format by the source's real bit depth (`ffprobe` `pix_fmt`; hi-bit planar carries an `le`/`be`
+  tag, 8-bit does not) so an 8-bit source is not decoded at 16-bit for nothing.
+- **On-node float/HDR WebGL viewport (the "Player" pattern).** Cache the batch as HALF-float RGBA server-side,
+  upload to a WebGL2 `RGBA16F` texture, do exposure + the display transform in the FRAGMENT SHADER on real values
+  (`c = texture(uImg, uv).rgb * exp2(uExposure)`), then sample a 3D LUT (`texImage3D`, baked server-side from
+  `getProcessor(in, out)` over a uniform grid). A `[0,1]` LUT domain CLIPS a scene-linear float source flat above
+  1.0 - bake the LUT's sampling axis in LOG space (ACEScct) and log-encode the pixel in-shader before the lookup.
+  Detect scene-linear via OCIO's own `getColorSpace(name).getEncoding()` ("scene-linear" / "sdr-video" / "log"),
+  not a substring guess on the colorspace name.
+- **A live-ComfyUI node-UI screenshot cannot be reliably scripted via browser tooling.** `canvas.toDataURL()`
+  captures only LiteGraph's 2D bitmap (Vue node panels are separate DOM overlays); a CDP `Page.captureScreenshot`
+  composites correctly but the automation tools cannot persist the bytes; the GIF recorder captures click/drag,
+  not raw screenshots. Conclusion: for a node-UI documentation screenshot, get a human to take it.

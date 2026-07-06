@@ -15,6 +15,17 @@ vx.y.z`), which can become a GitHub Release.
 ## [Unreleased]
 
 ### Added
+- **General ComfyUI node-authoring lessons from the ComfyUI-OCIO v1.2.0 video pipeline.** Folded 9 universal,
+  pack-agnostic lessons into `BUILDING_NODES.md` (+ VIDEO specifics in `NODE_LIBRARY/video.md`): the
+  mutually-exclusive IMAGE-or-VIDEO dual socket (`VideoFromComponents`), the reload-safety `app.configuringGraph`
+  guard (a mishandled `onConnectionsChange` wipes the whole graph's links), why an OUTPUT slot cannot be safely
+  hidden, the Vue-nodes `RETURN_NAMES` fix, the servable-temp-file video-preview contract, `VALIDATE_INPUTS` for
+  renamed combo values, the Windows temp-file ffmpeg decode (12-25x faster than a subprocess pipe), the on-node
+  float/HDR WebGL viewport pattern, and the limits of scripting a live-ComfyUI screenshot.
+- **ComfyUI-OCIO reference refreshed to v1.2.0** (`NODE_LIBRARY/ocio.md` + the ADVANCED.md mention). Was pinned at
+  v1.0.1 (eight nodes); now documents nine nodes, the native ComfyUI VIDEO pipeline (mutually-exclusive
+  IMAGE-or-VIDEO sockets on all nine), the new **OCIO Player** on-node viewport, and the bit-exact accuracy proof
+  (0.000e+00 max-abs error across 9 transforms x 4 fixtures). Historical CHANGELOG entries left untouched.
 - **Radiance (fxtdstudios) reverse-engineered reference (`NODE_LIBRARY/radiance.md`).** Deep-studied the
   strongest public pack in our OCIO / color domain - `fxtdstudios/radiance` v2.3.3 (78 nodes) and radiance-beta
   ("radiance3", 258 files) - by reading both repos (3-agent fan-out). Documented how it is built (Python V1 nodes,

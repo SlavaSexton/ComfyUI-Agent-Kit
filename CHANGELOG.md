@@ -14,6 +14,8 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-07-06
+
 ### Added
 - **General ComfyUI node-authoring lessons from the ComfyUI-OCIO v1.2.0 video pipeline.** Folded 9 universal,
   pack-agnostic lessons into `BUILDING_NODES.md` (+ VIDEO specifics in `NODE_LIBRARY/video.md`): the
@@ -26,17 +28,6 @@ vx.y.z`), which can become a GitHub Release.
   v1.0.1 (eight nodes); now documents nine nodes, the native ComfyUI VIDEO pipeline (mutually-exclusive
   IMAGE-or-VIDEO sockets on all nine), the new **OCIO Player** on-node viewport, and the bit-exact accuracy proof
   (0.000e+00 max-abs error across 9 transforms x 4 fixtures). Historical CHANGELOG entries left untouched.
-- **Radiance (fxtdstudios) reverse-engineered reference (`NODE_LIBRARY/radiance.md`).** Deep-studied the
-  strongest public pack in our OCIO / color domain - `fxtdstudios/radiance` v2.3.3 (78 nodes) and radiance-beta
-  ("radiance3", 258 files) - by reading both repos (3-agent fan-out). Documented how it is built (Python V1 nodes,
-  numpy+torch dual color engine, OpenEXR+Imath, bundled ACES config, WebGL2 32-bit viewer with an in-shader view
-  pipeline + Terminal REPL + scopes + mask editor, esbuild JS, v3's core/ engine + declarative registry +
-  model-arch SSOT + in-pack training + RUDRA fast_vae + delivery endpoint), the full node catalog by 11 zones,
-  and the honest flaws (approximate LogC4 / tonemappers, two divergent DaVinci curves, a dead colour-science dep).
-  Added a ranked "what to steal for ComfyUI-OCIO" list (processor LRU cache, WebGL 32-bit viewer, OpenEXR writer,
-  PromptServer config-introspection routes, LogC3-EI table, exact LogC4) and folded the node-building lessons into
-  `BUILDING_NODES.md`; wired the doc into SKILL.md routing. Reverse-engineered from source, GPL-3.0 (learn, do not
-  copy verbatim).
 - **LumiPic - single-image SDR -> HDR LoRA.** Documented `oumoumad/LumiPic` (MIT) under Qwen-Image-Edit in
   MODELS.md: the IMAGE analog of the LTX-2.3 HDR IC-LoRA (same LumiVid paper, arXiv 2604.11788), a LoRA that emits
   an ARRI-Log-encoded frame decoding to scene-linear HDR EXR. Covered the three bases (Qwen-Image-Edit-2511

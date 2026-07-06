@@ -27,6 +27,11 @@ vx.y.z`), which can become a GitHub Release.
   (ComfyUI nodes for the `pymss` library): split an `AUDIO` stream into instrument / vocal stems via MSS and
   VR/UVR models, with ensemble / normalize / phase-invert utilities - a fuller-featured alternative to the
   single-purpose MelBandRoFormer stem step.
+- **ComfyUI v0.27.0 coverage swept.** Beyond INT8-ConvRot: added **Ideogram 4 structured control** to the Ideogram
+  entry (the `Create Bounding Boxes` -> `Build JSON Prompt (Ideogram)` -> `Dict to JSON String` nodes for a spatial
+  JSON caption), a **Grok Image 1080p** note, and an **advanced Krea 2 model-merging** note. Verified the rest of
+  v0.27.0 is already in the kit (Seedance 2.0 Mini + 4K, HappyHorse 1.1, the Nano Banana 2 Lite + Gemini Video Omni
+  partner nodes, and the v0.27.0 INT8 / frontend-Manager bugs already in KNOWN_ISSUES).
 
 Counts unchanged (69 recipes / 150 models): a native-feature doc refresh + a utility node pack, not new recipes
 or official models.

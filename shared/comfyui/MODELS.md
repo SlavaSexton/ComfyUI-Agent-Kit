@@ -196,13 +196,14 @@ FLUX prose will not help SDXL).
 
 ## Image models (API / closed)
 
-### Ideogram (2.x and 3.0)
+### Ideogram (2.x to 4.0)
 - **Prompt style:** natural-language sentences (no tags, no `--ar`/`::` flags); typography specialist.
 - **Structure:** describe as to a person; important elements and text early; exact text in quotes (under ~25 chars), describe font style/position/color, don't name fonts.
 - **Strengths:** quoted-text rendering, posters/logos/signage; `DESIGN` style for typography, `REALISTIC` for photos.
 - **Avoid:** long text strings, burying text mid-prompt, naming fonts. Negative prompts ARE supported (`negative_prompt`; positive takes precedence).
 - **Settings (API):** `style_type`, `rendering_speed` (TURBO/DEFAULT/QUALITY), `magic_prompt`, aspect ratios, seed, up to 4 images/call, character & style refs.
-- **Source:** docs.ideogram.ai/using-ideogram/prompting-guide ; developer.ideogram.ai.
+- **Structured control (Ideogram 4, ComfyUI v0.27.0):** Ideogram 4 also takes a STRUCTURED JSON caption instead of one prose string, built by three core nodes: **Create Bounding Boxes** (a visual region editor -> caption elements as an ARRAY + pixel-space `BOUNDING_BOXES` + a rendered preview) -> **Build JSON Prompt (Ideogram)** (assembles the elements + background + style into the caption DICT) -> the Ideogram node; a **Dict to JSON String** node serializes it (non-ASCII-safe, `ensure_ascii=False`). Use it to PLACE elements spatially ("this object here, that text there") rather than hoping a prose prompt lands the layout - the day-0 structured-control path (adds `DICT` / `ARRAY` / `COLORS` / `BOUNDING_BOXES` I/O types).
+- **Source:** docs.ideogram.ai/using-ideogram/prompting-guide ; developer.ideogram.ai ; ComfyUI v0.27.0 (CORE-292, PR 14537).
 
 ### Nano Banana Pro (Gemini 3 Pro Image)
 - **Prompt style:** natural-language, rich descriptive paragraphs (describe the scene, don't list keywords).
@@ -258,6 +259,7 @@ FLUX prose will not help SDXL).
 - **Structure:** Subject -> Style -> Mood -> Lighting -> Camera/Framing -> Finishing; subject in the first words; 60-80 words (cut past 120); one style; in-image text ALL CAPS + quotes, 1-3 words.
 - **Strengths:** behavior-based light, concrete camera/lens, named aesthetics; `-quality` tier adds i2i (1-3 refs) and better non-English text.
 - **Avoid:** negatives IGNORED (rephrase positive); keyword stacking; mixed styles; buried subject.
+- **ComfyUI (partner node):** up to **1080p** output on the Grok Image node (resolution added in ComfyUI v0.27.0).
 - **Source:** docs.x.ai/docs/guides/image-generations.
 
 ### Reve
@@ -380,6 +382,7 @@ FLUX prose will not help SDXL).
   huggingface.co/ahmed22xa/Huihui-Qwen3-VL-4B-Instruct-abliterated-comfy.
 - **License:** the code is Apache-2.0; the WEIGHTS use the Krea 2 Community License: commercial use needs a separate
   Enterprise License (community use is non-commercial), with acceptable-use / content-filter obligations.
+- **Model merging (ComfyUI v0.27.0):** an advanced Krea 2 model-merging node ships in core - merge a Krea 2 base with a fine-tune / another Krea 2 checkpoint (block-level control) without leaving ComfyUI.
 - **Source:** github.com/krea-ai/krea-2 (incl. `docs/prompting.md`) ; huggingface.co/Comfy-Org/Krea-2 (ComfyUI repackaged) ;
   huggingface.co/krea/Krea-2-Raw + huggingface.co/krea/Krea-2-Turbo ;
   blog.comfy.org/p/krea-2-open-source-models-are-now ; krea.ai/blog/krea-2-technical-report.

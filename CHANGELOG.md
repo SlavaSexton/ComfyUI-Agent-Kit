@@ -14,6 +14,23 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+### Added
+- **INT8-ConvRot is native in ComfyUI v0.27.0 (ADVANCED.md refresh).** ComfyUI v0.27.0 shipped native int8-convrot
+  weight quantization - the **ConvRot** rotation-based method (arXiv 2512.03673): ~half the FP16 size, faster than
+  FP16, matches or beats FP8, faster + cleaner than FP8 on Turing / Ampere, and small enough to bring big models
+  to 8-12 GB (and Pascal) cards (LTXV 2.3 1920x1088: 268 s -> 140 s). Refreshed the ADVANCED.md INT8 note (native
+  path + the ConvRot paper + the `comfy-model-tools` `quant_int8_auto.py` converter + Comfy-Org's HF weight
+  uploads for Wan 2.2 Animate / Z-Image / SeedVR2; extends to INT4, covers DiT / LLM / multimodal / UNet), and
+  updated the Flux2-Klein entry (its `INT8-ConvRot` quant now loads natively). The third-party `ComfyUI-INT8-Fast`
+  is now fully superseded.
+- **Comfy-MSS - music source separation pack (`NODE_LIBRARY/audio.md`).** Documented `pymss-project/comfy-mss`
+  (ComfyUI nodes for the `pymss` library): split an `AUDIO` stream into instrument / vocal stems via MSS and
+  VR/UVR models, with ensemble / normalize / phase-invert utilities - a fuller-featured alternative to the
+  single-purpose MelBandRoFormer stem step.
+
+Counts unchanged (69 recipes / 150 models): a native-feature doc refresh + a utility node pack, not new recipes
+or official models.
+
 ## [2.2.0] - 2026-07-06
 
 ### Added

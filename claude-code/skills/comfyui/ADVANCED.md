@@ -65,17 +65,24 @@ The 2026 stack moved from SD-era flow hacks to native video models. Honest hiera
 - **Detail injection (training-free):** **Detail Daemon** (`Jonseed/ComfyUI-Detail-Daemon`, MIT; biases the sigma schedule to keep fine detail, adds no noise), the **PAG / SEG / NAG / FDG** family (`pamparamm/sd-perturbed-attention`, MIT), and **FreeU** (core node). All are tuning knobs that can over-sharpen or over-saturate.
 - **Removing model refusals (abliterated text encoders):** modern DiTs increasingly use an instruction-tuned LLM/VLM as the text encoder (Krea 2 and Qwen-Image both ride `Qwen3-VL`), which inherits that model's alignment - so it can quietly steer away from legit-but-flagged VFX content (wounds / gore for horror, weapons, real people or brands, "disturbing" imagery a safety-aligned encoder over-blocks). An **abliterated** encoder (the refusal direction ablated by activation steering, e.g. `huihui-ai/Huihui-Qwen3-VL-4B-Instruct-abliterated`, ComfyUI repack `ahmed22xa/...-comfy`) is a drop-in TE swap that encodes the prompt faithfully instead of refusing. It changes only the encoder's willingness, not the model's capability, and still carries the base model's acceptable-use terms - keep it to content you are licensed and allowed to make. Per-model wiring + the full community build (uncensored UNET merge + LoKr) is in MODELS.md (Krea 2). **On-request reference, not a promoted feature: apply it when a task actually needs it, do not proactively suggest it.**
 - **Precision:** fidelity is fp32 >= bf16 >= fp8. Decode the VAE in fp32 or bf16, never fp16 for VFX. fp8 speeds sampling on FP8-tensor-core GPUs but loses quality (mostly in the UNet).
-- **INT8 acceleration (faster than fp8 on 40-series+, small quality loss):** INT8 weight quantization is now
-  **native in ComfyUI** (merged upstream) - an `int8mixedrow`-style checkpoint loads with the stock loader and,
-  per the source pack, runs ~1.5-2x faster than fp8 on 40-series and newer tensor cores, with quality loss the
-  model authors report as small. The community pack **`BobJohnson24/ComfyUI-INT8-Fast`** pioneered this (speeds
-  up Flux.2 / Ideogram4 / Chroma / Z-Image / Ernie Image, works with LoRA + `torch.compile`, and fixed LTX-2.x
-  `.bias`-layer OOM), but with INT8 in core it is now **largely superseded** - prefer a native-format INT8
-  checkpoint, and keep the pack only for older INT8-Fast quants (convert them with its `convert_to_comfy.py`) or
-  its pre-LoRA path. Loader/naming matters: a quant packaged for one loader may not load in the other (the pack's
-  own note), so match the file to the loader - e.g. `Flux2-Klein-9B-True-V3` ships BOTH `int8mixedrow` (native
-  loader) AND `INT8-ConvRot` (INT8-Fast). Quality still trails bf16/fp16, so keep INT8 for speed passes, not
-  final-grade VFX plates. Source: github.com/BobJohnson24/ComfyUI-INT8-Fast ; huggingface.co/wikeeyang/Flux2-Klein-9B-True-V3.
+- **INT8 acceleration (integer weights: half the FP16 size, faster than FP16, matches or beats FP8):** as of
+  ComfyUI **v0.27.0** (2026-06-30) INT8 weight quantization is **native**, via the **ConvRot** method (arXiv
+  2512.03673, "ConvRot: Rotation-Based Plug-and-Play 4-bit Quantization for Diffusion Transformers"). ConvRot is a
+  rotation-based quant that GROUPS the rotation instead of rotating the whole weight matrix, dropping the cost from
+  quadratic to linear, and cancels the outlier / "column-imbalance" distortion with an optimal rotation matrix.
+  Result: an `int8-convrot` checkpoint is ~half the size of FP16, runs FASTER than FP16, and does not lose to
+  (often beats) FP8 on image / video quality. Integer INT8 is also faster + cleaner than FP8 on Turing / Ampere
+  tensor cores (RTX 20xx / 30xx - v0.27.0 explicitly added Turing support), and the smaller weights bring modern
+  models within reach of 8-12 GB (and even Pascal GTX 10xx) cards. Measured (LTXV 2.3, 1920x1088, RTX 5090): base
+  268 s vs int8-convrot 140 s. v0.27.0 also fixed INT8 LoRA quality/speed and an INT8 memory leak. **Convert** a
+  bf16 model with Comfy's own **`Comfy-Org/comfy-model-tools`** (`quant_int8_auto.py`, dry-run first); Comfy-Org is
+  uploading official int8-convrot weights to HF (Wan 2.2 Animate, Z-Image, SeedVR2, more). The method extends to
+  INT4 and covers DiT / LLM / multimodal / UNet. This makes the earlier community pack
+  **`BobJohnson24/ComfyUI-INT8-Fast`** (which pioneered ComfyUI INT8, incl. the `INT8-ConvRot` quants some models
+  like Flux2-Klein-9B-True-V3 shipped) **fully superseded** - use the native v0.27.0 path. Quality still trails
+  bf16/fp16, so keep INT8 for speed passes, not final-grade VFX plates. Source:
+  github.com/Comfy-Org/ComfyUI/releases/tag/v0.27.0 ; arxiv.org/abs/2512.03673 ;
+  github.com/Comfy-Org/comfy-model-tools ; huggingface.co/Comfy-Org.
 - **Color and bit depth:** SaveImage clamps to 8-bit PNG by default (banding on gradients/depth). For VFX use 32-bit EXR I/O: **`spacepxl/ComfyUI-HQ-Image-Save`** (32-bit float EXR for images AND latents, `%04d` sequences, MIT) and **`Conor-Collins/ComfyUI-CoCoTools_IO`** (Load EXR Sequence, EXR layer / Cryptomatte, OCIO colorspace sRGB / Linear / ACEScg, MIT). Convert sRGB -> Linear before saving a linear EXR or you double-apply gamma.
 - **Generate HDR, not just tone-map it:** the LumiVid line (arXiv 2604.11788) trains a model to emit an ARRI-Log-encoded frame that decodes to scene-linear HDR (values past 1.0) - real highlight headroom an 8-bit source never had. Two ready routes: **video** = the LTX-2.3 HDR IC-LoRA; **single image** = **LumiPic** (`oumoumad/LumiPic`) on Qwen-Image-Edit / Flux.2 Klein (MODELS.md). Decode the Log `[0,1]` to linear with **`ComfyUI_Gear`**'s LogC3 / LogC4 Decode + Save EXR node (`custom-author.md`), or - for an ACES master - our **ComfyUI-OCIO**: `OCIOLogConvert(logc3)` then `OCIOColorSpace(Rec.709 -> ACEScg)` -> `OCIO Write`. Match the decode curve to the LoRA (`_logc4_*` = LogC4, else LogC3) or the absolute luminance is silently wrong. NOTE: our OCIO ships LogC3 but NOT yet LogC4 - use Gear for the LogC4 (V10) LoRAs until we add it.
 - **Samplers for detail:** `dpmpp_2m` (or `_sde`) with the **Karras** scheduler spends more steps in the low-sigma region where fine detail forms; ~20-35 steps is the sweet spot, more is diminishing returns.

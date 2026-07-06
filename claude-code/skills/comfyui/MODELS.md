@@ -82,7 +82,7 @@ FLUX prose will not help SDXL).
   ControlNet), and with a companion LoRA **face-swap / try-on / try-off** (`bfs_head_v1` at ~0.75) plus **Mask +
   LoRA** regional editing. Prompt it like Flux.2 [Klein]. Ships a wide quant ladder so it fits most cards: `bf16`
   (full), `fp8mixed`, **`int8mixedrow`** (loads with ComfyUI's OFFICIAL / native INT8 loader), **`INT8-ConvRot`**
-  (loads with the third-party `ComfyUI-INT8-Fast`; quant by Milor123), `mxfp8`, `nvfp4`, and GGUF
+  (loads NATIVELY as of ComfyUI v0.27.0's int8-convrot support - the Milor123 quant pre-dated that via the now-superseded `ComfyUI-INT8-Fast`; see ADVANCED.md "INT8 acceleration"), `mxfp8`, `nvfp4`, and GGUF
   `Q4_K/Q5_K/Q6_K/Q8_0`; the card claims INT8 is ~2x faster than fp8 at low quality loss (see ADVANCED.md "INT8
   acceleration"). LICENSE CAVEAT (inferred): the card is tagged Apache-2.0, but the weights derive from FLUX.2
   [Klein] - confirm the base Klein license before commercial use rather than trusting the fine-tune's tag alone.

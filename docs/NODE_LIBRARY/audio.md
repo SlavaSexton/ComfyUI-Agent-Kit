@@ -81,3 +81,17 @@ hardcoded.
 - **bugs / lags + fixes:** none known in the node. The practical limit is the environment: no microphone, no browser, or a denied mic permission means nothing to capture. That is an environment constraint, not a node fault.
 - **anti-patterns:** relying on it in an automated/headless or scheduled run (there is no mic to record from); use `LoadAudio` with a pre-recorded file there. Treating `AUDIO_RECORD` as a connectable input port (it is a UI widget, you do not wire another node into it).
 - **placement:** a leaf at the edge of the graph, an alternative source to `LoadAudio`. Nothing feeds it; it feeds the first audio consumer.
+
+## Music source separation - Comfy-MSS (custom pack)
+
+**`pymss-project/comfy-mss`** - ComfyUI nodes for **`pymss`** (a Python music source separation library) that
+split a ComfyUI `AUDIO` stream into instrument / vocal STEMS. Install the pack into `custom_nodes` AND
+`pip install pymss` in the same ComfyUI Python env (ComfyUI Manager also works). Nodes: **`MSS Separate`** (catalog
+MSS / non-VR pymss models) and **`VR Separate`** (VR / UVR models), each with a `... List` list-output variant, a
+**`Custom MSS Separate`** for user-supplied models from the custom-model folder, and **`MSS Params`** / **`VR
+Params`** knob nodes; plus audio utilities **`Load Audio`** / **`Load Audio Batch`**, **`Audio Invert Phase`**
+(outputs `-a`, for null-tests / residuals), **`Audio Normalize`** (only when peak > 0 dBFS), **`Audio Ensemble`**
+(blend 2-10 stems by a chosen algorithm + weights), and **`Save Audio`** (wav / flac / mp3). Use it to pull clean
+vocals or an instrument stem before a downstream audio task - a fuller-featured alternative to the single-purpose
+`ComfyUI-MelBandRoFormer` stem step the LTX-2 audio recipes mention (MODELS.md). Source:
+github.com/pymss-project/comfy-mss ; pypi.org/project/pymss.

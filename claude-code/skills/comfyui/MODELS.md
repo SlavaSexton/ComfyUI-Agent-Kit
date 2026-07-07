@@ -391,7 +391,8 @@ FLUX prose will not help SDXL).
   encoder / 1MP for the latent) and **Krea 2 Ostris Edit Model Patch** (patches Krea 2 to CONSUME those reference
   latents - stock Krea 2 ignores them; refs appended to the image tokens, conditioned at timestep 0; a no-op when
   there are no refs, so safe to leave in). CONFIRMED from the example graph (`workflow/Krea2_Ostris_Edit.json`, 16
-  nodes): UNET **`krea2_turbo`**, CLIP **`qwen3vl_4b`** (the vision-capable bf16 build), VAE **`qwen_image_vae`**;
+  nodes): UNET **`krea2_turbo`**, CLIP **`qwen3vl_4b_alb_bf16`** (an ABLITERATED, vision-capable Qwen3-VL-4B; `alb`
+  inferred = abliterated, which also helps edit prompts land - the vision weights are what encode the refs), VAE **`qwen_image_vae`**;
   the input image runs through core **`FluxKontextImageScale`** and then feeds both the **Text Encode Krea 2 Ostris
   Edit** image input AND a **`FluxKontextMultiReferenceLatentMethod`** set to `index_timestep_zero`; the edit LoRA
   loads via `LoraLoaderModelOnly` into the **Model Patch**; sampler is Turbo (euler / simple, **10 steps, cfg 1,
@@ -402,8 +403,19 @@ FLUX prose will not help SDXL).
   natural grain, preserve the original composition / lighting / style). HONEST (author's own caveats): highly
   experimental, NOT Flux.2 Klein / Qwen-Image-Edit precision - it alters the image, shifts lighting / color
   slightly, and can fault on horizontal aspect ratios. Needs a Krea 2 text encoder that INCLUDES the Qwen3-VL
-  vision weights (the vision-less encoder cannot encode the reference images). Source:
-  github.com/ostris/ComfyUI-Krea2-Ostris-Edit ; huggingface.co/reverentelusarca/krea2-detail-enhancer-edit-lora.
+  vision weights (the vision-less encoder cannot encode the reference images). **Best results (how to drive it):**
+  load the detail-enhancer at strength ~1 and use the author's FULL prompt, trigger first - "enhance this image.
+  Enhance this image to high resolution with rich fine details. Sharpen all textures and surfaces, add microdetails
+  and natural grain. Increase clarity and definition across all elements while preserving the original composition,
+  lighting, and atmosphere. Image can be illustration or real photo, keep the original input style." Feed a SQUARE
+  or vertical input (~1MP; the encoder downscales refs to 384x384 and the ref latent to 1MP anyway) and AVOID
+  horizontal aspect ratios (the author reports faults there). Because the method shifts lighting / color slightly,
+  if you need fidelity, color / luminance-match the output back to the source (our OCIO `Grade Match`, or an
+  `ImageColorMatch`) - a cheap fix for the drift. Keep it to the detail / enhance job it was trained for; for
+  precise object or text edits reach for Flux.2 [Klein] or Qwen-Image-Edit (Krea 2 is a t2i model bent into
+  editing, not a native edit model). The shipped example is the Turbo path (10 steps, cfg 1); RAW (52 steps, CFG
+  3.5) MAY lift fidelity but is untested with these edit LoRAs (inferred - would need a real run to confirm).
+  Source: github.com/ostris/ComfyUI-Krea2-Ostris-Edit ; huggingface.co/reverentelusarca/krea2-detail-enhancer-edit-lora.
 - **Source:** github.com/krea-ai/krea-2 (incl. `docs/prompting.md`) ; huggingface.co/Comfy-Org/Krea-2 (ComfyUI repackaged) ;
   huggingface.co/krea/Krea-2-Raw + huggingface.co/krea/Krea-2-Turbo ;
   blog.comfy.org/p/krea-2-open-source-models-are-now ; krea.ai/blog/krea-2-technical-report.

@@ -390,9 +390,13 @@ FLUX prose will not help SDXL).
   vision placeholders, and with a VAE also VAE-encodes each ref as a reference latent; images fit 384x384 for the
   encoder / 1MP for the latent) and **Krea 2 Ostris Edit Model Patch** (patches Krea 2 to CONSUME those reference
   latents - stock Krea 2 ignores them; refs appended to the image tokens, conditioned at timestep 0; a no-op when
-  there are no refs, so safe to leave in). Wire: `Load Diffusion (krea2) -> Load LoRA -> Krea 2 Ostris Edit Model
-  Patch -> KSampler`, with Text Encode feeding positive / negative. Edit LoRAs are trained with ai-toolkit (`krea2`
-  arch, `model_kwargs.edit: true`). One published edit LoRA: **`reverentelusarca/krea2-detail-enhancer-edit-lora`**
+  there are no refs, so safe to leave in). CONFIRMED from the example graph (`workflow/Krea2_Ostris_Edit.json`, 16
+  nodes): UNET **`krea2_turbo`**, CLIP **`qwen3vl_4b`** (the vision-capable bf16 build), VAE **`qwen_image_vae`**;
+  the input image runs through core **`FluxKontextImageScale`** and then feeds both the **Text Encode Krea 2 Ostris
+  Edit** image input AND a **`FluxKontextMultiReferenceLatentMethod`** set to `index_timestep_zero`; the edit LoRA
+  loads via `LoraLoaderModelOnly` into the **Model Patch**; sampler is Turbo (euler / simple, **10 steps, cfg 1,
+  denoise 1**, 1024x1024); the prompt is an edit instruction (the example: "make this person a cyclops"). Edit
+  LoRAs are trained with ai-toolkit (`krea2` arch, `model_kwargs.edit: true`). One published edit LoRA: **`reverentelusarca/krea2-detail-enhancer-edit-lora`**
   (`krea-detail-enhancer-exp.safetensors`, **krea2-community-license** = non-commercial) - a DETAIL enhancer,
   trigger **"enhance this image"** (full prompt: high-res, rich fine detail, sharpen textures, add microdetail +
   natural grain, preserve the original composition / lighting / style). HONEST (author's own caveats): highly

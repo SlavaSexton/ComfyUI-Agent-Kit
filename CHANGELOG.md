@@ -32,6 +32,12 @@ vx.y.z`), which can become a GitHub Release.
   JSON caption), a **Grok Image 1080p** note, and an **advanced Krea 2 model-merging** note. Verified the rest of
   v0.27.0 is already in the kit (Seedance 2.0 Mini + 4K, HappyHorse 1.1, the Nano Banana 2 Lite + Gemini Video Omni
   partner nodes, and the v0.27.0 INT8 / frontend-Manager bugs already in KNOWN_ISSUES).
+- **Instruction editing on Krea 2 (community, experimental).** Added to the Krea 2 entry: `ostris/ComfyUI-Krea2-Ostris-Edit`
+  (Ostris / AI Toolkit - a Text Encode + Model Patch node pair that feeds reference latents into Krea 2, a
+  text-to-image model, so it can edit an input image) and the community edit LoRA
+  `reverentelusarca/krea2-detail-enhancer-edit-lora` (a detail enhancer, trigger "enhance this image",
+  krea2-community-license). Flagged with the author's own honest caveats - not Flux.2 Klein / Qwen-Image-Edit
+  precision (alters the image, shifts lighting/color, can fault on horizontal aspect ratios).
 
 Counts unchanged (69 recipes / 150 models): a native-feature doc refresh + a utility node pack, not new recipes
 or official models.

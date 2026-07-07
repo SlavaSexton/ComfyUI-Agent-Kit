@@ -383,6 +383,23 @@ FLUX prose will not help SDXL).
 - **License:** the code is Apache-2.0; the WEIGHTS use the Krea 2 Community License: commercial use needs a separate
   Enterprise License (community use is non-commercial), with acceptable-use / content-filter obligations.
 - **Model merging (ComfyUI v0.27.0):** an advanced Krea 2 model-merging node ships in core - merge a Krea 2 base with a fine-tune / another Krea 2 checkpoint (block-level control) without leaving ComfyUI.
+- **Instruction editing on Krea 2 (community, experimental) - Ostris edit method + a detail-enhancer LoRA:** Krea 2
+  is TEXT-TO-IMAGE, not an edit model, but Ostris (creator of AI Toolkit) trained an edit method and shipped
+  **`ostris/ComfyUI-Krea2-Ostris-Edit`** (2 nodes, no extra deps, category `ostris/krea2`): **Text Encode Krea 2
+  Ostris Edit** (encodes the prompt + up to 3 reference images through Krea 2's Qwen3-VL encoder with `Picture N:`
+  vision placeholders, and with a VAE also VAE-encodes each ref as a reference latent; images fit 384x384 for the
+  encoder / 1MP for the latent) and **Krea 2 Ostris Edit Model Patch** (patches Krea 2 to CONSUME those reference
+  latents - stock Krea 2 ignores them; refs appended to the image tokens, conditioned at timestep 0; a no-op when
+  there are no refs, so safe to leave in). Wire: `Load Diffusion (krea2) -> Load LoRA -> Krea 2 Ostris Edit Model
+  Patch -> KSampler`, with Text Encode feeding positive / negative. Edit LoRAs are trained with ai-toolkit (`krea2`
+  arch, `model_kwargs.edit: true`). One published edit LoRA: **`reverentelusarca/krea2-detail-enhancer-edit-lora`**
+  (`krea-detail-enhancer-exp.safetensors`, **krea2-community-license** = non-commercial) - a DETAIL enhancer,
+  trigger **"enhance this image"** (full prompt: high-res, rich fine detail, sharpen textures, add microdetail +
+  natural grain, preserve the original composition / lighting / style). HONEST (author's own caveats): highly
+  experimental, NOT Flux.2 Klein / Qwen-Image-Edit precision - it alters the image, shifts lighting / color
+  slightly, and can fault on horizontal aspect ratios. Needs a Krea 2 text encoder that INCLUDES the Qwen3-VL
+  vision weights (the vision-less encoder cannot encode the reference images). Source:
+  github.com/ostris/ComfyUI-Krea2-Ostris-Edit ; huggingface.co/reverentelusarca/krea2-detail-enhancer-edit-lora.
 - **Source:** github.com/krea-ai/krea-2 (incl. `docs/prompting.md`) ; huggingface.co/Comfy-Org/Krea-2 (ComfyUI repackaged) ;
   huggingface.co/krea/Krea-2-Raw + huggingface.co/krea/Krea-2-Turbo ;
   blog.comfy.org/p/krea-2-open-source-models-are-now ; krea.ai/blog/krea-2-technical-report.

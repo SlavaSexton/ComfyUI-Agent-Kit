@@ -13,7 +13,7 @@ param(
   [switch]$SkipTemplates,
   [switch]$SkipNodes
 )
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 $RepoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 function Ok($m){ Write-Host "  [ok] $m" -ForegroundColor Green }
 function Warn($m){ Write-Host "  [!]  $m" -ForegroundColor Yellow }

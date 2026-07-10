@@ -17,7 +17,7 @@ param(
   [switch]$SkipTemplates,
   [switch]$SkipNodes
 )
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 function Have($c){ return [bool](Get-Command $c -ErrorAction SilentlyContinue) }
 

@@ -7,7 +7,7 @@
   Templates location to record in the activation pointer. Default matches the shared installer.
 #>
 param([string]$TemplatesDir = "$env:USERPROFILE\comfyui-agent-kit-data\workflow_templates")
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 $Here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot = Split-Path -Parent (Split-Path -Parent $Here)
 $Shared = Join-Path $RepoRoot "shared\comfyui"

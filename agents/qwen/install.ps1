@@ -3,7 +3,7 @@
   Qwen Code adapter (a Gemini-CLI fork). Ships an extension at ~/.qwen/extensions/comfyui bundling the MCP server
   + the knowledge as QWEN.md. Manifest is qwen-extension.json. Assumes shared/install_shared.ps1 already ran.
 #>
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 $Here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot = Split-Path -Parent (Split-Path -Parent $Here)
 $Shared = Join-Path $RepoRoot "shared\comfyui"

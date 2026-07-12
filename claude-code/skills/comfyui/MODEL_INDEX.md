@@ -1,6 +1,6 @@
 # Model index: every model in the library and what the kit has for it
 
-The template library names **150 distinct models** across 545 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
+The template library names **152 distinct models** across 549 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
 provides: a full prompt recipe in [`MODELS.md`](../skills/comfyui/MODELS.md), an enhancement/utility note, or
 template-only coverage (runnable via a template, no dedicated recipe yet).
 
@@ -10,7 +10,7 @@ template-only coverage (runnable via a template, no dedicated recipe yet).
 | 🔧 **Utility** | enhancement / utility tool, has a "when to use + settings" note (not prompt-driven) |
 | 📋 **Template only** | runnable via a workflow template, no dedicated recipe yet (niche / thin official docs) |
 
-**Totals:** ✅ 69 recipe families (covering ~124 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
+**Totals:** ✅ 71 recipe families (covering ~126 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
 template-only · plus text encoders / inference providers that are not generative models.
 
 **Updated: 2026-06-25.** Every ✅ entry has a current prompting recipe in
@@ -42,7 +42,7 @@ template-only · plus text encoders / inference providers that are not generativ
 |---|---|---|
 | Ideogram | Ideogram (2.x / 3.0) | API |
 | Nano Banana / Gemini Image | Nano Banana, Nano Banana Pro, Nano Banana 2, Nano Banana 2 Lite, Gemini 3 Pro Image, Gemini 3.1 Pro/flash-lite, Gemini 2.5 Flash | API |
-| Seedream | Seedream 4.0 / 4.5 / 5.0 Lite | API |
+| Seedream | Seedream 4.0 / 4.5 / 5.0 Lite / 5.0 Pro | API |
 | Recraft | Recraft V3 | API |
 | GPT-Image | GPT Image 2, GPT-Image-1 / 1.5 | API |
 | Grok Image | Grok | API |
@@ -89,6 +89,7 @@ template-only · plus text encoders / inference providers that are not generativ
 | ACE-Step | local |
 | ElevenLabs | API |
 | Chatter Box | local |
+| Seed Audio (ByteDance) | API |
 
 ### 3D
 | Family | Variants | Run |

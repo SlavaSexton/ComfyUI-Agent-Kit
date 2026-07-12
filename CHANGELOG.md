@@ -14,12 +14,21 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-07-11
+
 ### Added
+- **Seedream 5.0 Pro (ByteDance) - new official recipe.** ByteDance's latest image model: multi-modal in ONE node
+  (`ByteDanceSeedreamNodeV2` - text-to-image + precise image editing + multi-image inputs), strong character /
+  product consistency, region-precise editing, and structured layouts (legible small text); official templates
+  `api_bytedance_seedream_5_0_pro_{t2i,image_edit}`. Shares the Seedream 5.0 CoT prompt style (no quality boosters).
+- **Seed Audio 1.0 (ByteDance) - new official recipe.** A new audio model: generates a full audio SCENE (sound
+  design + named-character dialogue + background music) in one pass, three modes t2a / ta2a / ti2a
+  (`ByteDanceSeedAudio` -> `SaveAudioAdvanced`); official templates `api_bytedance_seed_audio1_0_{t2a,ta2a,ti2a}`.
 - **INT8-ConvRot is native in ComfyUI v0.27.0 (ADVANCED.md refresh).** ComfyUI v0.27.0 shipped native int8-convrot
   weight quantization - the **ConvRot** rotation-based method (arXiv 2512.03673): ~half the FP16 size, faster than
   FP16, matches or beats FP8, faster + cleaner than FP8 on Turing / Ampere, and small enough to bring big models
   to 8-12 GB (and Pascal) cards (LTXV 2.3 1920x1088: 268 s -> 140 s). Refreshed the ADVANCED.md INT8 note (native
-  path + the ConvRot paper + the `comfy-model-tools` `quant_int8_auto.py` converter + Comfy-Org's HF weight
+  path + the ConvRot paper + the `comfy-model-tools` `quant_int8_convrot.py` converter + Comfy-Org's HF weight
   uploads for Wan 2.2 Animate / Z-Image / SeedVR2; extends to INT4, covers DiT / LLM / multimodal / UNet), and
   updated the Flux2-Klein entry (its `INT8-ConvRot` quant now loads natively). The third-party `ComfyUI-INT8-Fast`
   is now fully superseded.
@@ -27,9 +36,18 @@ vx.y.z`), which can become a GitHub Release.
   (ComfyUI nodes for the `pymss` library): split an `AUDIO` stream into instrument / vocal stems via MSS and
   VR/UVR models, with ensemble / normalize / phase-invert utilities - a fuller-featured alternative to the
   single-purpose MelBandRoFormer stem step.
-- **ComfyUI v0.27.0 coverage swept.** Beyond INT8-ConvRot: added **Ideogram 4 structured control** to the Ideogram
-  entry (the `Create Bounding Boxes` -> `Build JSON Prompt (Ideogram)` -> `Dict to JSON String` nodes for a spatial
-  JSON caption), a **Grok Image 1080p** note, and an **advanced Krea 2 model-merging** note. Verified the rest of
+- **ComfyUI-OCIO reference bumped to v1.2.2** (`NODE_LIBRARY/ocio.md` + ADVANCED.md + README). No node changes
+  since v1.2.0 (still nine nodes on the native VIDEO wire); v1.2.1 / v1.2.2 add a reproducible Dockerized CI
+  round-trip test and an honest accuracy write-up. Corrected the accuracy story: the headline is per-transform
+  bit-exact parity (**0.000e+00**), the end-to-end `ACEScg -> LogC -> Rec.709 -> back` round-trip is **4.5e-6**
+  max (single-precision LUT residual - NOT bit-for-bit lossless, but ~100x below a half-float EXR delivery grid),
+  and the histogram chart is a distribution-shape sanity check, not an accuracy proof. The Docker / CI round-trip
+  harness is credited to **Sam Hodge** (PR #1); the nodes + accuracy suite are Slava Sexton's. Also fixed the
+  stale "eight nodes" README / BUILDING_NODES count to **nine** (OCIO Player shipped in v1.2.0).
+- **ComfyUI v0.27.0 coverage swept.** Beyond INT8-ConvRot: added an **Ideogram 4 JSON-prompt note** to the Ideogram
+  entry (write the `IdeogramV4` prompt itself as a structured JSON-style caption; the official `api_ideogram_v4_t2i`
+  template builds it with a `GeminiNode` magic-prompt - there is no dedicated bounding-box or JSON-builder node),
+  a **Grok Image `1K` / `2K` resolution** note, and the core **`ModelMergeKrea2`** block-merge node. Verified the rest of
   v0.27.0 is already in the kit (Seedance 2.0 Mini + 4K, HappyHorse 1.1, the Nano Banana 2 Lite + Gemini Video Omni
   partner nodes, and the v0.27.0 INT8 / frontend-Manager bugs already in KNOWN_ISSUES).
 - **Instruction editing on Krea 2 (community, experimental).** Added to the Krea 2 entry: `ostris/ComfyUI-Krea2-Ostris-Edit`
@@ -39,8 +57,11 @@ vx.y.z`), which can become a GitHub Release.
   krea2-community-license). Flagged with the author's own honest caveats - not Flux.2 Klein / Qwen-Image-Edit
   precision (alters the image, shifts lighting/color, can fault on horizontal aspect ratios).
 
-Counts unchanged (69 recipes / 150 models): a native-feature doc refresh + a utility node pack, not new recipes
-or official models.
+Count change: **69 -> 71 recipes, 150 -> 152 models, 545 -> 549 templates** - from the two new official ByteDance
+recipes (Seedream 5.0 Pro image + Seed Audio 1.0 audio) picked up by the Saturday weekly-update check; INT8-ConvRot,
+Comfy-MSS, the v0.27.0 doc sweep and the Krea 2 edit method do not change the counts. All count places synced
+(README, MODEL_INDEX, and the cover / models_by_modality / architecture / templates banners re-rendered; chip now
+`152 models · 71 recipes`).
 
 ## [2.2.0] - 2026-07-06
 

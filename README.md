@@ -30,8 +30,8 @@ agents gets the same stack, wired to *your* hardware. GLM (z.ai) run through Cla
 `claude` adapter. See **[docs/AGENTS.md](docs/AGENTS.md)** for how each agent connects.
 
 **Local-first, for experts and everyday users alike.** It scales from one-command image / video generation to a
-professional VFX color pipeline: v2 ships **[ComfyUI-OCIO](https://github.com/SlavaSexton/ComfyUI-OCIO)** (eight
-Nuke-style OpenColorIO nodes - Read a sequence, grade in ACES, write ProRes, fully color-managed) and the field
+professional VFX color pipeline: v2 ships **[ComfyUI-OCIO](https://github.com/SlavaSexton/ComfyUI-OCIO)** (nine
+Nuke-style OpenColorIO nodes - Read a sequence, grade in ACES, write ProRes, preview on an on-node player, fully color-managed) and the field
 guide to building your own custom nodes.
 
 > **Local-first by design.** Prefer the cloud? The official **Comfy Cloud MCP** runs your workflows on Comfy's
@@ -45,9 +45,9 @@ guide to building your own custom nodes.
   Claude Code is covered too. ([docs/AGENTS.md](docs/AGENTS.md))
 - **~90-tool MCP driver.** The agent operates ComfyUI directly: generate, build / edit / validate graphs, queue,
   download models, manage VRAM, read logs, diagnose.
-- **Per-model "mega-brain":** 69 prompt recipes distilled from **official sources** (image, video, audio, 3D);
+- **Per-model "mega-brain":** 71 prompt recipes distilled from **official sources** (image, video, audio, 3D);
   the agent auto-pulls the right recipe when you name a model, so it prompts each one in its own dialect.
-- **Knows where each model runs:** a [full index](docs/MODEL_INDEX.md) of all 150 library models (recipe /
+- **Knows where each model runs:** a [full index](docs/MODEL_INDEX.md) of all 152 library models (recipe /
   utility / template-only), local vs API.
 - **Hardware-aware model selection:** detects your VRAM, RAM, and free disk, then recommends the variant that
   fits (fp8 / offload / multi-GPU / quant) and refuses a download that won't fit, before wasting the bandwidth.
@@ -59,8 +59,8 @@ guide to building your own custom nodes.
   and wires the nodes correctly (output-to-input by type, with converters where needed), validated against
   `/object_info` before running. Not a preset runner.
 - **Expert color + custom nodes (new in v2):** ships **[ComfyUI-OCIO](https://github.com/SlavaSexton/ComfyUI-OCIO)**
-  - eight Nuke-style OpenColorIO nodes (Read / Write a still, sequence or video, grade in ACES, write ProRes / EXR,
-  fully color-managed) - and the agent knows each node's I/O plus the field guide to *building* a custom node pack.
+  - nine Nuke-style OpenColorIO nodes (Read / Write a still, sequence or video, grade in ACES, write ProRes / EXR,
+  preview on an on-node player, fully color-managed) - and the agent knows each node's I/O plus the field guide to *building* a custom node pack.
   ([docs/NODE_LIBRARY/ocio.md](docs/NODE_LIBRARY/ocio.md), [docs/BUILDING_NODES.md](docs/BUILDING_NODES.md))
 - **Starts ComfyUI for you:** when the server is down, the agent launches it headless in the background and
   generates (no need to open the app first); to peek, you open `http://127.0.0.1:8188` in a browser. For an
@@ -100,7 +100,7 @@ See [docs/LAYERS.md](docs/LAYERS.md) for each layer, and [docs/AGENTS.md](docs/A
 ## The template library is the source of truth
 
 The kit clones the official [Comfy-Org/workflow_templates](https://github.com/Comfy-Org/workflow_templates) and
-builds a compact lookup index so the agent can match any request to the right template. 545 templates (plus **94 official Subgraph Blueprints**, reusable subgraph bricks) span every
+builds a compact lookup index so the agent can match any request to the right template. 549 templates (plus **94 official Subgraph Blueprints**, reusable subgraph bricks) span every
 task, image, video, 3D, audio, utilities:
 
 <div align="center">
@@ -118,7 +118,7 @@ prompting reference distilled from **official sources** (each maker's docs and m
 the per-model templates from the `anthropic-claude` node). When you name a model in a request or a workflow,
 the agent reads that model's entry first and prompts it correctly.
 
-Covered today (69 models with recipes): FLUX.1/.2 + Kontext, Z-Image, Boogu, Qwen-Image/Edit, SDXL, SD1.5/3.5, HiDream,
+Covered today (71 models with recipes): FLUX.1/.2 + Kontext, Z-Image, Boogu, Qwen-Image/Edit, SDXL, SD1.5/3.5, HiDream,
 Ideogram, Nano Banana Pro/2, Seedream, Recraft, GPT-Image, Grok, Reve, Kandinsky, BRIA, OmniGen, Chroma, Krea 1/2,
 ERNIE-Image, FireRed/LongCat/ChronoEdit (edit), Capybara, Bernini-R, Anima, NewBie, PixelDiT, Ovis-Image, Lens,
 Quiver, Wan 2.1-2.7, LTX-2.3/2 Pro, Hunyuan Video, SVD, Kling, Veo, Sora, Seedance, Luma, Runway, MiniMax, PixVerse,
@@ -130,7 +130,7 @@ object removal (VOID). Anything else falls back to the template library.
 
 <div align="center">
 
-<img src="docs/assets/models_by_modality.png" width="880" alt="Per-model prompt recipes by modality: 39 image, 21 video, 5 audio, 4 3D, 69 total, split local/open-weight vs API, plus 18 enhancement and utility tools">
+<img src="docs/assets/models_by_modality.png" width="880" alt="Per-model prompt recipes by modality: 40 image, 21 video, 6 audio, 4 3D, 71 total, split local/open-weight vs API, plus 18 enhancement and utility tools">
 
 </div>
 
@@ -300,7 +300,7 @@ package, the node-building skills, the workflow templates, and the in-graph Clau
 
 ## Credits and thanks
 
-**Our own companion pack:** **[ComfyUI-OCIO](https://github.com/SlavaSexton/ComfyUI-OCIO)** - eight Nuke-style
+**Our own companion pack:** **[ComfyUI-OCIO](https://github.com/SlavaSexton/ComfyUI-OCIO)** - nine Nuke-style
 OpenColorIO nodes - is by **Slava Sexton**, this kit's author (MIT). It is credited to him wherever the kit uses,
 recommends, or builds on it; see **[ATTRIBUTION.md](ATTRIBUTION.md)**.
 

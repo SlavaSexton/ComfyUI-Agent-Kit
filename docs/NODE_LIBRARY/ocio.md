@@ -1,11 +1,13 @@
 # OCIO color management (ComfyUI-OCIO, our own pack)
 
 **Nine** OpenColorIO nodes we build and maintain, modelled 1:1 on The Foundry Nuke's node set. Pack:
-**`ComfyUI-OCIO`**, author **Slava Sexton** (https://github.com/SlavaSexton/ComfyUI-OCIO), MIT, **released v1.2.0
-2026-07-06** (v1.0.0 was 2026-06-30). Category `OCIO`. Built to fill a real gap: the ComfyUI registry had no OCIO
-pack (`search_custom_nodes "OCIO"` / `"OpenColorIO"` both return nothing).
+**`ComfyUI-OCIO`**, author **Slava Sexton** (https://github.com/SlavaSexton/ComfyUI-OCIO), MIT, **released v1.2.2
+2026-07-06** (v1.2.0 was 2026-07-04, v1.0.0 2026-06-30). Category `OCIO`. Built to fill a real gap: the ComfyUI
+registry had no OCIO pack (`search_custom_nodes "OCIO"` / `"OpenColorIO"` both return nothing).
 
-**New in v1.2.0 - native ComfyUI VIDEO pipeline + an on-node viewer.**
+**The pack (v1.2.2) - native ComfyUI VIDEO pipeline, an on-node viewer, CI-verified accuracy.** (The nine nodes and
+the VIDEO wire shipped in v1.2.0; v1.2.1 / v1.2.2 add the reproducible CI and an honest accuracy write-up, no node
+changes.)
 - **All nine nodes are on the native VIDEO wire.** Each of the six color nodes (ColorSpace, LogConvert, Display,
   CDLTransform, FileTransform, LookTransform) plus Write and Player carries a **mutually-exclusive IMAGE-or-VIDEO
   input pair**: connect one and the other auto-disconnects, and the socket matching the live input carries the
@@ -17,15 +19,25 @@ pack (`search_custom_nodes "OCIO"` / `"OpenColorIO"` both return nothing).
   fragment shader on the real HALF-float values (a 3D LUT baked server-side from `getProcessor`), with a
   **scene-linear HDR log shaper** so highlights above 1.0 do NOT clip flat in the display LUT.
 - **LogConvert curves now carry readable labels** ("Sony S-Log3", "ARRI LogC3", "Linear to Log", ...).
-- **Bit-exact accuracy, measured:** worst max-abs error **0.000e+00** across 9 transforms x 4 fixtures (OCIO
-  parity), plus a full color-accuracy suite (`tools/accuracy`) and charts (`docs/assets/accuracy/`, incl. a 3D
+- **Accuracy, honestly stated (v1.2.2):** the headline number is **per-transform bit-exact parity - 0.000e+00**
+  worst max-abs error across 9 transforms x 4 fixtures (OCIO forward vs inverse). The full end-to-end round-trip
+  `ACEScg -> ARRI LogC -> Rec.709 -> back` in raw 32-bit float returns to source at **4.5e-6 max / 3.1e-8 mean**
+  abs error - reversible to floating-point precision, the residual being OCIO's single-precision LUT
+  interpolation. It is NOT bit-for-bit lossless, but ~100x finer than one half-float EXR step near 1.0, so a 16f
+  delivery never resolves it. The `histogram_compare` chart is a distribution-shape sanity check, NOT an accuracy
+  proof. Backed by a color-accuracy suite (`tools/accuracy`) + charts (`docs/assets/accuracy/`, incl. a 3D
   gamut-volume chart of sRGB / ACEScg / ACES2065-1 / ARRI Wide Gamut 3 in CIE Lab).
+- **Reproducible CI (v1.2.1+):** a Dockerized CPU-only ComfyUI test env (`docker/`, CPU-only, no models) drives
+  all nine nodes headless through the real ComfyUI HTTP API and gates the round-trip on every push / PR (GitHub
+  Actions) - CI-confirming that all 9 nodes register and the round-trip holds at 4.5e-6. The Docker / CI
+  round-trip harness was contributed by **Sam Hodge** (PR #1); the nodes and the color-accuracy suite are Slava
+  Sexton's.
 - **Since v1.0.1** (still current): OCIO Write can write LTX-2 HDR straight to an **ACEScg EXR sequence** -
   automatically (`auto_colorspace` from LTX's HDR decode) or by hand (the `logc3` ARRI LogC3 curve on
   OCIOLogConvert); **colorspace in the file name** (`name_acescg.0086.exr`, `colorspace_in_name`); Nuke-Write-style
   **EXR compression** (`compression`: zip / zips / piz / pxr24 / dwaa / dwab / rle / none). `pyproject.toml` is now
-  correctly `1.2.0` (the earlier v1.0.1 version-string lag is fixed). Full node I/O for Player / the video sockets:
-  the pack README + `io_nodes.py` / `nodes.py` at tag `v1.2.0`.
+  correctly `1.2.2` (the earlier v1.0.1 version-string lag is fixed). Full node I/O for Player / the video sockets:
+  the pack README + `io_nodes.py` / `nodes.py` at tag `v1.2.2`.
 
 **The two that make it a pipeline:** **OCIO Read** and **OCIO Write** - load a still / image sequence / video
 off disk, color-manage it, and write it back out in EXR / TIFF / PNG / JPEG or ProRes / DNxHR / h264 / hevc. The

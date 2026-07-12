@@ -202,7 +202,7 @@ FLUX prose will not help SDXL).
 - **Strengths:** quoted-text rendering, posters/logos/signage; `DESIGN` style for typography, `REALISTIC` for photos.
 - **Avoid:** long text strings, burying text mid-prompt, naming fonts. Negative prompts ARE supported (`negative_prompt`; positive takes precedence).
 - **Settings (API):** `style_type`, `rendering_speed` (TURBO/DEFAULT/QUALITY), `magic_prompt`, aspect ratios, seed, up to 4 images/call, character & style refs.
-- **Structured control (Ideogram 4, ComfyUI v0.27.0):** Ideogram 4 also takes a STRUCTURED JSON caption instead of one prose string, built by three core nodes: **Create Bounding Boxes** (a visual region editor -> caption elements as an ARRAY + pixel-space `BOUNDING_BOXES` + a rendered preview) -> **Build JSON Prompt (Ideogram)** (assembles the elements + background + style into the caption DICT) -> the Ideogram node; a **Dict to JSON String** node serializes it (non-ASCII-safe, `ensure_ascii=False`). Use it to PLACE elements spatially ("this object here, that text there") rather than hoping a prose prompt lands the layout - the day-0 structured-control path (adds `DICT` / `ARRAY` / `COLORS` / `BOUNDING_BOXES` I/O types).
+- **Structured / JSON prompting (Ideogram 4):** the **`IdeogramV4`** node (display "Ideogram V4") takes a plain multiline `prompt` (+ a `resolution` combo, `rendering_speed` = `DEFAULT` / `TURBO` / `QUALITY`, and `seed`) -> `SaveImage`; there is NO separate bounding-box or JSON-builder node. To place elements more tightly than prose, write the prompt itself as a STRUCTURED JSON-style caption (e.g. `{"high_level_description": ..., "elements": [...], "background": ..., "style": ...}`) - Ideogram reads it as the prompt text. The official `api_ideogram_v4_t2i` template automates this with a **`GeminiNode`** "magic prompt" (gemini-3-pro) that expands a short idea into that structured caption and feeds `IdeogramV4`. Confirmed from `comfy_api_nodes/nodes_ideogram.py` + the official template.
 - **Source:** docs.ideogram.ai/using-ideogram/prompting-guide ; developer.ideogram.ai ; ComfyUI v0.27.0 (CORE-292, PR 14537).
 
 ### Nano Banana Pro (Gemini 3 Pro Image)
@@ -239,6 +239,16 @@ FLUX prose will not help SDXL).
 - **Avoid:** CRITICAL - quality boosters ("masterpiece", "8K", "best quality") HARM output (distract the CoT pipeline); no `(word:1.3)` weights; negatives NOT supported; no guidance-scale param.
 - **Source:** volcengine.com/docs (Seedream 5.0 Lite) ; node template `seedream_5_lite.md`.
 
+### Seedream 5.0 Pro (ByteDance)
+- **Prompt style:** same natural-language, CoT-reasoning family as 5.0 Lite (relationship-first sentences, NOT keyword lists); state object relationships and, for a series, count + consistency; exact text in double quotes; label refs as Figure 1, 2.
+- **Strengths:** ByteDance's latest image model - **multi-modal in ONE node** (text-to-image, precise image editing, multi-image inputs); strong **character + product consistency** (portrait identity / lighting / realism held across style changes and edits); **region-precise editing** (edit a target area, leave lighting / depth / texture elsewhere untouched); **structured layouts** (infographics, flowcharts, mixed text+image with legible small text). Up to ~2048x2048.
+- **Avoid:** quality boosters ("masterpiece", "8K", "best quality") HARM output (they distract the CoT pipeline); no `(word:1.3)` weights; negatives NOT supported; no guidance-scale param.
+- **Build the graph (confirmed from the official templates):** ONE node **`ByteDanceSeedreamNodeV2`** -> **`SaveImageAdvanced`** (its `IMAGE` out -> `SaveImageAdvanced.images`). Node widgets = prompt, `model` = `seedream 5.0 pro`, a **size-preset combo** (e.g. `(1K) 1024x1024 (1:1)`) + width / height (up to 2048), seed + control_after_generate (leave the remaining toggles at their template defaults).
+  - **t2i** - just the node, its `model.images.image_1` input left unconnected.
+  - **edit / multi-image** - **`LoadImage`** -> `model.images.image_1` (add `image_2`, `image_3`... for more refs) -> node -> `SaveImageAdvanced`. To constrain the edit to a drawn region, route `LoadImage` through a **`Painter`** node first (draw marks; its `IMAGE` out feeds `image_1`) - the official edit template does exactly this.
+  - Templates `api_bytedance_seedream_5_0_pro_{t2i,image_edit}.json`. API / paid (Comfy Cloud or a BytePlus key).
+- **Source:** blog.comfy.org/p/seedream-50-pro ; volcengine.com / byteplus docs (Seedream 5.0) ; Comfy-Org/workflow_templates `api_bytedance_seedream_5_0_pro_*`.
+
 ### Recraft (V3)
 - **Prompt style:** natural-language, specific over vague; long-text + vector design specialist.
 - **Structure:** "A `<style>` of `<main content>`. `<detailed description>`. `<background>`. `<style description>`." general -> specific; exact text in quotes.
@@ -259,7 +269,7 @@ FLUX prose will not help SDXL).
 - **Structure:** Subject -> Style -> Mood -> Lighting -> Camera/Framing -> Finishing; subject in the first words; 60-80 words (cut past 120); one style; in-image text ALL CAPS + quotes, 1-3 words.
 - **Strengths:** behavior-based light, concrete camera/lens, named aesthetics; `-quality` tier adds i2i (1-3 refs) and better non-English text.
 - **Avoid:** negatives IGNORED (rephrase positive); keyword stacking; mixed styles; buried subject.
-- **ComfyUI (partner node):** up to **1080p** output on the Grok Image node (resolution added in ComfyUI v0.27.0).
+- **ComfyUI (partner node):** the Grok Image node exposes a `resolution` combo of **`1K` / `2K`** (confirmed from `comfy_api_nodes/nodes_grok.py`), plus an `aspect_ratio` combo.
 - **Source:** docs.x.ai/docs/guides/image-generations.
 
 ### Reve
@@ -382,7 +392,7 @@ FLUX prose will not help SDXL).
   huggingface.co/ahmed22xa/Huihui-Qwen3-VL-4B-Instruct-abliterated-comfy.
 - **License:** the code is Apache-2.0; the WEIGHTS use the Krea 2 Community License: commercial use needs a separate
   Enterprise License (community use is non-commercial), with acceptable-use / content-filter obligations.
-- **Model merging (ComfyUI v0.27.0):** an advanced Krea 2 model-merging node ships in core - merge a Krea 2 base with a fine-tune / another Krea 2 checkpoint (block-level control) without leaving ComfyUI.
+- **Model merging (ComfyUI core):** the **`ModelMergeKrea2`** node (a `ModelMergeBlocks` subclass in `comfy_extras/nodes_model_merging_model_specific.py`) merges two Krea 2 `MODEL`s with per-block ratio control - blend a Krea 2 base with a fine-tune (or another Krea 2 checkpoint) without leaving ComfyUI.
 - **Instruction editing on Krea 2 (community, experimental) - Ostris edit method + a detail-enhancer LoRA:** Krea 2
   is TEXT-TO-IMAGE, not an edit model, but Ostris (creator of AI Toolkit) trained an edit method and shipped
   **`ostris/ComfyUI-Krea2-Ostris-Edit`** (2 nodes, no extra deps, category `ostris/krea2`): **Text Encode Krea 2
@@ -768,6 +778,17 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
 - **Settings:** defaults `exaggeration=0.5`, `cfg_weight=0.5`; dramatic `exaggeration` 0.7+ with `cfg_weight` ~0.3.
 - **ComfyUI build:** the cited repo is the Python library; for ComfyUI install `filliptm/ComfyUI_Fill-ChatterBox` (ComfyUI Manager), whose TTS node takes `text` + `reference_audio` + `exaggeration` + `cfg_weight` -> AUDIO.
 - **Source:** github.com/resemble-ai/chatterbox (Python library).
+
+### Seed Audio 1.0 (ByteDance)
+- **Prompt style (this is the whole game):** write the scene as a SCRIPT and wrap everything that is NOT spoken dialogue in `[square brackets]` - only text in quotes after `says / whispers / replies` gets voiced. Un-bracketed prose is read aloud as narration and bloats the clip. Order: `[Language: ...]` -> `[Environment: ...]` -> `[Background music / SFX: ...]` -> `Name (voice traits) says: "line"` -> `[beats / SFX / Outro]`. Describe each voice (gender, age, accent, emotion, tone, pace) inside the parentheses before `says`.
+- **Lock the language:** English + Chinese only, and it mixes them if you don't pin it. Put `[Language: English only.]` (or `Chinese only.`) near the top AND write "speaks English only" into each character's voice traits.
+- **Limits (confirmed from the templates):** prompt <=3000 chars, output <=2 min.
+- **Strengths:** ONE pass gives a FULL audio scene - ambience + multi-character dialogue (per-voice traits) + background music + SFX - not plain TTS or a music-tag list. Three modes on the same node.
+- **Build the graph (confirmed from the official templates):** node **`ByteDanceSeedAudio`** -> **`SaveAudioAdvanced`** (widgets `mp3` / `V0`). Node widgets = prompt, a **mode combo**, `sample_rate` `24000`, seed + control_after_generate (leave the middle toggles at their defaults).
+  - **t2a** - mode `text only`, no inputs. (Also the clean way to make a reference clip for ta2a.)
+  - **ta2a** - mode `audio reference`; **`LoadAudio`** -> `reference_mode.reference_audio_1` (add `_2`, `_3` in order, no gaps, <=30s each). In the prompt tag each speaker `voiced by @Audio1 / @Audio2 / @Audio3` matching the connected clip - every `@AudioN` used must have a clip, and a speaker reuses the same `@AudioN` on later lines. `@Audio1` = `reference_audio_1`, etc.
+  - **ti2a** - mode `image reference`; **`LoadImage`** -> `reference_mode.reference_image`; the image derives ONE character voice, the prompt still drives language + scene. Do NOT use `@AudioN` in this mode.
+- **Source:** the official `api_bytedance_seed_audio1_0_{t2a,ta2a,ti2a}.json` templates' own MarkdownNote guides ; volcengine.com / byteplus docs (Seed Audio 1.0). API / paid (Comfy Cloud or a BytePlus key).
 
 ## 3D models
 

@@ -1,6 +1,6 @@
 # Building a custom node pack - the hard-won field guide
 
-The distilled lessons from building **ComfyUI-OCIO** (our eight-node OpenColorIO pack, 2026-06/07). This is the
+The distilled lessons from building **ComfyUI-OCIO** (our nine-node OpenColorIO pack, 2026-06/07). This is the
 "how it actually goes" layer on top of the `comfyui-node-*` node-building skills (Layer 4): the gotchas that cost
 real time, so the next node pack does not re-pay them. When you write or modify a custom node, read this first.
 

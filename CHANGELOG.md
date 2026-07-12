@@ -14,6 +14,21 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-07-12
+
+### Fixed
+- **Ideogram 4 structured-control nodes restored (they are real).** v2.3.0 wrongly claimed the
+  `Create Bounding Boxes -> Build JSON Prompt (Ideogram)` flow had "no dedicated bounding-box or JSON-builder
+  node." Those nodes exist in current ComfyUI core: **`CreateBoundingBoxes`** (`comfy_extras/nodes_bounding_boxes.py`;
+  outputs `preview` / `bboxes` (BOUNDING_BOX) / `elements` (ARRAY)), **`BuildJsonPromptIdeogram`** ("Build JSON
+  Prompt (Ideogram)", `nodes_json_prompt.py`; the ARRAY plus `high_level_description` / `background` / `style` /
+  `aesthetics` / `lighting` / `medium` / `color_palette` COLORS -> a DICT caption), and **`Ideogram4Scheduler`**
+  (`nodes_ideogram4.py`). The v2.3.0 note was written after checking only `nodes_ideogram.py` (V3 / V4 only)
+  against a local core (0.25.1) that predated these modules, and no template uses them yet; the
+  `CreateBoundingBoxes` widget landed in frontend v1.48.2 (2026-07-11). MODELS.md now documents the real
+  buildable chain (`CreateBoundingBoxes` -> `BuildJsonPromptIdeogram` -> Ideogram 4), confirmed from the node
+  source. The Grok `1K` / `2K`, `ModelMergeKrea2` and `quant_int8_convrot.py` corrections from v2.3.0 stand.
+
 ## [2.3.0] - 2026-07-11
 
 ### Added

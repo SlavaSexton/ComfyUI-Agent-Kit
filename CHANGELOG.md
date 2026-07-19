@@ -14,6 +14,8 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-07-18
+
 ### Added
 - **Sync 3 (sync.so) - new official recipe.** A dedicated LIP-SYNC model, not a general video generator:
   re-sync the mouth of existing footage to new speech (**`SyncLipSyncNode`**, "sync.so Lip Sync": `video` +

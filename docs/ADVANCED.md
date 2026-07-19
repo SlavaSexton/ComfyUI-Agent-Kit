@@ -76,8 +76,13 @@ The 2026 stack moved from SD-era flow hacks to native video models. Honest hiera
   models within reach of 8-12 GB (and even Pascal GTX 10xx) cards. Measured (LTXV 2.3, 1920x1088, RTX 5090): base
   268 s vs int8-convrot 140 s. v0.27.0 also fixed INT8 LoRA quality/speed and an INT8 memory leak. **Convert** a
   bf16 model with Comfy's own **`Comfy-Org/comfy-model-tools`** (`quant_int8_convrot.py`, dry-run first); Comfy-Org is
-  uploading official int8-convrot weights to HF (Wan 2.2 Animate, Z-Image, SeedVR2, more). The method extends to
-  INT4 and covers DiT / LLM / multimodal / UNet. This makes the earlier community pack
+  uploading official int8-convrot weights to HF (Wan 2.2 Animate, Z-Image, SeedVR2, more). **INT4 is native as of
+  v0.28.0** (`Support convrot int4 models`, PR #14859), with a same-release fix for **black images on Turing when
+  using int4 models** (PR #14864) - so on RTX 20xx make sure you are on v0.28.0 or later before blaming the quant.
+  v0.28.0 also shipped official int8 TEMPLATES across the library (Z-Image, Ideogram 4 t2i, Qwen-Image-Edit 2511,
+  Boogu edit, SeedVR2 3B/7B, Wan SCAIL2), so int8 is now a first-class path, not just a converter. **Known bug:**
+  an open core issue reports `int8 model cause PC crash` (comfyanonymous/ComfyUI#14985, opened 2026-07-18) - treat
+  int8 as fast but not yet bulletproof, and see KNOWN_ISSUES.md. The method covers DiT / LLM / multimodal / UNet. This makes the earlier community pack
   **`BobJohnson24/ComfyUI-INT8-Fast`** (which pioneered ComfyUI INT8, incl. the `INT8-ConvRot` quants some models
   like Flux2-Klein-9B-True-V3 shipped) **fully superseded** - use the native v0.27.0 path. Quality still trails
   bf16/fp16, so keep INT8 for speed passes, not final-grade VFX plates. Source:

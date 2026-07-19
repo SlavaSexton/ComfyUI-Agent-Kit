@@ -14,6 +14,39 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+### Added
+- **Sync 3 (sync.so) - new official recipe.** A dedicated LIP-SYNC model, not a general video generator:
+  re-sync the mouth of existing footage to new speech (**`SyncLipSyncNode`**, "sync.so Lip Sync": `video` +
+  `audio` -> VIDEO), or animate a single still portrait from an audio track (**`SyncTalkingImageNode`**,
+  "sync.so Talking Image": `image` + `audio` + an OPTIONAL text prompt -> VIDEO, output length matching the
+  audio). Documented the knobs that actually matter: `sync_mode` (`bounce` / `cut_off` / `loop` / `silence` /
+  `remap`, which also sets the output length), face location by `default` / `auto-detect` / `coordinates` for
+  multi-face shots, the 4K input ceiling and the constant-24/25/30-fps preference, and the node's own warning
+  that results are non-deterministic regardless of seed. Confirmed from `comfy_api_nodes/nodes_sync_so.py` plus
+  templates `api_sync_so_{lip_sync_video,talking_image}`.
+
+### Changed
+- **ComfyUI core v0.28.0 swept (released 2026-07-15).** Two BREAKING removals now flagged in the docs:
+  **`IdeogramV1` and `IdeogramV2` nodes were removed** (an older graph loading them will not resolve, rebuild on
+  `IdeogramV3` / `IdeogramV4`), and **all StabilityAI partner nodes were removed**. Also folded in: the Seedream
+  node's new **disable-thinking widget** (leave it on for the CoT behaviour this kit's recipe assumes, turn it
+  off for a faster literal pass), and **native INT4 convrot** with its same-release fix for black images on
+  Turing - so the ADVANCED.md quantization note now covers int4, the official int8 TEMPLATES that shipped across
+  the library, and the open `int8 model cause PC crash` report.
+- **Counts: 71 -> 72 recipes, 152 -> 153 models, 549 -> 562 templates.** Synced across README, MODEL_INDEX,
+  SKILL.md and all four banners (re-rendered and checked pixel by pixel). Template category counts recomputed
+  from the official manifest, where **Video (149) has now overtaken Image (145)**.
+
+### Fixed
+- **KNOWN_ISSUES.md refreshed to 2026-07-18** (it had drifted to 2026-07-01). New open entries: whole-machine
+  crashes on int8 models (#14985), Nodes Manager extensions broken after the 0.28.0 update (#14967), SeedVR2
+  showing no temporal consistency on video (#14970), plus the two node removals above. New fixed entries: four
+  security vulnerabilities closed in v0.28.0 (GHSA-779p-m5rp-r4h4), crashes on undecodable audio streams /
+  `UNetSelfAttentionMultiply` / Load3D path validation / Qwen3-VL tokenizer, the HLG inverse-OETF clamp fix, and
+  the **dropped PyTorch 2.4 support** (upgrade PyTorch before upgrading core).
+- Stale counts caught while syncing: the SKILL.md routing line still called our OCIO pack "eight nodes" (it has
+  been nine since OCIO v1.2.0), and README still advertised a "545-template library".
+
 ## [2.3.1] - 2026-07-12
 
 ### Fixed

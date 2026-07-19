@@ -1,6 +1,6 @@
 # Model index: every model in the library and what the kit has for it
 
-The template library names **152 distinct models** across 549 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
+The template library names **153 distinct models** across 562 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
 provides: a full prompt recipe in [`MODELS.md`](../skills/comfyui/MODELS.md), an enhancement/utility note, or
 template-only coverage (runnable via a template, no dedicated recipe yet).
 
@@ -10,10 +10,10 @@ template-only coverage (runnable via a template, no dedicated recipe yet).
 | 🔧 **Utility** | enhancement / utility tool, has a "when to use + settings" note (not prompt-driven) |
 | 📋 **Template only** | runnable via a workflow template, no dedicated recipe yet (niche / thin official docs) |
 
-**Totals:** ✅ 71 recipe families (covering ~126 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
+**Totals:** ✅ 72 recipe families (covering ~126 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
 template-only · plus text encoders / inference providers that are not generative models.
 
-**Updated: 2026-06-25.** Every ✅ entry has a current prompting recipe in
+**Updated: 2026-07-18.** Every ✅ entry has a current prompting recipe in
 [`MODELS.md`](../skills/comfyui/MODELS.md); every 🔧 entry has a when-to-use + settings note.
 
 ---
@@ -81,6 +81,7 @@ template-only · plus text encoders / inference providers that are not generativ
 | PixVerse | PixVerse | API |
 | Vidu | Vidu Q1 / Q2 / Q3 | API |
 | Pika | Pika 2.2 / 2.5 | API |
+| Sync (sync.so) | Sync 3 (lip sync, talking image) | API |
 
 ### Audio
 | Family | Run |

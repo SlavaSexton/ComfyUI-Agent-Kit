@@ -1,17 +1,23 @@
 # ComfyUI known issues, fixes, and workarounds (living log)
 
-Maintained weekly by the `comfyui-weekly-update` task from ComfyUI + frontend release notes and the issue tracker,
+Maintained weekly by the `comfyui-weekly-cycle` task from ComfyUI + frontend release notes and the issue tracker,
 so the kit knows what is broken BEFORE building a workflow instead of wiring around a known-broken path and
 repeating the same mistakes. Every row is sourced. Read this (and the "Real limits" section of
 [`ADVANCED.md`](ADVANCED.md)) before assembling a non-trivial graph.
 
-**Last updated: 2026-07-01** (seeded from verified primary-source research; statuses are as of this date and move
-as ComfyUI ships fixes).
+**Last updated: 2026-07-18** (statuses are as of this date and move as ComfyUI ships fixes). Current core release:
+**v0.28.0** (2026-07-15); current frontend: **v1.48.2** (2026-07-11).
 
 ## Open: bites you when building or running
 
 | Symptom | Cause | Workaround | Source |
 |---|---|---|---|
+| PC crashes (whole machine) when running an int8 model | Open, unresolved as of 2026-07-18; no root cause published yet | Fall back to fp8 / bf16 for that model until it is triaged; int8 is fast but not yet bulletproof | gh comfyanonymous/ComfyUI 14985 (opened 2026-07-18) |
+| Black image on Turing (RTX 20xx) with int4 models | int4-convrot path on Turing | FIXED in v0.28.0 (PR 14864) - update core before blaming the quant | gh Comfy-Org/ComfyUI PR 14864 ; release v0.28.0 |
+| Nodes Manager extensions stop working after updating to 0.28.0 | Open, reported 2026-07-17 against the v0.28.0 update | Watch the issue; no published workaround yet | gh comfyanonymous/ComfyUI 14967 |
+| SeedVR2 shows no temporal consistency on video | Open, reported 2026-07-17 against the new native SeedVR2 support | Treat native SeedVR2 as image-first for now; for video check the issue before relying on it | gh comfyanonymous/ComfyUI 14970 |
+| `IdeogramV1` / `IdeogramV2` nodes missing from an older graph | Both nodes were REMOVED in core v0.28.0 | Rebuild the graph on `IdeogramV3` / `IdeogramV4` | gh Comfy-Org/ComfyUI PR 14712 ; release v0.28.0 |
+| StabilityAI partner nodes missing | All StabilityAI nodes were REMOVED in core v0.28.0 | Use another provider's partner nodes, or a local Stable Diffusion checkpoint | gh Comfy-Org/ComfyUI PR 14737 ; release v0.28.0 |
 | Black or NaN images after decode | fp16 VAE overflow (esp. SD1.5's fp32-trained VAE; also some fp8 models) | `--fp32-vae` (or `--bf16-vae`); VAE on CPU | gh comfyanonymous/ComfyUI 13116, 2229 ; cli_args.py |
 | Color/contrast shift, worse over repeated passes | lossy VAE round-trip; tiled decode auto-triggers under VRAM pressure | encode once, stay in latent, decode once; histogram/LAB match to the source plate | gh 500 |
 | A custom node never re-runs | `IS_CHANGED` returning `True` reads as unchanged (`True == True`) | the node must `return float("NaN")` to force a rerun | docs custom-nodes/backend/server_overview |
@@ -34,6 +40,9 @@ as ComfyUI ships fixes).
 
 | Fixed in | Symptom | Source |
 |---|---|---|
+| ComfyUI v0.28.0 | **Four security vulnerabilities** closed (advisory GHSA-779p-m5rp-r4h4). Update; do not stay on an older core if you expose ComfyUI beyond localhost. | gh Comfy-Org/ComfyUI PR 14734 ; GHSA-779p-m5rp-r4h4 |
+| ComfyUI v0.28.0 | Crash on videos with an undecodable audio stream; crash in `UNetSelfAttentionMultiply`; Load3D path-validation failure from double path resolution; Qwen3-VL tokenizer crash with custom embeddings; wrong HLG inverse-OETF clamp in `hlg_to_linear` (colour-relevant). | release v0.28.0 (PRs 14746, 14823, 14852, 14713, 14762) |
+| ComfyUI v0.28.0 | **Dropped PyTorch 2.4 support** (gqa now on all attention backends). Not a bug, but it breaks old environments: upgrade PyTorch before upgrading core. | gh Comfy-Org/ComfyUI PR 14772 ; release v0.28.0 |
 | ComfyUI v0.27.0 | INT8 (`*_convrot_simple`) model + LoRA degraded quality / memory leak: on offload the re-quant dropped the convrot per-channel params and re-quantized tensorwise. INT8 support itself landed in v0.27.0; these early bugs were fixed within the same release, so use v0.27.0+ (not the nightlies in between). | gh comfyanonymous/ComfyUI 14642 ; PRs 14650, 14669, 14697 ; release v0.27.0 |
 | frontend (closed 2026-06-30) | Comfy Manager button invisible on the canvas since frontend 1.47.3. Fix merged; on the 1.47.x line update to the latest patch, or use the 1.45.20 frontend that stable ComfyUI 0.27.0 pins. | gh Comfy-Org/ComfyUI_frontend 13175 |
 

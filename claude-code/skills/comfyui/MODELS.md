@@ -197,6 +197,7 @@ FLUX prose will not help SDXL).
 ## Image models (API / closed)
 
 ### Ideogram (2.x to 4.0)
+- **Nodes available (ComfyUI v0.28.0):** only **`IdeogramV3`** and **`IdeogramV4`** ship now. The old **`IdeogramV1` and `IdeogramV2` nodes were REMOVED in v0.28.0** (Comfy-Org PR #14712), so an older graph that loads them will fail to resolve the node; rebuild it on V3 / V4. Confirmed from `comfy_api_nodes/nodes_ideogram.py` on master (only V3, V4 and the extension are defined) plus the v0.28.0 release notes.
 - **Prompt style:** natural-language sentences (no tags, no `--ar`/`::` flags); typography specialist.
 - **Structure:** describe as to a person; important elements and text early; exact text in quotes (under ~25 chars), describe font style/position/color, don't name fonts.
 - **Strengths:** quoted-text rendering, posters/logos/signage; `DESIGN` style for typography, `REALISTIC` for photos.
@@ -245,6 +246,7 @@ FLUX prose will not help SDXL).
 - **Prompt style:** same natural-language, CoT-reasoning family as 5.0 Lite (relationship-first sentences, NOT keyword lists); state object relationships and, for a series, count + consistency; exact text in double quotes; label refs as Figure 1, 2.
 - **Strengths:** ByteDance's latest image model - **multi-modal in ONE node** (text-to-image, precise image editing, multi-image inputs); strong **character + product consistency** (portrait identity / lighting / realism held across style changes and edits); **region-precise editing** (edit a target area, leave lighting / depth / texture elsewhere untouched); **structured layouts** (infographics, flowcharts, mixed text+image with legible small text). Up to ~2048x2048.
 - **Avoid:** quality boosters ("masterpiece", "8K", "best quality") HARM output (they distract the CoT pipeline); no `(word:1.3)` weights; negatives NOT supported; no guidance-scale param.
+- **Thinking toggle (ComfyUI v0.28.0):** the Seedream node gained a widget to **disable thinking** (Comfy-Org PR #14853). Leave it ON for the CoT behaviour this recipe assumes (relationship reasoning, layout planning); turn it OFF for a faster, more literal pass when the prompt is already explicit and you do not want the model re-planning the composition.
 - **Build the graph (confirmed from the official templates):** ONE node **`ByteDanceSeedreamNodeV2`** -> **`SaveImageAdvanced`** (its `IMAGE` out -> `SaveImageAdvanced.images`). Node widgets = prompt, `model` = `seedream 5.0 pro`, a **size-preset combo** (e.g. `(1K) 1024x1024 (1:1)`) + width / height (up to 2048), seed + control_after_generate (leave the remaining toggles at their template defaults).
   - **t2i** - just the node, its `model.images.image_1` input left unconnected.
   - **edit / multi-image** - **`LoadImage`** -> `model.images.image_1` (add `image_2`, `image_3`... for more refs) -> node -> `SaveImageAdvanced`. To constrain the edit to a drawn region, route `LoadImage` through a **`Painter`** node first (draw marks; its `IMAGE` out feeds `image_1`) - the official edit template does exactly this.
@@ -746,6 +748,22 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
 - **Avoid:** complex multi-stage motion, stacking camera types, over-describing. Negatives ARE supported ("ugly, blurry, low quality, watermark, distorted, jittery, morphing"). Pikaffects/Pikaswaps are web-UI only.
 - **Settings:** 720/1080p; 5/10s; many aspects; guidance 8-24 (def 12); motion intensity 1-4 (def 1).
 - **Source:** pika.art ; docs.pika.art ; node template `pika.md`.
+
+### Sync 3 (sync.so) - lip sync + talking image
+- **What it is:** a dedicated LIP-SYNC model, not a general video generator. Two jobs: re-sync the mouth of existing footage to new speech, or bring a single still portrait to life from an audio track. Handles close-ups, profiles and partial obstructions automatically while preserving the speaker's expression. Cost scales with output duration. API / paid (Comfy Cloud or a sync.so key).
+- **Prompt style:** only the Talking Image node takes text, and it is OPTIONAL guidance for how the portrait comes to life (framing, mood, small motion), not a scene description. The audio drives everything else. Lip Sync takes no prompt at all.
+- **Build the graph (confirmed from `comfy_api_nodes/nodes_sync_so.py` + the official templates):**
+  - **Lip sync existing footage** - `LoadVideo` -> **`SyncLipSyncNode`** ("sync.so Lip Sync") `video`, plus `LoadAudio` (or `RecordAudio`) -> its `audio`; `VIDEO` out -> `SaveVideo`. Template `api_sync_so_lip_sync_video`.
+  - **Talking portrait** - `LoadImage` -> **`SyncTalkingImageNode`** ("sync.so Talking Image") `image`, plus `LoadAudio` -> its `audio`; `VIDEO` out -> `SaveVideo`. Template `api_sync_so_talking_image`. Output duration MATCHES the audio length.
+- **Settings that matter:**
+  - `model` = `sync-3` on both. The image input is **exclusive to sync-3**.
+  - **`sync_mode`** (Lip Sync only): `bounce` (default) / `cut_off` / `loop` / `silence` / `remap` - how a duration mismatch between video and audio is resolved, and it also SETS the output length. This is the knob to reach for first when the result runs long or short.
+  - Face location: `default` / `auto-detect` / `coordinates` (Lip Sync also has `auto-detect`). Pick `coordinates` and give the X / Y pixel position (plus, on Lip Sync, the video frame to locate from) when several faces are in shot and it syncs the wrong one.
+  - Talking Image has an auto-downscale toggle (on by default) for images past 4K.
+  - `seed` only controls whether the node re-runs; results are non-deterministic regardless of seed (the node's own tooltip says so).
+- **Input limits:** video and image up to 4K (4096x2160); a CONSTANT frame rate of 24 / 25 / 30 fps works best for the source footage.
+- **Avoid:** treating it as a text-to-video model (there is no scene generation); expecting seed-reproducible output; feeding variable-frame-rate footage.
+- **Source:** `comfy_api_nodes/nodes_sync_so.py` (node schemas + tooltips, read on master) ; Comfy-Org/workflow_templates `api_sync_so_{lip_sync_video,talking_image}`.
 
 ## Audio models
 

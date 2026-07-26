@@ -45,15 +45,15 @@ guide to building your own custom nodes.
   Claude Code is covered too. ([docs/AGENTS.md](docs/AGENTS.md))
 - **~90-tool MCP driver.** The agent operates ComfyUI directly: generate, build / edit / validate graphs, queue,
   download models, manage VRAM, read logs, diagnose.
-- **Per-model "mega-brain":** 72 prompt recipes distilled from **official sources** (image, video, audio, 3D);
+- **Per-model "mega-brain":** 74 prompt recipes distilled from **official sources** (image, video, audio, 3D);
   the agent auto-pulls the right recipe when you name a model, so it prompts each one in its own dialect.
-- **Knows where each model runs:** a [full index](docs/MODEL_INDEX.md) of all 153 library models (recipe /
+- **Knows where each model runs:** a [full index](docs/MODEL_INDEX.md) of all 157 library models (recipe /
   utility / template-only), local vs API.
 - **Hardware-aware model selection:** detects your VRAM, RAM, and free disk, then recommends the variant that
   fits (fp8 / offload / multi-GPU / quant) and refuses a download that won't fit, before wasting the bandwidth.
 - **18 enhancement and utility tools:** upscale / restore (Real-ESRGAN, SUPIR, SeedVR2), frame interpolation
   (FILM, RIFE), segmentation / depth / pose (SAM3, BiRefNet, Depth Anything), plus restoration chains.
-- **562-template library** (and **94 official Subgraph Blueprints**, reusable subgraph bricks) as the source of truth, plus **fetch any shared workflow by hash** and a **model
+- **578-template library** (and **94 official Subgraph Blueprints**, reusable subgraph bricks) as the source of truth, plus **fetch any shared workflow by hash** and a **model
   shootout** (run a prompt through many models small, pick the winner, then scale up).
 - **Assembles new workflows from parts:** decomposes a task into stages, mixes templates and blueprint subgraphs,
   and wires the nodes correctly (output-to-input by type, with converters where needed), validated against
@@ -100,12 +100,12 @@ See [docs/LAYERS.md](docs/LAYERS.md) for each layer, and [docs/AGENTS.md](docs/A
 ## The template library is the source of truth
 
 The kit clones the official [Comfy-Org/workflow_templates](https://github.com/Comfy-Org/workflow_templates) and
-builds a compact lookup index so the agent can match any request to the right template. 562 templates (plus **94 official Subgraph Blueprints**, reusable subgraph bricks) span every
+builds a compact lookup index so the agent can match any request to the right template. 578 templates (plus **94 official Subgraph Blueprints**, reusable subgraph bricks) span every
 task, image, video, 3D, audio, utilities:
 
 <div align="center">
 
-<img src="docs/assets/templates_by_category.png" width="880" alt="Workflow templates by category: 149 video, 145 image, 103 use cases, 69 utility, 33 3D, 29 audio, and more">
+<img src="docs/assets/templates_by_category.png" width="880" alt="Workflow templates by category: 152 video, 150 image, 103 use cases, 69 utility, 33 3D, 30 audio, and more">
 
 </div>
 
@@ -118,11 +118,11 @@ prompting reference distilled from **official sources** (each maker's docs and m
 the per-model templates from the `anthropic-claude` node). When you name a model in a request or a workflow,
 the agent reads that model's entry first and prompts it correctly.
 
-Covered today (72 models with recipes): FLUX.1/.2 + Kontext, Z-Image, Boogu, Qwen-Image/Edit, SDXL, SD1.5/3.5, HiDream,
+Covered today (74 models with recipes): FLUX.1/.2 + Kontext, Z-Image, Boogu, Qwen-Image/Edit, SDXL, SD1.5/3.5, HiDream,
 Ideogram, Nano Banana Pro/2, Seedream, Recraft, GPT-Image, Grok, Reve, Kandinsky, BRIA, OmniGen, Chroma, Krea 1/2,
-ERNIE-Image, FireRed/LongCat/ChronoEdit (edit), Capybara, Bernini-R, Anima, NewBie, PixelDiT, Ovis-Image, Lens,
+ERNIE-Image, FireRed/LongCat/ChronoEdit/JoyAI Image Edit (edit), Capybara, Bernini-R, Anima, NewBie, PixelDiT, Ovis-Image, Lens,
 Quiver, Wan 2.1-2.7, LTX-2.3/2 Pro, Hunyuan Video, SVD, Kling, Veo, Sora, Seedance, Luma, Runway, MiniMax, PixVerse,
-Vidu, Pika, HappyHorse, HuMo, SCAIL-2, Stable Audio, ACE-Step, ElevenLabs, ChatterBox, Sonilo, Hunyuan3D, Tripo,
+Vidu, Pika, HeyGen (avatar video), HappyHorse, HuMo, SCAIL-2, Stable Audio, ACE-Step, ElevenLabs, ChatterBox, Sonilo, Hunyuan3D, Tripo,
 Rodin, Meshy. Plus a separate **Enhancement and utility** section (not prompt-driven, settings not prompts):
 upscalers and restorers (Real-ESRGAN, SUPIR, SeedVR2, FlashVSR, Topaz, Magnific), frame interpolation (FILM, RIFE),
 conditioning helpers (SAM3, BiRefNet, Depth Anything, DWPose, MoGe, IP-Adapter, LivePortrait, Mediapipe), and video
@@ -130,7 +130,7 @@ object removal (VOID). Anything else falls back to the template library.
 
 <div align="center">
 
-<img src="docs/assets/models_by_modality.png" width="880" alt="Per-model prompt recipes by modality: 40 image, 22 video, 6 audio, 4 3D, 72 total, split local/open-weight vs API, plus 18 enhancement and utility tools">
+<img src="docs/assets/models_by_modality.png" width="880" alt="Per-model prompt recipes by modality: 41 image, 23 video, 6 audio, 4 3D, 74 total, split local/open-weight vs API, plus 18 enhancement and utility tools">
 
 </div>
 
@@ -158,7 +158,7 @@ One table, columns aligned to the widest row (the video models).
 | Image | ERNIE-Image | ✅ | local |
 | Image | Capybara (image+video) | ✅ | local |
 | Image | Bernini-R (relight) | ✅ | local |
-| Image | Anima (anime) | ✅ | local |
+| Image | Anima (anime, + ControlNet-LLLite) | ✅ | local |
 | Image | NewBie (anime, XML prompts) | ✅ | local |
 | Image | PixelDiT | ✅ | local |
 | Image | Ovis-Image (text rendering) | ✅ | local |
@@ -173,6 +173,7 @@ One table, columns aligned to the widest row (the video models).
 | Image | Reve | ✅ | API |
 | Image | Kandinsky 3.x | ✅ | local + API |
 | Image edit | FireRed / LongCat / ChronoEdit | ✅ | local |
+| Image edit | JoyAI Image Edit (JD) | ✅ | local |
 | Video | Wan 2.1-2.7 (+VACE/Animate/ATI) | ✅ | local + API |
 | Video | LTX-2.3 / LTX-2 Pro | ✅ | local |
 | Video | Hunyuan Video | ✅ | local |
@@ -186,6 +187,7 @@ One table, columns aligned to the widest row (the video models).
 | Video | Seedance 1.0/1.5/2.0 (4K) | ✅ | API |
 | Video | Luma Ray · Runway Gen-4/4.5 | ✅ | API |
 | Video | MiniMax/Hailuo · PixVerse · Vidu · Pika | ✅ | API |
+| Video | HeyGen (avatar, talking photo, translate) | ✅ | API |
 | Audio | Stable Audio · ACE-Step · ChatterBox | ✅ | local |
 | Audio | ElevenLabs · Sonilo | ✅ | API |
 | 3D | Hunyuan3D | ✅ | local |

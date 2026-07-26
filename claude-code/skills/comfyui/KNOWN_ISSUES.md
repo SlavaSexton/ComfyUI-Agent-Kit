@@ -5,13 +5,17 @@ so the kit knows what is broken BEFORE building a workflow instead of wiring aro
 repeating the same mistakes. Every row is sourced. Read this (and the "Real limits" section of
 [`ADVANCED.md`](ADVANCED.md)) before assembling a non-trivial graph.
 
-**Last updated: 2026-07-18** (statuses are as of this date and move as ComfyUI ships fixes). Current core release:
-**v0.28.0** (2026-07-15); current frontend: **v1.48.2** (2026-07-11).
+**Last updated: 2026-07-25** (statuses are as of this date and move as ComfyUI ships fixes). Current core release:
+**v0.28.0** (2026-07-15, unchanged this week); current frontend: **v1.48.5** (2026-07-23).
 
 ## Open: bites you when building or running
 
 | Symptom | Cause | Workaround | Source |
 |---|---|---|---|
+| The whole ComfyUI-LTXVideo pack fails to import: `cannot import name 'interleaved_freqs_cis' from 'comfy.ldm.lightricks.model'` | Core commit `7c59a078d` (PR 15056, "use comfy kitchen rope functions in ltx models") removed that symbol; the pack imports it at the top of its `__init__` chain, so ALL its nodes disappear | Stay on the v0.28.0 stable tag rather than master until the pack updates; on master, the core LTX nodes still work, only the custom pack is dead | gh Comfy-Org/ComfyUI 15086, 15070 (both opened 2026-07-25/26) |
+| Black / NaN image from an `int8_convrot` diffusion model on RDNA4 ROCm (gfx1201), while an int8 text encoder on the same box is fine | Open, reported 2026-07-26 against v0.28.0 + ROCm 7.2 / PyTorch 2.9.1; sampling completes, the NaN only surfaces as `invalid value encountered in cast` at save time | Use the fp8 or bf16 weights for the DIFFUSION model on ROCm; int8 text encoders are unaffected | gh Comfy-Org/ComfyUI 15084 |
+| ComfyUI exits silently (no traceback) right after the Qwen text encoder loads, on Windows portable with PyTorch cu130 | Open, reported 2026-07-25; the same workflow on the same machine runs fine on a PyTorch cu12 build | Run Qwen Image Edit from a cu12 environment until it is triaged | gh Comfy-Org/ComfyUI 15074 |
+| A Custom Combo inside a subgraph updates its string output but NOT its index output | Open, reported 2026-07-24; the reporter notes it breaks Comfy's own Blueprints and workflow templates, not just user graphs | Read the string output and map it to an index yourself, or lift the combo out of the subgraph | gh Comfy-Org/ComfyUI 15060 |
 | PC crashes (whole machine) when running an int8 model | Open, unresolved as of 2026-07-18; no root cause published yet | Fall back to fp8 / bf16 for that model until it is triaged; int8 is fast but not yet bulletproof | gh comfyanonymous/ComfyUI 14985 (opened 2026-07-18) |
 | Black image on Turing (RTX 20xx) with int4 models | int4-convrot path on Turing | FIXED in v0.28.0 (PR 14864) - update core before blaming the quant | gh Comfy-Org/ComfyUI PR 14864 ; release v0.28.0 |
 | Nodes Manager extensions stop working after updating to 0.28.0 | Open, reported 2026-07-17 against the v0.28.0 update | Watch the issue; no published workaround yet | gh comfyanonymous/ComfyUI 14967 |
@@ -48,8 +52,14 @@ repeating the same mistakes. Every row is sourced. Read this (and the "Real limi
 
 ## How this file is maintained
 
-The `comfyui-weekly-update` task (Monday) reads new `comfyanonymous/ComfyUI` and `Comfy-Org/ComfyUI_frontend`
+The `comfyui-weekly-cycle` task (Saturday) reads new `Comfy-Org/ComfyUI` and `Comfy-Org/ComfyUI_frontend`
 releases and recently closed/opened issues since the "Last updated" date, then: moves anything the release notes
 mark FIXED into "Recently fixed" (with the version), adds genuinely new high-signal bugs to "Open" with a one-line
 workaround, and bumps the date. Every row keeps a source (issue / PR / release URL). Still-open entries are not
 deleted; only confirmed bugs are recorded (no speculation).
+
+Two gotchas that cost a cycle each. **`comfyanonymous/ComfyUI` now redirects to `Comfy-Org/ComfyUI`**: `gh issue
+list` and `gh release list` follow the redirect, but the SEARCH API does not and answers `422 Validation Failed`.
+Query the canonical name. And **a closed issue is not a fixed issue**: check `stateReason`, since
+`NOT_PLANNED` (stale-bot or won't-fix) closures are the majority here and must not be promoted into "Recently fixed".
+On 2026-07-25 four of the five closures in the window were `NOT_PLANNED`.

@@ -1,6 +1,6 @@
 # Model index: every model in the library and what the kit has for it
 
-The template library names **153 distinct models** across 562 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
+The template library names **157 distinct models** across 578 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
 provides: a full prompt recipe in [`MODELS.md`](../skills/comfyui/MODELS.md), an enhancement/utility note, or
 template-only coverage (runnable via a template, no dedicated recipe yet).
 
@@ -10,10 +10,10 @@ template-only coverage (runnable via a template, no dedicated recipe yet).
 | 🔧 **Utility** | enhancement / utility tool, has a "when to use + settings" note (not prompt-driven) |
 | 📋 **Template only** | runnable via a workflow template, no dedicated recipe yet (niche / thin official docs) |
 
-**Totals:** ✅ 72 recipe families (covering ~126 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
+**Totals:** ✅ 74 recipe families (covering ~128 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
 template-only · plus text encoders / inference providers that are not generative models.
 
-**Updated: 2026-07-18.** Every ✅ entry has a current prompting recipe in
+**Updated: 2026-07-25.** Every ✅ entry has a current prompting recipe in
 [`MODELS.md`](../skills/comfyui/MODELS.md); every 🔧 entry has a when-to-use + settings note.
 
 ---
@@ -58,6 +58,7 @@ template-only · plus text encoders / inference providers that are not generativ
 | FireRed Image Edit | FireRed Image Edit 1.1 | local |
 | LongCat | LongCat, LongCat Image Edit | local |
 | ChronoEdit | ChronoEdit (NVIDIA) | local |
+| JoyAI Image Edit | JoyAI Image Edit (JD, + Plus multi-image) | local |
 
 ### Video (open / local-runnable)
 | Family | Variants seen in templates | Run |
@@ -82,6 +83,7 @@ template-only · plus text encoders / inference providers that are not generativ
 | Vidu | Vidu Q1 / Q2 / Q3 | API |
 | Pika | Pika 2.2 / 2.5 | API |
 | Sync (sync.so) | Sync 3 (lip sync, talking image) | API |
+| HeyGen | Avatar Video, Talking Photo, Video Translate, Text to Speech | API |
 
 ### Audio
 | Family | Run |
@@ -148,8 +150,9 @@ text), not a generator, so it lives under "Not generative models" below, not her
 ## Not generative models (excluded)
 
 Text encoders, LLM nodes, and inference providers that appear in template metadata but are not image/video/audio
-generators: Gemma 4 and Claude (text), Ovis-Image / SwitchX (encoders / routing), WaveSpeed and OpenRouter
-(inference providers), and `None` (templates with no model tag).
+generators: Gemma 4 and Claude (text), ChatGPT and Kimi K3 (text, via the `OpenRouterLLMNode` and `ClaudeNode`
+prompt-assist templates), Ovis-Image / SwitchX (encoders / routing), WaveSpeed and OpenRouter (inference providers),
+and `None` (templates with no model tag).
 
 ---
 

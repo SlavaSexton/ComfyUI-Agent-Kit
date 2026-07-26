@@ -16,7 +16,7 @@ Only this SKILL.md auto-loads; everything else is read when relevant, so route t
 
 - **`MODELS.md`** (next to this file) - a named model's prompt recipe + settings; read its entry BEFORE writing the prompt.
 - **`docs/TASKS.md`** - a named common job (generate image / video / audio / 3D, upscale, remove background): the local end-to-end flow for that task, a shortcut layer over this manual.
-- **`docs/MODEL_INDEX.md`** - the full classified list of all 153 models (recipe / utility / template-only); check whether a named model has a recipe, is a utility, or is template-only.
+- **`docs/MODEL_INDEX.md`** - the full classified list of all 157 models (recipe / utility / template-only); check whether a named model has a recipe, is a utility, or is template-only.
 - **`docs/ADVANCED.md`** - hard tasks: real strengths, gotchas + workarounds, temporal stability, high-detail matting, crop-and-stitch inpaint, PBR, and the verified tool table with licenses.
 - **`docs/KNOWN_ISSUES.md`** - read BEFORE building, so you do not wire around a currently-broken path.
 - **`docs/NODE_LIBRARY/_INDEX.md`** - the per-node reference (Nuke-style): for any node, what each input / output is for, how it behaves, bugs + fixes, anti-patterns, and where it slots in a graph. **Start here for ANY node question**, then query `get_node_info` for live I/O. When you use or meet a node not in it, add the entry before finishing (`docs/NODE_LIBRARY/_SCHEMA.md`).
@@ -205,10 +205,17 @@ negative-prompt rule, and its settings. Never carry one model's style to another
 
 `MODELS.md` covers (image) FLUX.1/.2 + Kontext, Z-Image-Turbo, Qwen-Image/Edit, SDXL, SD1.5, SD3.5, HiDream,
 Ideogram, Nano Banana Pro/2, Seedream 4.x/5 Lite/5 Pro, Recraft, GPT-Image, Grok, Reve, Kandinsky, BRIA, OmniGen,
-Chroma, Krea, ERNIE-Image; (image edit) FLUX Kontext, Qwen-Image-Edit, FireRed, LongCat, ChronoEdit; (video)
+Chroma, Krea (incl. the Turbo image-style-reference LoRA on core nodes), ERNIE-Image; (image edit) FLUX Kontext,
+Qwen-Image-Edit, FireRed, LongCat, ChronoEdit, JoyAI Image Edit; (video)
 Wan 2.1-2.7, LTX-2.3 / 2 Pro, Hunyuan Video, SVD, Kling, Veo, Sora, Seedance, Luma, Runway, MiniMax, PixVerse,
-Vidu, Pika, Sync 3 (lip sync), HappyHorse, HuMo, SCAIL-2; (audio) Stable Audio, ACE-Step, ElevenLabs, ChatterBox, Seed Audio, Sonilo; (3D)
-Hunyuan3D, Tripo, Rodin, Meshy; (newer/niche) Capybara, Bernini-R, Anima, NewBie, PixelDiT, Ovis-Image, Lens, Quiver.
+Vidu, Pika, Sync 3 (lip sync), HeyGen (avatar video, talking photo, video translate, TTS), HappyHorse, HuMo, SCAIL-2; (audio) Stable Audio, ACE-Step, ElevenLabs, ChatterBox, Seed Audio, Sonilo; (3D)
+Hunyuan3D, Tripo, Rodin, Meshy; (newer/niche) Capybara, Bernini-R, Anima (+ ControlNet-LLLite control and inpainting
+patches), NewBie, PixelDiT, Ovis-Image, Lens, Quiver.
+
+**Talking-head routing:** for a still portrait plus an audio track, Sync 3 and HeyGen Talking Photo both apply;
+prefer Sync 3 when the job is purely lip-sync fidelity on footage you already have, and HeyGen when you need the
+model to also SPEAK a script (its text-to-speech and voice library are built in) or to present as a reusable avatar.
+Neither takes a scene prompt.
 
 It also has an **Enhancement and utility** section (not prompt-driven, use as pipeline steps with settings not
 prompts): upscale/restore/interpolation (Real-ESRGAN, SUPIR, SeedVR2, FlashVSR, Topaz, Magnific, FILM, RIFE) and

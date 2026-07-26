@@ -430,6 +430,27 @@ FLUX prose will not help SDXL).
   editing, not a native edit model). The shipped example is the Turbo path (10 steps, cfg 1); RAW (52 steps, CFG
   3.5) MAY lift fidelity but is untested with these edit LoRAs (inferred - would need a real run to confirm).
   Source: github.com/ostris/ComfyUI-Krea2-Ostris-Edit ; huggingface.co/reverentelusarca/krea2-detail-enhancer-edit-lora.
+- **Style reference from an image (Turbo, core nodes, NO custom node needed):** `krea2_style_reference.safetensors`
+  is a LoRA by ostris that makes Krea 2 Turbo generate in the STYLE of a reference image. **No trigger word** (the
+  card says so outright); it was trained for 1-2 reference images.
+  **Read the card against the template here.** The HF card tells you to install `ComfyUI-Krea2-Ostris-Edit` to run
+  it. The official Comfy-Org template `image_krea2_turbo_int8_image_style_reference` does it with CORE nodes only,
+  so the custom node is no longer required for this LoRA (confirmed by reading the template's node list, 2026-07-25).
+  Build it: `UNETLoader` (`krea2_turbo_int8_convrot.safetensors`) -> `LoraLoaderModelOnly`
+  (`krea2_style_reference.safetensors`, strength 1.0) -> `ModelSamplingFlux` (1.15, 0.5, 1024, 1024) -> `CFGGuider`
+  (cfg **1.0**) -> `SamplerCustomAdvanced`; `CLIPLoader` (`qwen3vl_4b_fp8_scaled.safetensors`, **type `krea2`**) plus
+  the reference `LoadImage` -> **`TextEncodeQwenImageEditPlus`** (this is the node that carries the reference image
+  into conditioning) -> `CFGGuider`; **`FluxKontextMultiReferenceLatentMethod`** set to **`index_timestep_zero`** on
+  the conditioning; `KSamplerSelect` `euler` + `BasicScheduler` (`simple`, **8 steps**, denoise 1.0) + `RandomNoise`
+  into `SamplerCustomAdvanced`; `VAELoader` (`qwen_image_vae.safetensors`) -> `VAEDecode` -> `SaveImage`. A
+  `ResolutionSelector` drives the output size, and the template leaves the built-in `TextGenerate` prompt-expander
+  switched OFF for this graph.
+  Weights: `Comfy-Org/Krea-2` `loras/krea2_style_reference.safetensors` (confirmed present by listing the repo), or
+  the author's `ostris/krea2_turbo_style_reference`. Licence flag: **krea-2-community-license** (same as the base
+  Turbo weights). Worked example from the card's `widget:` gallery: `a white yeti with horns reading a book that is
+  titled "Ostris + Krea2 Style Reference"`.
+  Source: huggingface.co/ostris/krea2_turbo_style_reference (full card incl. frontmatter) ;
+  Comfy-Org/workflow_templates `image_krea2_turbo_int8_image_style_reference`.
 - **Source:** github.com/krea-ai/krea-2 (incl. `docs/prompting.md`) ; huggingface.co/Comfy-Org/Krea-2 (ComfyUI repackaged) ;
   huggingface.co/krea/Krea-2-Raw + huggingface.co/krea/Krea-2-Turbo ;
   blog.comfy.org/p/krea-2-open-source-models-are-now ; krea.ai/blog/krea-2-technical-report.
@@ -474,6 +495,22 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
 - **Settings:** RGB input recommended <=1024x1024; Upscaler LoRA published; ComfyUI + diffusers (nvidia/ChronoEdit-14B-Diffusers).
 - **Source:** github.com/nv-tlabs/ChronoEdit.
 - **ComfyUI build:** official template `image_chrono_edit_14B.json` (Comfy-Org template library) - open it and wire per the template-reading note in SKILL.md.
+
+### JoyAI Image Edit (JD, open weights, Apache-2.0)
+- **What it is:** an instruction edit model with NATIVE core support since the `comfy_extras/nodes_joyimage.py` extension landed. One node only, `TextEncodeJoyImageEdit`, which does the whole conditioning job: it tokenizes the prompt WITH the reference images attached and, when a VAE is connected, also appends their encoded latents as `reference_latents`. Runs fully local; Apache-2.0, so no gated or non-commercial flag.
+- **Prompt style:** a plain imperative edit instruction, English, no template and no trigger word. The official template's worked example is exactly `Change the background to a glacial scene.` A second, EMPTY `TextEncodeJoyImageEdit` supplies the negative conditioning, so leave the negative blank unless you have a reason.
+- **Build the graph (confirmed from `comfy_extras/nodes_joyimage.py` on master + the official template `image_joyai_image_edit`):**
+  - `UNETLoader` (`joyai_image_edit_int8_convrot.safetensors`, weight_dtype `default`) -> **`CFGNorm`** -> `KSampler.model`. Note the position: `CFGNorm` patches the MODEL, it is NOT a conditioning node, and putting it on the positive branch is the easiest way to get this graph wrong.
+  - `CLIPLoader` (`qwen3vl_8b_joyimage_edit_int8_convrot.safetensors`, **type `joyimage`**, device `default`) -> `clip` on BOTH `TextEncodeJoyImageEdit` nodes. The `joyimage` CLIP type is what the official template sets (confirmed from its widget values); that a wrong type is what breaks reference handling is inferred, but it is the first thing to check when the edit ignores the reference.
+  - `VAELoader` (`wan_2.1_vae.safetensors`) -> `vae` on BOTH `TextEncodeJoyImageEdit` nodes AND -> `VAEDecode.vae`. JoyAI Image Edit uses the **Wan 2.1 VAE**, not a Qwen or FLUX one.
+  - `LoadImage` -> `ImageScaleToTotalPixels` (`nearest-exact`, **1.0 megapixels**) -> the reference input of **both** encode nodes, and the same resized image -> `GetImageSize` -> `EmptySD3LatentImage` width / height, so the latent matches the normalized input instead of a fixed square. The official template feeds the positive AND the negative encoder the same image and vae; only the prompt differs.
+  - positive `TextEncodeJoyImageEdit` -> `KSampler.positive`; the empty-prompt one -> `KSampler.negative`; `EmptySD3LatentImage` -> `KSampler.latent_image`; `KSampler` -> `VAEDecode` -> `SaveImageAdvanced`.
+  - `images` is an **Autogrow** input, so the socket is named **`images.image0`** (zero-based, namespaced), growing to at most six slots. Multi-reference edits are wired by adding slots, not by stacking nodes. `vae` is optional: without it you get text-plus-image conditioning but no `reference_latents`, which is the weaker path.
+- **Settings (from the official template):** 40 steps, CFG **4.0**, sampler `euler`, scheduler `normal`, denoise 1.0, latent 1024x1024 (driven by `GetImageSize`), `CFGNorm` strength 1.0 enabled.
+- **Resolution buckets:** the node snaps every reference image to the nearest of 49 fixed ~1MP buckets by aspect ratio, from `512x2048` through `1024x1024` to `2048x512`. Feeding a wilder aspect than 1:4 / 4:1 means it gets letterboxed into the closest bucket. Each reference input must be a SINGLE image; a batch raises `JoyImage reference inputs must contain one image each`.
+- **Weights:** `Comfy-Org/JoyAI-Image-Edit` hosts `diffusion_models/joyai_image_edit_{bf16,int8_convrot}.safetensors`, `text_encoders/qwen3vl_8b_joyimage_edit_{bf16,int8_convrot}.safetensors` and `vae/wan_2.1_vae.safetensors` (confirmed by listing the repo's files, 2026-07-25). **Broken card, work around it:** that repo's README body was copy-pasted from the multi-image *Plus* release and tells you to fetch `joyai_image_edit_plus_bf16` / `qwen3vl_8b_joyimage_edit_plus_*`, filenames the repo does not contain. Trust the file listing and the template, not the card. The separate Plus (multi-image) weights live at `jdopensource/JoyAI-Image-Edit-Plus-ComfyUI`.
+- **Avoid:** the `_plus_` filenames from the card; putting `CFGNorm` on the conditioning instead of the model; a non-`joyimage` CLIP type; skipping the 1MP normalize step and feeding a 4K plate straight in; batching several images into one reference slot.
+- **Source:** `comfy_extras/nodes_joyimage.py` (schema, buckets, encode path, read on master 2026-07-25) ; Comfy-Org/workflow_templates `image_joyai_image_edit` ; huggingface.co/Comfy-Org/JoyAI-Image-Edit ; github.com/jd-opensource/JoyAI-Image.
 
 ## Video models (open / local-runnable)
 
@@ -765,6 +802,23 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
 - **Avoid:** treating it as a text-to-video model (there is no scene generation); expecting seed-reproducible output; feeding variable-frame-rate footage.
 - **Source:** `comfy_api_nodes/nodes_sync_so.py` (node schemas + tooltips, read on master) ; Comfy-Org/workflow_templates `api_sync_so_{lip_sync_video,talking_image}`.
 
+### HeyGen (avatar video, talking photo, TTS, video translate)
+- **What it is:** a PRESENTER / avatar stack, not a scene generator. Four jobs, one per node: drive a stock or custom avatar to speak (Avatar Video), animate any still photo of a person into a lip-synced clip (Talking Photo), synthesize speech alone (Text to Speech), or re-voice an existing spoken video into another language with the original speaker's cloned voice and re-animated mouth (Video Translate). API / paid (Comfy Cloud or a HeyGen key). Priced per second of output.
+- **Prompt style:** there is NO scene prompt anywhere. The only free text is the SCRIPT the avatar speaks (or SSML, in the TTS node) and, on Create Avatar, a character DESCRIPTION. Do not write camera or lighting language; it is ignored.
+- **Build the graph (confirmed from `comfy_api_nodes/nodes_heygen.py` on master + the four official templates):**
+  - **Talking photo** - `LoadImage` -> **`HeyGenTalkingPhotoNode`** ("HeyGen Talking Photo") `image`; `VIDEO` out -> `SaveVideo`. Template `api_heygen_talking_photo`.
+  - **Avatar presenter** - **`HeyGenAvatarVideoNode`** ("HeyGen Avatar Video") standalone; `VIDEO` out -> `SaveVideo`. To use your OWN avatar, chain **`HeyGenCreateAvatarNode`** ("HeyGen Create Avatar") first: its `avatar_id` (STRING) output -> the Avatar Video node's `custom_avatar_id`, and its `preview` (IMAGE) output -> `PreviewAny` / `SaveImage`. Template `api_heygen_avatar_video` also wires `SaveText` so the avatar_id is kept on disk, which matters because the ID is the only way to reuse that avatar later. Create Avatar is a FLAT $1.43 per call, so re-creating an avatar you failed to save is a real cost.
+  - **Text to speech** - **`HeyGenTextToSpeechNode`** ("HeyGen Text to Speech", category `partner/audio/HeyGen`) standalone; `AUDIO` out -> `SaveAudioAdvanced`. Template `api_heygen_text_to_speech`.
+  - **Video translate** - `LoadVideo` -> **`HeyGenVideoTranslateNode`** ("HeyGen Video Translate") `video`; `VIDEO` out -> `SaveVideo`. Template `api_heygen_video_translate`.
+- **The `speech` widget is a DynamicCombo, and this is the part that trips people up.** On both Talking Photo and Avatar Video, `speech` ("speech source") switches the visible inputs: pick `script` and you get `text` (multiline, up to 5000 chars), `voice`, `custom_voice_id`, `voice_speed` (0.5-1.5); pick `audio` and you get a single `audio` AUDIO input (up to 10 minutes) and the voice widgets disappear. Feeding your own audio is how you use a voice HeyGen does not offer.
+  - On Talking Photo a voice is REQUIRED in `script` mode (the node raises if none resolves). On Avatar Video it is optional, because the avatar carries a default voice; its `voice` list has an extra `(avatar's default voice)` option.
+  - `custom_voice_id` overrides the `voice` combo when set. HeyGen's library is 2000+ voices, so the combos are only the curated popular subset.
+- **`engine` on Avatar Video is also a DynamicCombo** and it filters the avatar list: `auto` shows every curated avatar and picks the best engine it supports (Avatar IV preferred), while `avatar_iv` / `avatar_iii` / `avatar_v` each show only the looks that support that engine. Fidelity and price go together: `avatar_iii` $0.0239-0.0619/s, `avatar_iv` $0.0715-0.0954/s, `avatar_v` $0.0954/s (flat). Talking Photo is always Avatar IV at $0.0715/s. Choosing a `custom_avatar_id` whose look does not support the engine you forced raises an error naming the supported engines; `auto` avoids that.
+- **Settings that matter:** `resolution` `720p` / `1080p` (default `1080p`) and `aspect_ratio` `auto` / `16:9` / `9:16` / `1:1` / `4:5` / `5:4` on both video nodes; `expressiveness` `low` / `medium` / `high` (default `low`) on Talking Photo only; `background_color` on Avatar Video takes a hex string and MUST start with `#` (`#00ff00` for a keyable green) or the node raises. Video Translate has `mode` `speed` (default, $0.0476/s) vs `precision` (better lip sync, $0.0954/s; the node's own tooltip calls it twice the price), `translate_audio_only` (swap the audio track and leave the original mouth alone), and `speaker_count` (0 = auto-detect, up to 10). TTS has `speed` 0.5-2.0 and an `ssml` boolean for pause / emphasis / pronunciation control.
+- **Input limits:** images are downscaled automatically past 2000px on the long side (Talking Photo and the photo branch of Create Avatar); script text 1-5000 characters and the resulting speech must be at least 1 second; Create Avatar's prompt is up to 1000 characters with up to 3 optional reference images (`ref_image_1..3`).
+- **Avoid:** expecting a scene or camera prompt to do anything; forgetting to save the `avatar_id`; setting a background colour without the leading `#`; assuming `seed` changes the result (the tooltip says outright it is not sent to HeyGen, it only forces a re-run).
+- **Source:** `comfy_api_nodes/nodes_heygen.py` (node schemas, tooltips, payloads and price badges, read on master 2026-07-25) ; Comfy-Org/workflow_templates `api_heygen_{avatar_video,talking_photo,text_to_speech,video_translate}`.
+
 ## Audio models
 
 ### Stable Audio (Stability)
@@ -876,6 +930,48 @@ setups (in the repo beyond the fp16 high/low-noise files): `wan2.2_bernini_r_hig
 best quality, score_7, safe,`, negative `worst quality, low quality, score_1..3, artist name`; lowercase tags with
 spaces, artists prefixed `@`. 512-1536px, 30-50 steps, CFG 4-5, sampler er_sde / euler_a / dpmpp_2m_sde_gpu;
 negatives supported; weak at realism and text. Source: docs.comfy.org/tutorials/image/anima/anima.
+
+**Anima ControlNet-LLLite** (control + inpainting for the Anima base model above). ControlNet-LLLite by kohya-ss,
+repacked by Comfy-Org; it loads as a **MODEL_PATCH**, not as a ControlNet, so none of the `ControlNetApply` nodes are
+involved. **Licence flag: circlestone-labs NON-COMMERCIAL** (inherited from the Anima base model).
+- **Build the graph (confirmed from `comfy_extras/nodes_model_patch.py` on master + the three official templates
+  `image_anima_lllite_{any_control_to_image,depth_control_to_image,image_inpainting}`):** take the normal Anima
+  text-to-image graph (`UNETLoader` `anima-base-v1.0.safetensors` + `CLIPLoader` `qwen_3_06b_base.safetensors` type
+  `stable_diffusion` + `VAELoader` `qwen_image_vae.safetensors`) and insert ONE node on the MODEL line:
+  **`ModelPatchLoader`** (category `model/loaders`, reads `ComfyUI/models/model_patches/`) -> `MODEL_PATCH` ->
+  **`AnimaLLLiteApply`** ("Apply Anima LLLite", category `model_patches/anima`, EXPERIMENTAL). `AnimaLLLiteApply`
+  takes `model` (MODEL), `model_patch` (MODEL_PATCH), `image` (IMAGE, the control map), optional `mask` (MASK), and
+  returns a patched `MODEL` that goes on to the sampler. The control image is the node's own input, so there is no
+  conditioning-side hookup at all.
+- **Its three knobs:** `strength` (default 1.0, range -10..10), `start_percent` (0.0) and `end_percent` (1.0), the
+  usual "hold the control over this slice of the schedule" pair, converted internally to sigmas.
+- **Which patch file for which control** (all in `Comfy-Org/Anima-LLLite` under `model_patches/`, confirmed by
+  listing the repo 2026-07-25): `anima-lllite-any-test-like-v2.safetensors` (generic "any" control, what the
+  any-control template ships), `anima-lllite-depth-1`, `anima-lllite-lineart-1`, `anima-lllite-pose-1`,
+  `anima-lllite-scribble-1`, `anima-lllite-inpainting-v2` (plus older `-v1` / `-step1000` / `-step2000` /
+  `-v2-beta-epoch-03` variants). The lineart, pose and scribble patches have NO template of their own; they drop into
+  the same any-control graph with the matching preprocessor.
+- **Inpainting is the same node, driven by the mask.** The loader detects a 4-channel-conditioning patch and only
+  then is `mask` used; with a 4-channel patch and no mask connected the node silently substitutes an all-zero mask
+  (confirmed in the code; that this means "edits nothing" is inferred, not run), and with a 3-channel control patch
+  any mask you connect is set to `None` and DISCARDED (confirmed). So a mask that appears to do
+  nothing means you loaded the wrong patch file. Template `image_anima_lllite_image_inpainting` draws the mask with
+  the `Painter` node and warns to resize inputs past 1024x1024.
+- **Feeding the control map:** the any-control template uses `Canny` and notes you can swap in any other
+  preprocessor (Node Library -> Comfy Blueprints -> Conditioning & Preprocessors). The depth template builds its map
+  with **Depth Anything 3**: `LoadDA3Model` (`depth_anything_3_mono_large.safetensors`, in `models/geometry_estimation/`)
+  -> `DA3Inference` (`resolution` 504, `upper_bound_resize`, `mode` `mono`) -> `DA3Render` (`output` `depth`,
+  `v2_style`, colored off) -> IMAGE into `AnimaLLLiteApply.image`. Normalize the source first with
+  `ResizeImageMaskNode` (`scale total pixels`, 1 MP, `lanczos`).
+- **Settings (from all three templates):** 1024x1024, 30 steps, CFG 4.0, sampler `euler`, scheduler `simple`,
+  `AnimaLLLiteApply` at strength 1.0 / 0.0 / 1.0, plus `anima-turbo-lora-v0.2.safetensors` on a
+  `LoraLoaderModelOnly` at 1.0. Negative stays the standard Anima one (`worst quality, low quality, score_1,
+  score_2, score_3, blurry, jpeg artifacts, sepia`).
+- **Avoid:** reaching for `ControlNetApply` (wrong node class entirely); putting the patch in `models/controlnet/`
+  instead of `models/model_patches/`; expecting the mask to work on a non-inpainting patch.
+- **Source:** `comfy_extras/nodes_model_patch.py` (`ModelPatchLoader` detection key `lllite_conditioning1.conv1.weight`,
+  `AnimaLLLiteApply` schema) ; `comfy_extras/nodes_depth_anything_3.py` ; huggingface.co/Comfy-Org/Anima-LLLite ;
+  original huggingface.co/kohya-ss/Anima-LLLite.
 
 **NewBie (Exp0.1)** (anime t2i), 3.5B Next-DiT (Gemma3-4B + Jina-CLIP-v2, FLUX VAE). Danbooru tags or natural
 language, but trained on XML structured prompts that bind attributes per character. Use per-character XML blocks

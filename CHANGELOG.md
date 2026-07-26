@@ -14,6 +14,55 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+### Added
+- **HeyGen - new official recipe (avatar video, talking photo, video translate, TTS).** A presenter/avatar stack,
+  not a scene generator, and the five nodes each do one job: **`HeyGenTalkingPhotoNode`** (`LoadImage` -> `image`,
+  VIDEO out), **`HeyGenAvatarVideoNode`** (standalone, VIDEO out), **`HeyGenCreateAvatarNode`** (`avatar_id` STRING
+  + `preview` IMAGE out; feed the ID into Avatar Video's `custom_avatar_id`), **`HeyGenVideoTranslateNode`**
+  (`LoadVideo` -> `video`, VIDEO out) and **`HeyGenTextToSpeechNode`** (AUDIO out). Documented the two DynamicCombo
+  widgets that decide what you can even see: `speech` (`script` exposes `text` / `voice` / `custom_voice_id` /
+  `voice_speed`; `audio` replaces them with an AUDIO input) and `engine` on Avatar Video (`auto` / `avatar_iv` /
+  `avatar_iii` / `avatar_v`, each filtering the avatar list, with the per-second price of each). Also the traps: a
+  voice is required on Talking Photo but optional on Avatar Video, `background_color` must carry a leading `#`, the
+  2000px auto-downscale, the 5000-character script cap, and `seed` being a re-run trigger that HeyGen never
+  receives. Confirmed from `comfy_api_nodes/nodes_heygen.py` on master plus templates
+  `api_heygen_{avatar_video,talking_photo,text_to_speech,video_translate}`.
+- **JoyAI Image Edit (JD, Apache-2.0) - new official recipe.** Native core support via
+  `comfy_extras/nodes_joyimage.py`: one node, **`TextEncodeJoyImageEdit`**, which tokenizes the instruction WITH
+  the reference images and appends their `reference_latents` when a VAE is connected. Full graph documented
+  (`CLIPLoader` at type **`joyimage`**, the **Wan 2.1 VAE**, `ImageScaleToTotalPixels` at 1 MP feeding both the
+  node and `GetImageSize` -> `EmptySD3LatentImage`, `CFGNorm` before the sampler, 40 steps / CFG 4.0 / euler /
+  normal), plus the `images` Autogrow input (`image1`..`image6`) for multi-reference edits and the 46 fixed ~1MP
+  aspect buckets. **Flagged a broken source:** the `Comfy-Org/JoyAI-Image-Edit` card body was copy-pasted from the
+  *Plus* release and lists `joyai_image_edit_plus_*` filenames the repo does not host; the real files were
+  confirmed by listing the repo.
+- **Anima ControlNet-LLLite - control and inpainting for the existing Anima recipe.** Loads as a **MODEL_PATCH**,
+  so `ControlNetApply` is the wrong node entirely: `ModelPatchLoader` (from `models/model_patches/`) ->
+  **`AnimaLLLiteApply`** (`model` + `model_patch` + `image` control map + optional `mask`, knobs `strength` /
+  `start_percent` / `end_percent`) -> sampler. Documented all ten published patch files (any / depth / lineart /
+  pose / scribble / inpainting), the rule that a mask only applies to a 4-channel inpainting patch and is silently
+  discarded otherwise, the Depth Anything 3 chain that builds the depth map
+  (`LoadDA3Model` -> `DA3Inference` -> `DA3Render`), and the template settings. **Licence flag: non-commercial.**
+- **Krea 2 Turbo image style reference on CORE nodes.** The `krea2_style_reference` LoRA (ostris) generates in the
+  style of a reference image with no trigger word. The HF card says a custom node is required; the official
+  template `image_krea2_turbo_int8_image_style_reference` does it with core nodes only, and that full chain is now
+  documented (`LoraLoaderModelOnly` -> `ModelSamplingFlux` -> `CFGGuider` at cfg 1.0,
+  `TextEncodeQwenImageEditPlus` carrying the reference, `FluxKontextMultiReferenceLatentMethod` at
+  `index_timestep_zero`, 8 steps). Licence flag: krea-2-community-license.
+
+### Changed
+- **Counts refreshed for the 2026-07-25 template sync:** 74 recipes (was 72), 157 indexed models (was 153),
+  578 templates (was 562, +16 this week); 94 Subgraph Blueprints unchanged. README, `docs/MODEL_INDEX.md`, the
+  GitHub About box, the three chart generators and `tools/assets/cover_gen.py` were all updated and the four
+  banner PNGs re-rendered and visually verified.
+- **`docs/KNOWN_ISSUES.md` refreshed to 2026-07-25.** Four new open bugs: the core commit `7c59a078d` that removed
+  `interleaved_freqs_cis` and kills the whole ComfyUI-LTXVideo pack on master, `int8_convrot` NaN/black output on
+  RDNA4 ROCm, Qwen Image Edit silently exiting on PyTorch cu130, and Custom Combos not updating their index output
+  inside subgraphs (which breaks Comfy's own Blueprints). Nothing moved to "Recently fixed": four of the five
+  closures in the window were `NOT_PLANNED`, not fixes. Also recorded two maintenance gotchas: the
+  `comfyanonymous/ComfyUI` -> `Comfy-Org/ComfyUI` redirect that the GitHub search API refuses to follow, and the
+  need to read `stateReason` before calling a closed issue fixed.
+
 ## [2.4.0] - 2026-07-18
 
 ### Added

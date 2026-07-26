@@ -51,6 +51,11 @@ vx.y.z`), which can become a GitHub Release.
   `index_timestep_zero`, 8 steps). Licence flag: krea-2-community-license.
 
 ### Changed
+- **Credits and licensing brought up to date.** `ATTRIBUTION.md` and the README "Credits and thanks" now name
+  kohya-ss for Anima ControlNet-LLLite (non-commercial), ostris for the Krea 2 style-reference LoRA, and JD
+  (jd-opensource) for JoyAI Image Edit. Two pre-existing gaps were closed at the same time: ostris's
+  `ComfyUI-Krea2-Ostris-Edit` nodes and reverentelusarca's detail-enhancer LoRA had been documented in
+  `MODELS.md` since an earlier release with no attribution row.
 - **Counts refreshed for the 2026-07-25 template sync:** 74 recipes (was 72), 157 indexed models (was 153),
   578 templates (was 562, +16 this week); 94 Subgraph Blueprints unchanged. README, `docs/MODEL_INDEX.md`, the
   GitHub About box, the three chart generators and `tools/assets/cover_gen.py` were all updated and the four

@@ -41,6 +41,10 @@ when you want those features. Credit and licenses:
 | fal Krea 2 Style LoRAs (~1503 community style LoRAs) | ilkerzgi / fal | https://huggingface.co/ilkerzgi/fal-Krea-2-Style-LoRAs | Krea 2 Community License |
 | LTX-2.3 3DREAL IC-LoRA (3D render to photoreal) | fal | https://huggingface.co/fal/LTX-2.3-3DREAL-LoRA | other |
 | ComfyUI-Krea2TextEncoder (Krea2 image+mask control) | ethanfel | https://github.com/ethanfel/ComfyUI-Krea2TextEncoder | MIT |
+| Anima ControlNet-LLLite (control + inpainting patches for Anima) | kohya-ss (original), repacked by Comfy-Org | https://huggingface.co/kohya-ss/Anima-LLLite | NON-COMMERCIAL (circlestone-labs) |
+| `krea2_style_reference` LoRA (Krea 2 Turbo image style reference) | ostris | https://huggingface.co/ostris/krea2_turbo_style_reference | Krea 2 Community License |
+| ComfyUI-Krea2-Ostris-Edit (Krea 2 instruction-edit nodes) | ostris | https://github.com/ostris/ComfyUI-Krea2-Ostris-Edit | see repo |
+| krea2-detail-enhancer-edit-lora (Krea 2 detail enhancer) | reverentelusarca | https://huggingface.co/reverentelusarca/krea2-detail-enhancer-edit-lora | see repo |
 | PiD / Pixel Diffusion Decoder (VAE-replacement decoder) | NVIDIA (nv-tlabs) | https://github.com/nv-tlabs/PiD | see repo |
 | GAP LTX 2.3 Motion (lipsync / storyboard) | GeekatplayStudio | https://github.com/GeekatplayStudio/LTX-2-3-LipSync | MIT |
 | ComfyUI-Flux2Klein-Enhancer (Flux.2 Klein identity-transfer suite) | capitan01R | https://github.com/capitan01R/ComfyUI-Flux2Klein-Enhancer | PolyForm Noncommercial 1.0.0 |

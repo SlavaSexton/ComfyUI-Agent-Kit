@@ -353,6 +353,20 @@ Field techniques in wide community use lean on:
 - **[Smart Image Crop and Stitch](https://github.com/HallettVisual/ComfyUI-Smart-Image-Crop-and-Stitch)** by
   HallettVisual, an auto-sized crop/stitch node pair for high-res inpainting and detail edits (Apache-2.0).
 
+v2.5.0 leans on more people's work. Thanks also to:
+
+- **[Anima ControlNet-LLLite](https://huggingface.co/kohya-ss/Anima-LLLite)** by
+  [kohya-ss](https://huggingface.co/kohya-ss), the control and inpainting patches that give the Anima base model
+  depth, lineart, pose, scribble and masked editing (repacked for ComfyUI by Comfy-Org). Note: non-commercial
+  license, inherited from the Anima base weights.
+- **[krea2_style_reference](https://huggingface.co/ostris/krea2_turbo_style_reference)** and
+  **[ComfyUI-Krea2-Ostris-Edit](https://github.com/ostris/ComfyUI-Krea2-Ostris-Edit)** by
+  [ostris](https://github.com/ostris), the Krea 2 Turbo image-style-reference LoRA and the instruction-edit nodes
+  this kit documents, plus the **krea2-detail-enhancer-edit-lora** by
+  [reverentelusarca](https://huggingface.co/reverentelusarca).
+- **[JoyAI-Image](https://github.com/jd-opensource/JoyAI-Image)** by JD (jd-opensource), the instruction image-edit
+  model now supported natively in ComfyUI core (Apache-2.0).
+
 Full per-component licensing is in [ATTRIBUTION.md](ATTRIBUTION.md). If anything here misattributes your work,
 open an issue and it will be fixed.
 

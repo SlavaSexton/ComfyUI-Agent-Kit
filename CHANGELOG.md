@@ -14,6 +14,8 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-07-25
+
 ### Added
 - **HeyGen - new official recipe (avatar video, talking photo, video translate, TTS).** A presenter/avatar stack,
   not a scene generator, and the five nodes each do one job: **`HeyGenTalkingPhotoNode`** (`LoadImage` -> `image`,
@@ -31,9 +33,9 @@ vx.y.z`), which can become a GitHub Release.
   `comfy_extras/nodes_joyimage.py`: one node, **`TextEncodeJoyImageEdit`**, which tokenizes the instruction WITH
   the reference images and appends their `reference_latents` when a VAE is connected. Full graph documented
   (`CLIPLoader` at type **`joyimage`**, the **Wan 2.1 VAE**, `ImageScaleToTotalPixels` at 1 MP feeding both the
-  node and `GetImageSize` -> `EmptySD3LatentImage`, `CFGNorm` before the sampler, 40 steps / CFG 4.0 / euler /
-  normal), plus the `images` Autogrow input (`image1`..`image6`) for multi-reference edits and the 46 fixed ~1MP
-  aspect buckets. **Flagged a broken source:** the `Comfy-Org/JoyAI-Image-Edit` card body was copy-pasted from the
+  node and `GetImageSize` -> `EmptySD3LatentImage`, `CFGNorm` on the MODEL line rather than the conditioning,
+  40 steps / CFG 4.0 / euler / normal), plus the `images` Autogrow socket (`images.image0`, zero-based and
+  namespaced, up to six slots) for multi-reference edits and the 49 fixed ~1MP aspect buckets. **Flagged a broken source:** the `Comfy-Org/JoyAI-Image-Edit` card body was copy-pasted from the
   *Plus* release and lists `joyai_image_edit_plus_*` filenames the repo does not host; the real files were
   confirmed by listing the repo.
 - **Anima ControlNet-LLLite - control and inpainting for the existing Anima recipe.** Loads as a **MODEL_PATCH**,

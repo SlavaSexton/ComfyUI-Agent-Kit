@@ -14,6 +14,23 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+### Added
+- **The MCP 2026-07-28 specification, and what it means for this kit** (`docs/LAYERS.md`, Layer 2). MCP's
+  protocol core went **stateless**: the `initialize` handshake and `Mcp-Session-Id` are retired, every request
+  is self-describing, so any request can land on any instance behind a plain load balancer. Server-to-client
+  calls become Multi Round-Trip Requests, `Mcp-Method` / `Mcp-Name` headers allow body-free gateway routing, and
+  list responses carry `ttlMs` / `cacheScope`. Roots, Sampling, Logging and legacy HTTP+SSE are deprecated on a
+  twelve-month window. Documented honestly for a kit user: **`comfyui-mcp` rides the SDK's 1.x line**
+  (`@modelcontextprotocol/sdk ^1.12.1`), so the driver you run speaks the previous revision, that stays
+  supported, and there is nothing for you to change; the v2 TypeScript line ships as separate scoped packages,
+  so adopting it is the driver author's migration, not a version bump.
+- **The dependency trap for anyone maintaining their own MCP server** (`docs/LAYERS.md` + `KNOWN_ISSUES.md`).
+  An unbounded pin like `mcp>=1.2.0` now resolves to Python SDK **2.0.0**, which renamed `FastMCP` to
+  `MCPServer` and removed `mcp.server.fastmcp`, so fresh installs die on the first import while running
+  instances carry on. Fix: pin `mcp>=1.28,<2` or migrate. The migration note carries the part that fails
+  SILENTLY: every transport parameter moved off the constructor and off `mcp.settings` onto `run()`, so
+  `mcp.settings.host = ...` no-ops instead of erroring. Learned first-hand, our own AI VFX MCP server hit it.
+
 ## [2.5.0] - 2026-07-25
 
 ### Added

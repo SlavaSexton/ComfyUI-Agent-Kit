@@ -24,6 +24,38 @@ validate graphs and surface errors. Falls back to Layer 1's client if the MCP is
 Caveat: do NOT use the MCP's `restart_comfyui` against a Comfy Desktop (Electron) install, it kills the server
 and cannot relaunch it. See the gotcha in SKILL.md.
 
+### Which MCP protocol revision this speaks (2026-07-29)
+
+MCP shipped a new specification, **2026-07-28**, and it is a big one: the protocol core went **stateless**.
+The `initialize` / `initialized` handshake and the `Mcp-Session-Id` header are retired, every request is
+self-describing (protocol version, client identity and capabilities travel in `_meta`), so any request can land
+on any server instance behind a plain round-robin load balancer. Server-to-client calls (sampling, elicitation,
+roots) are replaced by **Multi Round-Trip Requests**: the server answers `resultType: "input_required"` and the
+client retries with `inputResponses`. Requests also carry `Mcp-Method` / `Mcp-Name` headers so a gateway can
+route without parsing the body, and `tools/list` responses carry `ttlMs` / `cacheScope` so catalogs are
+cacheable. **Roots, Sampling, Logging and the legacy HTTP+SSE transport are deprecated** with a twelve-month
+minimum window, so nothing breaks today, but new work should not adopt them.
+
+**What that means for this kit, concretely:** `comfyui-mcp` (v0.48.5) depends on `@modelcontextprotocol/sdk`
+`^1.12.1`, which resolves inside the **1.x line** (npm `latest` for that package is 1.30.0). So the driver you
+run speaks the PREVIOUS revision. That is fine, it stays supported through the deprecation window, and there is
+nothing for you to change. The v2 TypeScript line ships as separate scoped packages
+(`@modelcontextprotocol/server`, `/express`, `/fastify`, `/server-legacy`, all 2.0.0), so adopting it is a
+migration by the driver's author, not a version bump.
+
+**The trap, if you write or maintain your OWN MCP server** (we hit it on ours the day the spec landed): an
+unbounded dependency such as `mcp>=1.2.0` now resolves to the **Python SDK 2.0.0**, which renamed `FastMCP` to
+`MCPServer` and **removed `mcp.server.fastmcp` entirely**, so every fresh install dies on the first import while
+already-running instances carry on. Either pin `mcp>=1.28,<2` (the bound the SDK's own release notes recommend)
+or migrate. Migrating is small for a tool-only server: the decorator API is unchanged, but every transport
+parameter moved off the constructor and off `mcp.settings` onto `run()`, so `mcp.settings.host = ...` silently
+no-ops instead of failing loudly. Pass `host` / `port` / `transport_security` / `stateless_http` to
+`run(transport="streamable-http", ...)` instead. `TransportSecuritySettings` did not move.
+
+Confirmed from: blog.modelcontextprotocol.io/posts/2026-07-28, the python-sdk v2.0.0 release notes and the
+official migration guide, `npm view comfyui-mcp` / `@modelcontextprotocol/sdk`, and introspecting the installed
+`mcp` 2.0.0 package (`MCPServer.run` accepts `host`, `port`, `stateless_http`, `transport_security`).
+
 ## Layer 3: In-graph Claude nodes
 
 Claude as a node INSIDE a workflow, for prompt enrichment and vision QA. Three options, see NODES.md:

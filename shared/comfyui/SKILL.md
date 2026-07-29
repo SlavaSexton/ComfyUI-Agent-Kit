@@ -54,7 +54,10 @@ this block with the real values. Do not assume another machine matches the examp
 1. **Knowledge + client**: this SKILL.md and `comfy_client.py` (stdlib, no deps).
 2. **MCP driver**: `comfyui-mcp` (artokun, MIT): ~90 structured tools so Claude operates ComfyUI directly
    (generate, build/edit/validate graphs, model download, queue, VRAM, diagnostics, restart). Prefer its tools
-   over hand-POSTing `/prompt` when present.
+   over hand-POSTing `/prompt` when present. It rides the MCP SDK's 1.x line, i.e. the revision BEFORE the
+   stateless 2026-07-28 spec; that stays supported through a twelve-month deprecation window, so there is
+   nothing to change. If you write your OWN MCP server, read the protocol section in `docs/LAYERS.md` first:
+   an unbounded `mcp>=x` pin now pulls SDK 2.x, which removed `mcp.server.fastmcp` and breaks fresh installs.
 3. **In-graph Claude nodes**: Claude as a step INSIDE a workflow (prompt enrichment, vision QA on the output).
 4. **Node-building skills**: `comfyui-node-*` (V3 API) for when we write or modify a custom node.
 

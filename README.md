@@ -8,7 +8,7 @@
 <br>
 **Your GPU, your models, no cloud, no account.**
 
-**By [AI VFX NEWS](https://t.me/addlist/Ace2XqUflo9jYjFk).**
+**By [AI VFX NEWS](https://aivfxnews.com/).**
 
 Make Claude Code, Codex, Gemini CLI, or Qwen Code drive **ComfyUI** at full power on your own machine - generate
 images, video, and audio, build and run workflows, pick the model variant that fits *your* hardware, and **show the
@@ -376,6 +376,6 @@ MIT, see [LICENSE](LICENSE). Third-party components keep their own licenses.
 
 <div align="center">
 
-Made by **[AI VFX NEWS](https://t.me/addlist/Ace2XqUflo9jYjFk)**
+Made by **[AI VFX NEWS](https://aivfxnews.com/)**
 
 </div>

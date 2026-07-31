@@ -3,7 +3,7 @@
   "description": "Local-first ComfyUI skills + the comfyui-mcp connection for Claude Code. The plugin form of ComfyUI-Agent-Kit, the local-first counterpart to the Comfy Cloud MCP.",
   "owner": {
     "name": "AI VFX NEWS",
-    "url": "https://t.me/addlist/Ace2XqUflo9jYjFk"
+    "url": "https://aivfxnews.com/"
   },
   "plugins": [
     {

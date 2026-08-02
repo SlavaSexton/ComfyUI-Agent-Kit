@@ -15,6 +15,26 @@ vx.y.z`), which can become a GitHub Release.
 ## [Unreleased]
 
 ### Added
+- **Smart Upscaler taught to the kit** (`docs/NODE_LIBRARY/smart-upscaler.md`), our own eleven-node pack for
+  tiled upscaling that writes a separate verified prompt for EVERY tile. This is the gap the kit's existing
+  tiling ladder had: Ultimate SD Upscale, Tiled Diffusion / MultiDiffusion and Steudio Divide and Conquer all
+  tile the SAMPLING but not the PROMPT, so every tile gets the same text or a captioner describes each tile in
+  isolation, which is why a crop of roof captions as "brown texture" and neighbouring tiles disagree at the
+  seam. Smart Upscaler reads the whole image once, then derives each tile's prompt from that shared reading,
+  finds flat regions by MEASURING pixels rather than asking a model, and never tells a tile about an object
+  its own pixels do not confirm. The entry is buildable: all eleven class names and display names, every
+  category and I/O type, the full chain (Prompt Director -> Output-Scale Tiles -> Whole-Image Analysis -> Tile
+  Job Director -> Exact-Tile Prompt -> engine switch -> Color Match -> Finish and Blend, with the two review
+  nodes hanging off it), and the shipped Z-Image Turbo reference values. Carries the traps that cost real time:
+  `caption_images` is a SEPARATE stream from `tile_images` and feeding the wrong one captions the padding; a
+  stale `cache_tag` makes a caption-model change look inert; the `SMART_PROMPT_SYSTEM` wire must reach all
+  three consumers or they fall back to their own defaults; and an edit-model prompt style on a denoise model
+  grows objects that were never in the picture. **Marked honestly as not yet published** - no repository or
+  Registry entry exists, so the entry carries no install URL, and nothing in it was executed or benchmarked.
+- **A core detail worth knowing beyond this pack:** applying a **Z-Image** Fun tile ControlNet through the
+  **Qwen**-named `QwenImageDiffsynthControlnet` is correct, not a mistake. In
+  `comfy_extras/nodes_model_patch.py`, `ZImageFunControlnet` subclasses it and inherits the same
+  `diffsynth_controlnet` implementation; only the input arrangement and the menu category differ.
 - **Mage-Flow / Mage-Flow-Edit - new official recipe (Microsoft, 4B, MIT).** One compact stack that does both
   text-to-image and instruction editing, and **one node does both jobs**: `TextEncodeMageFlowEdit`
   (`model/conditioning/mage`) takes `clip` + `prompt` + optional `vae` + an Autogrow `image_1..image_16` group and

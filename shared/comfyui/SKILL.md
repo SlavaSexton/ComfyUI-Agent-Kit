@@ -16,6 +16,7 @@ Only this SKILL.md auto-loads; everything else is read when relevant, so route t
 
 - **`MODELS.md`** (next to this file) - a named model's prompt recipe + settings; read its entry BEFORE writing the prompt.
 - **`docs/TASKS.md`** - a named common job (generate image / video / audio / 3D, upscale, remove background): the local end-to-end flow for that task, a shortcut layer over this manual.
+- **`docs/NODE_LIBRARY/smart-upscaler.md`** - our Smart Upscaler pack (11 nodes): tiled upscaling that writes a separate verified prompt per tile. Read it when a tiled upscale of a BUSY or MIXED scene keeps producing confidently wrong tiles or disagreeing seams; the cheaper sampler-tilers in `ADVANCED.md` stay the right call for uniform subjects.
 - **`docs/MODEL_INDEX.md`** - the full classified list of all 157 models (recipe / utility / template-only); check whether a named model has a recipe, is a utility, or is template-only.
 - **`docs/ADVANCED.md`** - hard tasks: real strengths, gotchas + workarounds, temporal stability, high-detail matting, crop-and-stitch inpaint, PBR, and the verified tool table with licenses.
 - **`docs/KNOWN_ISSUES.md`** - read BEFORE building, so you do not wire around a currently-broken path.

@@ -32,7 +32,8 @@ when you want those features. Credit and licenses:
 | `ComfyUI-SUPIR` (SUPIR restore nodes) | kijai / XPixel Group | https://github.com/kijai/ComfyUI-SUPIR | NON-COMMERCIAL (XPixel) |
 | `WhatDreamsCost-ComfyUI` (LTX Director 2.0) | WhatDreamsCost | https://github.com/WhatDreamsCost/WhatDreamsCost-ComfyUI | GPL-3.0 |
 | Real-ESRGAN (upscale models) | Xintao Wang / BasicSR | https://github.com/xinntao/Real-ESRGAN | BSD-3-Clause |
-| KJNodes (LTX-2.3 NAG / GGUF / chunk-FF / multi-guide) | kijai | https://github.com/kijai/ComfyUI-KJNodes | see repo |
+| KJNodes (LTX-2.3 NAG / GGUF / chunk-FF / multi-guide; the Set_ / Get_ wires Smart Upscaler's engine switch needs) | kijai | https://github.com/kijai/ComfyUI-KJNodes | see repo |
+| rgthree-comfy (the before/after Image Comparer in the Smart Upscaler workflow) | rgthree | https://github.com/rgthree/rgthree-comfy | MIT |
 | ComfyUI-CacheDiT (LTX-2 inference caching) | Jasonzzt | https://github.com/Jasonzzt/ComfyUI-CacheDiT | see repo |
 | ComfyUI-MelBandRoFormer (audio stem separation) | community | Comfy Registry: ComfyUI-MelBandRoFormer | see repo |
 | ComfyUI-Frame-Interpolation (FILM / RIFE) | Fannovel16 | https://github.com/Fannovel16/ComfyUI-Frame-Interpolation | see repo |
@@ -80,6 +81,15 @@ Two patterns are adapted from **`Comfy-Org/comfy-skills`** (Comfy Org, MIT, http
 the "validate the graph has an output/save node before running, since API and partner nodes omit one" guardrail in
 `SKILL.md`, and the multi-reference identity-compositing technique in `docs/ADVANCED.md`. Their repo targets Comfy
 Cloud (a hosted MCP); the patterns are re-expressed here for the local stack. No files are copied or vendored.
+
+## Companion pack - ComfyUI-Smart-Upscaler
+
+**ComfyUI-Smart-Upscaler** - eleven nodes for tiled upscaling that reads the whole image once and then writes a
+separate, verified prompt for every tile - is authored by **Slava Sexton** (this kit's author), MIT-licensed,
+version 1.0.0. **Not published yet:** there is no public repository or Registry entry as of 2026-08-01, so this
+row carries no URL; it gains one when the pack ships. Documented in `docs/NODE_LIBRARY/smart-upscaler.md`.
+Its shipped workflow depends on two third-party packs, both credited in the table above: **ComfyUI-KJNodes**
+(kijai) and **rgthree-comfy** (rgthree).
 
 ## Companion pack - ComfyUI-OCIO
 

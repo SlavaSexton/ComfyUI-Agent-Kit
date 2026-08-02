@@ -36,6 +36,11 @@ Regenerate with `tools/node_inventory.py`.
 | `ocio.md` - our ComfyUI-OCIO pack (Slava Sexton) | OCIO LogConvert + ColorSpace / Display / CDLTransform / FileTransform / LookTransform: the full Nuke OCIO set, runtime-verified |
 | SaveImageAdvanced / LTXVHDRDecodePostprocess | native EXR / linear / HDR I/O (confirmed) |
 
+### `smart-upscaler.md` - our ComfyUI-Smart-Upscaler pack (Slava Sexton)
+| Entry | Purpose |
+|-------|---------|
+| `smart-upscaler.md` - 11 nodes, MIT, not published yet | tiled upscaling that reads the whole image once, then writes a separate verified prompt for EVERY tile: Prompt Director -> Output-Scale Tiles -> Whole-Image Analysis -> Tile Job Director -> Exact-Tile Prompt -> engine switch -> Finish and Blend. The prompt-aware option in the tiling ladder |
+
 ### `custom-author.md` - non-core author packs used in our workflows (I/O confirmed 2026-06-30)
 | Pack | Nodes |
 |------|-------|
@@ -68,6 +73,8 @@ API / cloud-partner nodes (194 across 44 providers) are catalogued in `_INVENTOR
 - **Apply a style / subject LoRA** -> LoraLoader (`core.md`).
 - **Preserve detail through a manual scale / distort / warp** -> log-space technique via `OCIO LogConvert` (`ocio.md`).
 - **Convert colorspace, or apply a LUT / CDL / display / look** -> the OCIO nodes (`ocio.md`).
+- **Upscale a busy or mixed scene where per-tile guessing goes wrong** -> Smart Upscaler (`smart-upscaler.md`);
+  for uniform subjects the cheaper sampler-tilers in `ADVANCED.md` are still the right call.
 - **Save HDR / linear / EXR / 16-bit** -> SaveImageAdvanced (`color-and-transform.md`).
 - **Big image OOMs on decode** -> VAEDecodeTiled (noted under VAEDecode, `core.md`).
 - **Video loop seam artifacts on decode** -> VAEDecodeLoopKJ (noted under VAEDecode, `core.md`).

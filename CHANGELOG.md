@@ -295,7 +295,7 @@ Comfy-MSS, the v0.27.0 doc sweep and the Krea 2 edit method do not change the co
   distinct model per the same rule that counted Gemini Omni Flash.
 - **Divide and Conquer tiled upscale (`Steudio/ComfyUI_Steudio`).** Auto-tile-sizing upscaler (computes the optimal
   resolution, splits into seamless tiles, merges back) added to ADVANCED.md as an alternative to Ultimate SD
-  Upscale / Tiled Diffusion. From the Pixel Pro field-research delta 2026-07-01.
+  Upscale / Tiled Diffusion. Surfaced by community field research; credit to the pack author, Steudio.
 
 Count change: **68 -> 69 recipes, 149 -> 150 models**, from Nano Banana 2 Lite only. LumiPic, ComfyUI_Gear, and the
 Divide and Conquer tiler do NOT change the counts - community LoRAs / techniques / tools, on already-counted bases.

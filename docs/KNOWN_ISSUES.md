@@ -50,9 +50,9 @@ repeating the same mistakes. Every row is sourced. Read this (and the "Real limi
 | Fixed in | Symptom | Source |
 |---|---|---|
 | ComfyUI v0.29.1 | User CSS silently stopped applying: `/api/userdata/user.css` was served as an attachment after PR 14734. | gh Comfy-Org/ComfyUI 15071 (closed COMPLETED) ; PR 15000 |
-| ComfyUI v0.29.1 | SVG node outputs and Media Assets previews went blank: the stored-XSS hardening (GHSA-779p-m5rp-r4h4) forced every SVG to `application/octet-stream`. The fix exempts only `<img>` loads via `Sec-Fetch-Dest`, and pins `Vary: Sec-Fetch-Dest` + `Cache-Control: no-store` so a cache cannot replay an inline SVG into document context. | Comfy-Org/ComfyUI PR 15149 ; release v0.29.1 |
+| ComfyUI v0.29.1 | SVG node outputs and Media Assets previews went blank: the stored-XSS hardening (GHSA-779p-m5rp-r4h4) forced every SVG to `application/octet-stream`. The fix exempts only `<img>` loads via `Sec-Fetch-Dest`, and pins `Vary: Sec-Fetch-Dest` + `Cache-Control: no-store` so a cache cannot replay an inline SVG into document context. | Comfy-Org/ComfyUI PR 15149 ; tag v0.29.1 (tagged, no GitHub Release page) |
 | ComfyUI v0.29.0 | Video transcode buffered every frame in RAM (OOM on long clips); it now streams. | Comfy-Org/ComfyUI PR 14813 (CORE-351, CORE-353) ; release v0.29.0 |
-| ComfyUI (master, after v0.29.0) | Mage-Flow failed on cards without bf16 support. | Comfy-Org/ComfyUI PR 15081 |
+| ComfyUI v0.29.0 | Mage-Flow failed on cards without bf16 support. Merged 2026-07-26 and listed in the v0.29.0 notes, so v0.29.0 and later already carry it. | Comfy-Org/ComfyUI PR 15081 ; release v0.29.0 |
 | closed 2026-07-29 | Anima generation speed dropped on AMD R9700 after PR 14953. | gh Comfy-Org/ComfyUI 14968 (closed COMPLETED) |
 | ComfyUI v0.28.0 | **Four security vulnerabilities** closed (advisory GHSA-779p-m5rp-r4h4). Update; do not stay on an older core if you expose ComfyUI beyond localhost. | gh Comfy-Org/ComfyUI PR 14734 ; GHSA-779p-m5rp-r4h4 |
 | ComfyUI v0.28.0 | Crash on videos with an undecodable audio stream; crash in `UNetSelfAttentionMultiply`; Load3D path-validation failure from double path resolution; Qwen3-VL tokenizer crash with custom embeddings; wrong HLG inverse-OETF clamp in `hlg_to_linear` (colour-relevant). | release v0.28.0 (PRs 14746, 14823, 14852, 14713, 14762) |

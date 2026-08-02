@@ -105,7 +105,7 @@ task, image, video, 3D, audio, utilities:
 
 <div align="center">
 
-<img src="docs/assets/templates_by_category.png" width="880" alt="Workflow templates by category: 152 video, 150 image, 103 use cases, 69 utility, 33 3D, 30 audio, and more">
+<img src="docs/assets/templates_by_category.png" width="880" alt="Workflow templates by category: 157 image, 149 video, 103 use cases, 69 utility, 33 3D, 30 audio, 18 getting started, 17 LLM, 7 node basics">
 
 </div>
 
@@ -113,7 +113,7 @@ task, image, video, 3D, audio, utilities:
 
 Each generative model rewards a different prompt approach: SDXL wants comma tags, FLUX wants natural-language
 sentences, video models want camera and motion direction, audio models want genre/tempo/instruments, and
-negative-prompt support varies wildly. The kit ships **[`MODELS.md`](skills/comfyui/MODELS.md)**, a per-model
+negative-prompt support varies wildly. The kit ships **[`MODELS.md`](shared/comfyui/MODELS.md)**, a per-model
 prompting reference distilled from **official sources** (each maker's docs and model cards, docs.comfy.org, and
 the per-model templates from the `anthropic-claude` node). When you name a model in a request or a workflow,
 the agent reads that model's entry first and prompts it correctly.
@@ -139,7 +139,7 @@ template-only): **[docs/MODEL_INDEX.md](docs/MODEL_INDEX.md)**.
 
 ### Coverage table: every model and whether a prompt recipe is ready
 
-`✅ recipe` = a dedicated, up-to-date prompting guide in [MODELS.md](skills/comfyui/MODELS.md). `🔧 tool` = an
+`✅ recipe` = a dedicated, up-to-date prompting guide in [MODELS.md](shared/comfyui/MODELS.md). `🔧 tool` = an
 enhancement/utility note (settings, not prompts). **Updated: 2026-06-25.**
 
 One table, columns aligned to the widest row (the video models).

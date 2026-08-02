@@ -1,7 +1,7 @@
 # Model index: every model in the library and what the kit has for it
 
 The template library names **157 distinct models** across 583 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
-provides: a full prompt recipe in [`MODELS.md`](../skills/comfyui/MODELS.md), an enhancement/utility note, or
+provides: a full prompt recipe in [`MODELS.md`](../shared/comfyui/MODELS.md), an enhancement/utility note, or
 template-only coverage (runnable via a template, no dedicated recipe yet).
 
 | Coverage | Meaning |
@@ -14,7 +14,7 @@ template-only coverage (runnable via a template, no dedicated recipe yet).
 template-only · plus text encoders / inference providers that are not generative models.
 
 **Updated: 2026-08-01.** Every ✅ entry has a current prompting recipe in
-[`MODELS.md`](../skills/comfyui/MODELS.md); every 🔧 entry has a when-to-use + settings note.
+[`MODELS.md`](../shared/comfyui/MODELS.md); every 🔧 entry has a when-to-use + settings note.
 
 ---
 
@@ -125,7 +125,7 @@ template-only · plus text encoders / inference providers that are not generativ
 
 ## 🔧 Enhancement and utility tools
 
-Not prompt-driven, see the "Enhancement and utility" section in [`MODELS.md`](../skills/comfyui/MODELS.md) for
+Not prompt-driven, see the "Enhancement and utility" section in [`MODELS.md`](../shared/comfyui/MODELS.md) for
 when-to-use + settings.
 
 - **Upscale / restore:** Real-ESRGAN (+ ESRGAN family), SUPIR, SeedVR2, FlashVSR, Topaz, Magnific

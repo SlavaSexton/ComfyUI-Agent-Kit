@@ -66,3 +66,15 @@ for src_rel, name in DIRS.items():
     copied.append(f"{name}/ ({len(os.listdir(dstdir))} files)")
 
 print(f"built claude-code/skills/comfyui/ : {len(copied)} items -> {', '.join(copied)}")
+
+# Second shipped skill: seedance. Model-side knowledge that applies in ComfyUI AND outside it
+# (Dreamina / Jimeng / the BytePlus API), so it ships as its own skill rather than inside comfyui.
+SEEDANCE_SRC = os.path.join(ROOT, "shared", "seedance")
+SEEDANCE_DST = os.path.join(ROOT, "claude-code", "skills", "seedance")
+if os.path.isdir(SEEDANCE_SRC):
+    if os.path.isdir(SEEDANCE_DST):
+        shutil.rmtree(SEEDANCE_DST)
+    shutil.copytree(SEEDANCE_SRC, SEEDANCE_DST)
+    print(f"built claude-code/skills/seedance/ : {len(os.listdir(SEEDANCE_DST))} files")
+else:
+    print("  MISSING shared/seedance, seedance skill not bundled")

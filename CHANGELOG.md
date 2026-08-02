@@ -14,6 +14,46 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-08-02
+
+### Added
+- **A second shipped skill: `seedance`.** ByteDance's Seedance video models run on Dreamina, Jimeng AI,
+  Doubao and the BytePlus API as well as inside ComfyUI, so their prompting knowledge could not live
+  inside a ComfyUI skill without being wrong half the time. It ships as its own skill in three layers:
+  `SKILL.md` routes, `reference.md` is normative and carries only ByteDance primary sources plus
+  parameters read from ComfyUI's node code, and `supplementary.md` holds third-party observations in a
+  subordinate layer with an explicit conflict ledger. Bundled for the Claude Code plugin by
+  `tools/build_plugin.py`.
+- **The official Seedance 2.5 mechanics**, from the Dreamina Seedance 2.5 User Guide (ByteDance, last
+  modified 2026-07-31). The 2.5 prompt formula is `[creatives description] + [one-sentence summary] +
+  [specific plot description] + [overall supplement]`. The three-module long-video formula includes an
+  explicit anti-collapse block whose "prohibited" slot is where sound, subtitle and known-fragile items
+  go. The real-person character formula runs seven dimensions with a sub-formula each, including the
+  official anti-plastic trick: the literal suffix "retaining the true micro pores and skin texture".
+- **Timestamp direction, which reverses the 2.0 advice.** Seedance 2.0's official guide calls precise
+  timing unstable and tells you not to force it. **2.5 shipped timestamp control as a headline feature,
+  built for exactly that request**, with the documented syntax `0s-3s:` / `3s-8s:`. Both versions are
+  now stated separately so an agent does not apply 2.0's warning to 2.5.
+- **Exact 2.5 limits and the official stability guidance that contradicts "more references is better":**
+  30 images, 10 videos and 10 audio clips (single 2 to 30s, 30s total each), audio-only input now allowed
+  where 2.0 required at least one image or video, duration [4, 30] which is 97 to 721 frames, and output
+  at **480p or 720p** (the third-party "native 4K" claim is refuted; 4K is an input resolution only).
+  ByteDance's own numbers: 1-5 subjects work well, 6-10 lose stability, and above 5 subjects you should
+  split viewpoints into separate images rather than supply one multi-view image.
+- **The modes, with the ceiling that is easy to get wrong.** Long Video generates 30 to 180 seconds in
+  one shot. Extend Video accepts only sources under 30s, adds 4 to 30s per operation and nests, so the
+  extreme case is a 30s original extended by 30s for **60s, and that is the ceiling on that path**.
+- **The Blender route, which turned out to be official.** Clay Renderer is a Dreamina plugin for Maya and
+  Blender: set the camera route in your DCC, export the white-model video, upload through the plugin, and
+  Seedance references the white-model action and camera movement.
+
+### Fixed
+- **Two plugin manifests had drifted and nobody was watching them.** `.claude-plugin/marketplace.json`
+  and `claude-code/.claude-plugin/plugin.json` both advertised **67 model prompt recipes** against an
+  actual 75, and `plugin.json` still declared **version 1.9.0** while the repo shipped 2.6.0. Same class
+  as the GitHub About box: a surface that no file edit touches and no count sync reached. Both corrected,
+  and the manifest counts are now part of the release checklist.
+
 ### Added
 - **Seedance 1.5 Pro, a whole tier the recipe had been silent about.** `docs/MODEL_INDEX.md` already listed
   it; `MODELS.md` did not mention it once, so an agent reading the recipe would never reach it. The weekly

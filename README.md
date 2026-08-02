@@ -71,6 +71,12 @@ guide to building your own custom nodes.
   generation alone leaves no trace on the canvas).
 - **Stays current on its own:** `check_updates.py` diffs the template repo and reads the blog RSS; an optional
   weekly task adds recipes for new models and pushes them. ([docs/UPDATING.md](docs/UPDATING.md))
+- **A second shipped skill, `seedance`, that works outside ComfyUI too.** ByteDance's Seedance video models
+  run on Dreamina, Jimeng and the BytePlus API as well as in ComfyUI, so their prompting knowledge ships as its
+  own skill: the three task types and the one word that switches between them, the reference label syntax, the
+  timestamp storyboard, the real-person character formula, and a failure table for face drift, duplicate
+  characters and extension seams. Distilled from ByteDance's own guides.
+  ([shared/seedance/SKILL.md](shared/seedance/SKILL.md))
 - **Portable and idempotent:** one installer, auto-detects your agents, re-runnable. MIT, no vendored third-party
   code (everything heavy is fetched at install).
 

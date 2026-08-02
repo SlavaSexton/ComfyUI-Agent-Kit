@@ -14,6 +14,25 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+### Added
+- **Seedance 1.5 Pro, a whole tier the recipe had been silent about.** `docs/MODEL_INDEX.md` already listed
+  it; `MODELS.md` did not mention it once, so an agent reading the recipe would never reach it. The weekly
+  cycle could not catch this because `check_updates.py` reports only the delta since the last run and 1.5
+  predates the window. Now documented with the parameters read from `comfy_api_nodes/nodes_bytedance.py`,
+  including three facts no prompt guide carries: the node enforces a **4 second minimum** even though the
+  slider allows 3, `generate_audio` is honoured **only** for 1.5 Pro and **doubles the price**, and
+  `raise_if_text_params` **rejects settings written into the prompt text**.
+- **Seedance 2.5 status, recorded so nobody builds against it.** It launched 2026-07-31 and has **no
+  ComfyUI nodes**; the recipe now says so explicitly and points at 2.0 as the newest available in ComfyUI.
+  The 2.5 deltas that are confirmed (30 images + 10 video + 10 audio per pass, 30s per generation with
+  multi-round extension, against 9+3+3 and 15s for 2.0) come from the official ByteDance Seed blog.
+- **Routing to the new `seedance` skill** for the family's full prompting mechanics: the three task types
+  and the one word that switches between them, the `@Image 1` label syntax, the `（）<>{}【】` symbols,
+  shot sequencing, the counterintuitive official rule to use 4 to 5 assets rather than the 50-asset
+  ceiling, and the failure table for face drift, duplicate characters, unwanted subtitles and extension
+  seams. Distilled from the official BytePlus ModelArk prompt guide.
+
+
 ## [2.6.0] - 2026-08-01
 
 ### Added

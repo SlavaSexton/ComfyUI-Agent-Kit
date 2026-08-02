@@ -15,6 +15,47 @@ vx.y.z`), which can become a GitHub Release.
 ## [Unreleased]
 
 ### Added
+- **Mage-Flow / Mage-Flow-Edit - new official recipe (Microsoft, 4B, MIT).** One compact stack that does both
+  text-to-image and instruction editing, and **one node does both jobs**: `TextEncodeMageFlowEdit`
+  (`model/conditioning/mage`) takes `clip` + `prompt` + optional `vae` + an Autogrow `image_1..image_16` group and
+  returns `positive` / `negative` / **`latent`**, so you must NOT wire an `EmptyLatentImage` - the sizes would not
+  match. Width/height of 0 fall back per-axis to the first reference's size (1024x1024 with no reference) and are
+  floored to a multiple of 16; the latent is `[batch, 128, h/16, w/16]`. Two separate resize paths, read from the
+  code: every reference is resized to the OUTPUT resolution before VAE encode (Mage's RoPE aligns reference and
+  target by position), while the copy fed to the VL text encoder is capped at a 384px long edge. Graph:
+  `UNETLoader` -> `KSampler.model`, `CLIPLoader` (**type `mage`**) -> the encoder, `VAELoader` -> the encoder and
+  `VAEDecode`, encoder outputs -> `KSampler` -> `VAEDecode` -> `SaveImageAdvanced`; edit adds
+  `LoadImage` -> `image_1`. Settings from the upstream table: Base 30 steps / CFG 5.0, RL 20 (30 for Edit),
+  Turbo 4 / CFG 1.0, euler + simple. Carries the naming trap that `mage_flow_bf16` is the **RL** checkpoint and
+  `mage_flow_base_bf16` is Base (upstream calls the RL model plain `microsoft/Mage-Flow`), the open 2K quality
+  complaint (gh 15099), and the int8 caveats.
+- **MiniMax H3 (Hailuo 03) - three new partner nodes**, folded into the existing MiniMax recipe:
+  `MinimaxHailuo03TextToVideoNode`, `MinimaxHailuo03FirstLastFrameNode` and `MinimaxHailuo03ReferenceNode`. All
+  three nest their widgets inside a `model` DynamicCombo (so they read `model.prompt`, `model.duration`, ...),
+  resolution is `2K` only, duration 5 to 15s. First-last-frame validates each image at 2:5 to 5:2 aspect and
+  256x256 minimum BEFORE spending anything; the reference node takes up to 9 images / 3 videos / 3 audio clips and
+  audio cannot be used without an image or video. Prompting is by connection order in the prose ("Image 1",
+  "Video 1"), and the official template shape is a technical header, then the scene, then a second-by-second beat
+  sheet, then a bracketed VFX list, then exclusions. Cost is duration x $0.1859, read from the node's own price
+  badge.
+- **Recraft V4 and V4.1**, folded into the Recraft recipe (which said "V3" only, and was therefore silent about a
+  whole model generation). Exactly two new nodes ship, `RecraftV4TextToImageNode` and `RecraftV4TextToVectorNode`;
+  there is no V4 image-to-image or inpainting node, so edits still route through V3. Their `model` DynamicCombo
+  swaps the `size` list with the tier (14 sizes from 1024x1024 standard, the same 14 shapes doubled from 2048x2048
+  on `_pro`). Records that **`negative_prompt` on the V4 nodes is a dead input** - the tooltip says it is ignored
+  and `execute()` never reads it - plus the 10,000-character prompt cap and the SVG output needing `SaveSVGNode`.
+- **Ideogram P-Image**, the new fast tier (`IdeogramPImage`). Documents the `quality` / `resolution` /
+  `prompt_upsampling` widgets and the second output that actually matters: **`final_prompt`**, the caption the
+  image was really generated from. Feed it back with `prompt_upsampling` = `OFF` and the same seed to reproduce a
+  result. The node's own tooltips supply the rules the kit now repeats: text renders poorly below `MEDIUM`, prefer
+  `HIGH` + `2K` for typography, and switch upsampling OFF whenever you pass your own JSON caption. The Ideogram
+  entry's "nodes available" line was stale at v0.28.0 and now reads v0.29.2.
+- **Uni3C camera-trajectory ControlNet for Wan** (`ModelPatchLoader` -> `WanUni3CControlnetApply`, EXPERIMENTAL),
+  in the Wan recipe. The apply node patches the MODEL, so it sits between the model loader and the KSampler, not
+  on the conditioning. The part that is easy to get wrong: `render_video` is not footage, it is the guidance video
+  rendered from the camera trajectory (warped point-cloud renders of the input image). Two guards will stop you -
+  the patch must be a Uni3C controlnet, and its hidden dim must equal the loaded Wan model's `dim`. No Comfy-Org
+  repack exists yet, so the weights pointer is marked inferred.
 - **The MCP 2026-07-28 specification, and what it means for this kit** (`docs/LAYERS.md`, Layer 2). MCP's
   protocol core went **stateless**: the `initialize` handshake and `Mcp-Session-Id` are retired, every request
   is self-describing, so any request can land on any instance behind a plain load balancer. Server-to-client
@@ -30,6 +71,21 @@ vx.y.z`), which can become a GitHub Release.
   instances carry on. Fix: pin `mcp>=1.28,<2` or migrate. The migration note carries the part that fails
   SILENTLY: every transport parameter moved off the constructor and off `mcp.settings` onto `run()`, so
   `mcp.settings.host = ...` no-ops instead of erroring. Learned first-hand, our own AI VFX MCP server hit it.
+
+### Changed
+- **`docs/KNOWN_ISSUES.md` refreshed to core v0.29.2 / frontend v1.49.3.** New open rows: Mage-Flow quality
+  degradation at 2048x2048 (gh 15099), Ideogram 4 int8 templates dying on Apple Silicon MPS with
+  `aten::_int_mm` unimplemented (gh 15133), and `ImageBlend` `difference` mode clamping every negative pixel to
+  black because `comfy_extras/nodes_post_processing.py` computes `img1 - img2` with no `abs()` (gh 15178,
+  verified in source, not taken from the report). The ComfyUI-LTXVideo import break is still open with a second
+  report (gh 15070, 15145). Moved to "Recently fixed": the v0.29.1 `user.css` regression, the v0.29.1 SVG
+  preview restore after the stored-XSS hardening, the v0.29.0 streaming video transcode, the Mage-Flow fix for
+  cards without bf16, and the Anima AMD R9700 speed regression.
+- **Counts synced across every surface:** 74 -> **75 recipes** (Mage-Flow is a new family; MiniMax H3,
+  Recraft V4.1, Ideogram P-Image and Uni3C extend existing entries), 578 -> **583 templates**. The template
+  library's distinct-model count stays 157: Mage-Flow and MiniMax H3 arrived, Kling 1.6 and Kling 2.0 were
+  archived out of the library along with the retired Runway Gen3a templates. Image also overtook Video as the
+  largest template category (157 vs 149), so the category chart was reordered.
 
 ## [2.5.0] - 2026-07-25
 

@@ -1,6 +1,6 @@
 # Model index: every model in the library and what the kit has for it
 
-The template library names **157 distinct models** across 578 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
+The template library names **157 distinct models** across 583 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
 provides: a full prompt recipe in [`MODELS.md`](../skills/comfyui/MODELS.md), an enhancement/utility note, or
 template-only coverage (runnable via a template, no dedicated recipe yet).
 
@@ -10,10 +10,10 @@ template-only coverage (runnable via a template, no dedicated recipe yet).
 | 🔧 **Utility** | enhancement / utility tool, has a "when to use + settings" note (not prompt-driven) |
 | 📋 **Template only** | runnable via a workflow template, no dedicated recipe yet (niche / thin official docs) |
 
-**Totals:** ✅ 74 recipe families (covering ~128 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
+**Totals:** ✅ 75 recipe families (covering ~128 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
 template-only · plus text encoders / inference providers that are not generative models.
 
-**Updated: 2026-07-25.** Every ✅ entry has a current prompting recipe in
+**Updated: 2026-08-01.** Every ✅ entry has a current prompting recipe in
 [`MODELS.md`](../skills/comfyui/MODELS.md); every 🔧 entry has a when-to-use + settings note.
 
 ---
@@ -36,14 +36,15 @@ template-only · plus text encoders / inference providers that are not generativ
 | Krea | Krea 2 / FLUX.1 Krea Dev | local |
 | ERNIE-Image | ERNIE-Image (+ Turbo) | local |
 | Boogu | Boogu Image 0.1 (Base / Turbo / Edit) | local |
+| Mage-Flow | Mage-Flow, Mage-Flow-Edit (Base / RL / Turbo) | local |
 
 ### Image (API / closed)
 | Family | Variants seen in templates | Run |
 |---|---|---|
-| Ideogram | Ideogram (2.x / 3.0) | API |
+| Ideogram | Ideogram (2.x / 3.0 / 4.0), Ideogram P-Image | API |
 | Nano Banana / Gemini Image | Nano Banana, Nano Banana Pro, Nano Banana 2, Nano Banana 2 Lite, Gemini 3 Pro Image, Gemini 3.1 Pro/flash-lite, Gemini 2.5 Flash | API |
 | Seedream | Seedream 4.0 / 4.5 / 5.0 Lite / 5.0 Pro | API |
-| Recraft | Recraft V3 | API |
+| Recraft | Recraft V3, Recraft V4 / V4.1 | API |
 | GPT-Image | GPT Image 2, GPT-Image-1 / 1.5 | API |
 | Grok Image | Grok | API |
 | Reve | Reve | API |
@@ -71,14 +72,14 @@ template-only · plus text encoders / inference providers that are not generativ
 ### Video (API / closed)
 | Family | Variants seen in templates | Run |
 |---|---|---|
-| Kling | Kling 1.6, 2.0, 2.6, 3.0, O1, O3 | API |
+| Kling | Kling 2.6, 3.0, O1, O3 | API |
 | Veo | Veo 3 / 3.1 | API |
 | Gemini Omni Flash (Google) | any-to-any T2V / I2V / video-edit, audio-native; official node `GeminiVideoOmni` + templates `api_google_gemini_omni_flash_*` (needs a current ComfyUI) | API |
 | Sora | Sora 2 | API |
 | Seedance | Seedance 1.0 Pro, 1.5 Pro, 2.0 (4K) | API |
 | Luma | Luma Ray, UNI-1 | API |
 | Runway | Runway Gen-4 / 4.5 | API |
-| MiniMax | MiniMax / Hailuo | API |
+| MiniMax | MiniMax / Hailuo, MiniMax H3 | API |
 | PixVerse | PixVerse | API |
 | Vidu | Vidu Q1 / Q2 / Q3 | API |
 | Pika | Pika 2.2 / 2.5 | API |

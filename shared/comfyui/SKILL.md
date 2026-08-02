@@ -208,9 +208,10 @@ negative-prompt rule, and its settings. Never carry one model's style to another
 
 `MODELS.md` covers (image) FLUX.1/.2 + Kontext, Z-Image-Turbo, Qwen-Image/Edit, SDXL, SD1.5, SD3.5, HiDream,
 Ideogram, Nano Banana Pro/2, Seedream 4.x/5 Lite/5 Pro, Recraft, GPT-Image, Grok, Reve, Kandinsky, BRIA, OmniGen,
-Chroma, Krea (incl. the Turbo image-style-reference LoRA on core nodes), ERNIE-Image; (image edit) FLUX Kontext,
-Qwen-Image-Edit, FireRed, LongCat, ChronoEdit, JoyAI Image Edit; (video)
-Wan 2.1-2.7, LTX-2.3 / 2 Pro, Hunyuan Video, SVD, Kling, Veo, Sora, Seedance, Luma, Runway, MiniMax, PixVerse,
+Chroma, Krea (incl. the Turbo image-style-reference LoRA on core nodes), ERNIE-Image, Mage-Flow (Microsoft 4B,
+native-resolution, MIT); (image edit) FLUX Kontext,
+Qwen-Image-Edit, FireRed, LongCat, ChronoEdit, JoyAI Image Edit, Mage-Flow-Edit; (video)
+Wan 2.1-2.7 (incl. Uni3C camera-trajectory ControlNet), LTX-2.3 / 2 Pro, Hunyuan Video, SVD, Kling, Veo, Sora, Seedance, Luma, Runway, MiniMax (incl. H3), PixVerse,
 Vidu, Pika, Sync 3 (lip sync), HeyGen (avatar video, talking photo, video translate, TTS), HappyHorse, HuMo, SCAIL-2; (audio) Stable Audio, ACE-Step, ElevenLabs, ChatterBox, Seed Audio, Sonilo; (3D)
 Hunyuan3D, Tripo, Rodin, Meshy; (newer/niche) Capybara, Bernini-R, Anima (+ ControlNet-LLLite control and inpainting
 patches), NewBie, PixelDiT, Ovis-Image, Lens, Quiver.

@@ -14,6 +14,8 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-08-01
+
 ### Added
 - **Smart Upscaler taught to the kit** (`docs/NODE_LIBRARY/smart-upscaler.md`), our own eleven-node pack for
   tiled upscaling that writes a separate verified prompt for EVERY tile. This is the gap the kit's existing

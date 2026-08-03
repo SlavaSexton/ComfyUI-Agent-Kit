@@ -805,6 +805,119 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
   - **Cost:** the price badge computes **duration x $0.1859** for t2v and flf2v (so a 5s clip is about $0.93), and the reference node adds per-reference terms on top. Priced from the node's own `PriceBadge` expression, not from a docs page.
 - **Source:** minimax.io/platform/document/video_generation ; node template `minimax.md` ; `comfy_api_nodes/nodes_minimax.py` on master + Comfy-Org/ComfyUI PR 15167 (v0.29.2) ; templates `api_minimax_h3_{t2v,flf2v,r2v}.json`.
 
+#### MiniMax H3 LOCAL (open weights) - a second, entirely separate path from the API nodes above
+
+**READ THE LICENCE BEFORE YOU RUN IT. This one has teeth.** The MiniMax H3 Community License Agreement (2026-08-02,
+`MiniMaxAI/MiniMax-H3/LICENSE`) grants rights only inside the "Applicable Territory", defined as worldwide
+**excluding the European Union, the United Kingdom, the Republic of Korea and the United States of America**.
+Section IV.4 is explicit that this covers the outputs too: "You may not use, reproduce, modify, distribute, or
+display the MiniMax H3 Works **or any of their Outputs or results** outside the Applicable Territory." Anyone in
+those four territories has to contact MiniMax for a separate licence rather than just downloading the weights.
+Beyond territory: over **20 million USD** yearly revenue needs prior written authorisation (api@minimax.io), any
+product built on it must display **"Powered by MiniMax H3"**, and redistribution must carry the copyright notice.
+Open weights, NOT open source. Quoted from the licence file itself, not from a summary.
+
+**What is actually open.** Only **H3-Base** ships, and it generates at **768p**. The official system has three
+modules, and two are hosted-only: **H3-Context-IR** (a multi-stage prompt/context refiner that MiniMax calls
+"critical to the quality of the final output") and **H3-Regenerate-2K** (the 2K upscale pass). So the local model
+is the base engine without the official prompt brain and without the 2K stage. In their place: any local LLM to
+expand prompts into the format below, and an ordinary upscaler. Expect the hosted web result to look more
+finished than a local run of the same idea; that is the missing IR, not your settings.
+
+**Build the graph (confirmed from `comfy_extras/nodes_minimax_h3.py` and the shipped templates).** Two core nodes:
+- **`MiniMaxH3ImageToVideo`** covers T2V, I2V, first-frame, last-frame and first-and-last-frame in one node.
+  Inputs `clip` (CLIP), `vae` (VAE), `first_frame` (IMAGE, optional), `last_frame` (IMAGE, optional),
+  `prompt` (STRING), `width` / `height` / `length` (INT). Outputs `positive` (CONDITIONING) + `LATENT`.
+  **Connect no image and it IS text-to-video** - that is exactly how the `video_minimax_h3_t2v` template works.
+- **`MiniMaxH3ReferenceToVideo`** for reference-to-video. Same inputs plus `audio_vae` (VAE),
+  `ref_images.ref_image_0..2` (IMAGE), `ref_videos.ref_video_0` (IMAGE), `ref_video_audios.ref_video_audio_0`
+  (AUDIO), `ref_audios.ref_audio_0` (AUDIO). Same two outputs.
+- Wiring, identical in both templates: `UNETLoader` (the fl2va or ref2va checkpoint) -> `BasicGuider` with the
+  node's `positive`; `CLIPLoader` with type **`minimax`** -> `clip`; two `VAELoader`s -> `vae` and `audio_vae`;
+  `KSamplerSelect` **`res_multistep`** + `BasicScheduler` **`simple`, 25 steps** -> `SamplerCustomAdvanced` ->
+  **`VAEDecode`** (video, through the video VAE) and **`VAEDecodeAudio`** (through the audio VAE) ->
+  `CreateVideo` at **24 fps** -> `SaveVideo`.
+- **The frame grid, straight from the node schema.** `length` is `default 124, min 5, max 3600, step 17`, and the
+  tooltip names the rule: frame count at 24 fps **snapped up to the model's "17k+5 grid"**, i.e. it must leave
+  **remainder 5 when divided by 17** (124 = ~5 s, 73 = ~3 s). The templates compute it with
+  `max(5, round(seconds * 24)) + (5 - (max(5, round(seconds * 24)) % 17)) % 17`; keep that `ComfyMathExpression`
+  rather than typing a length by hand. **The trained range is ~124 to 362 frames** (roughly 5 to 15 s) per the
+  same tooltip; the widget accepts up to 3600 but the model was not trained there, which is the honest ceiling
+  behind the "people ran 25 s clips" reports.
+- Template defaults: **1344 x 768**, 16:9, which matches the model's ~1 megapixel training target. Push past it
+  and time and VRAM climb while detail does not; the official route to 2K is the Regenerate pass that is not open.
+
+**Files (exact names and sizes, read from the `Comfy-Org/MiniMax-H3` repo tree).** Two task families, four
+precisions each, all under `diffusion_models/`:
+`minimax_h3_{fl2va,ref2va}_bf16.safetensors` **66.3 GB** · `..._int8_convrot.safetensors` **34.0 GB** ·
+`..._pruned_int8_convrot.safetensors` **21.0 GB** · `..._pruned_fp8_scaled.safetensors` **21.0 GB**.
+Use **fl2va** for T2V / I2V / first-last-frame and **ref2va** for reference-to-video. Plus
+`text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors`, `vae/minimax_h3_video_vae_fp16.safetensors` and
+`vae/minimax_h3_audio_vae_fp32.safetensors`. Note the **pruned fp8 variant**, same 21 GB as the pruned int8 and
+worth trying if int8 misbehaves on your card. These are Comfy-Org's own conversions; the community has since
+added GGUF / INT4 / NVFP4 builds under other authors (Abiray, Merserk, DeepBeepMeep, Gluttony10 and more).
+
+**Prompt format: H3-Base eats the IR output, so write in that shape.** From the official
+`VIDEO_PROMPT_WRITING_GUIDE_base_en.md`, the prompt is an optional instruction line, a blank line, then **three
+named fields**:
+```
+integrated_multimodal_description: [Shot 1] ... [Shot 2] At 00:04.500, ...
+overall_soundscape: ...
+non_diegetic_music: ...
+```
+`integrated_multimodal_description` carries visuals, action, shots, speakers, dialogue and diegetic sound along
+the timeline; `overall_soundscape` sums up ambience and physical-action sound; `non_diegetic_music` is score the
+characters cannot hear. For I2V the first line is fixed: `For the target video, at 0.00 seconds into the target
+video, <Picture 1> (from [Shot 1]) is fully referenced.` First-and-last-frame uses the alignment sentence naming
+both pictures and the second mark each lands on, to two decimals.
+- **Dialogue has a syntax, and this is why "the speech is gibberish" reports happen.** Speakers get stable IDs
+  `(S1)`, `(S2)`, joint `(S1,S2)`. The spoken words go **inside `<d>` tags with a language tag**, everything about
+  who says it and how stays outside, and the text is copied verbatim:
+  `The young woman with a quiet, breathy voice (S1) says: <d>[English] I get off at the next station.</d>`
+  Voiceover needs the exact phrase `says in an off-screen voiceover` plus a statement that the lips stay closed.
+  Use `<scenetrans>` when a line crosses a cut and `<cutoff>` when speech is truncated by the end.
+- **On-screen text** goes in double quotes, verbatim, untranslated.
+- **Camera** is motion type plus amplitude plus speed, from a fixed vocabulary: `Zoom In/Out`, `Push In/Pull Out`,
+  `Pan Left/Right`, `Truck Left/Right`, `Tilt Up/Down`, `Pedestal Up/Down`, `Arc Shot`, `Tracking Shot`. Medium
+  amplitude and normal speed are the defaults and are simply left out.
+- **Reference labels (R2V)**, from `VIDEO_PROMPT_WRITING_GUIDE_ref_en.md`: `<Subject N>` is the key one because it
+  binds sources together, e.g. "`<Subject 1>` is the woman whose appearance comes from `<Picture 1>` and whose
+  walking motion comes from `<Video 1>`." `<Picture N>` is a frame or composition anchor, `<Video N>` an editing
+  or temporal source, `<Audio N>` a copied signal. The guide's full structure is `subject_definitions`, `summary`,
+  `retention_analysis` (what is preserved, transferred or reused) and `detailed_description`.
+
+**Reference limits and the sizing switch.** The node's slots are **Autogrow**, so the shipped template showing
+three image sockets is just what that graph instantiated, not the ceiling. From the node schema: `ref_images`
+**max 9**, `ref_videos` **max 3**, `ref_video_audios` **max 3**, `ref_audios` **max 3** - the same envelope as the
+official card, which adds that clips run 2 to 15 s each with 15 s total, at most **12 files** across all types,
+and that **audio can never be the only reference** (it must accompany an image or video). `ref_video_audio_N` is
+specifically the soundtrack of the same-numbered reference video; `ref_audio_N` is standalone audio.
+- **`ref_image_size` is the setting that will surprise you on cost.** `match` (default) scales each reference
+  down to the generation's pixel area; `max` uses the reference pipeline's 2048 px short edge for the best
+  identity fidelity. The node's own tooltip warns why that is not free: **reference tokens ride through every
+  sampling step, so `max` can be several times slower**. Reach for `max` when a face has to hold, stay on
+  `match` otherwise. References are only ever downscaled, never upscaled.
+
+**Speed and hardware (field reports, not measured here).** Generation is slow, and the reason is in the official
+card: H3 supports sparse attention natively but **the open release ships inference with full attention only**,
+with a sparse implementation promised later. Community VRAM ladder as reported by users: 8 GB is a stunt, 12 GB
+does 480p short T2V with aggressive offload, 16 GB is a working minimum for 480p 5 to 10 s, **24 GB (3090/4090)
+is the realistic home tier for T2V / I2V and short R2V**, 32 GB works comfortably near the native megapixel, and
+48 GB is where heavy reference-to-video with long video references stops thrashing. On Windows, ComfyUI has been
+reported to use only part of the card (15 to 17 GB of a 24 GB board) while pushing the rest into system RAM, with
+Linux behaving better. Treat the whole ladder as community reports; the numbers were not verified here.
+- **Duration:** the node itself states the trained range as ~124 to 362 frames, about 5 to 15 s. Nothing blocks a
+  longer `length` and people have posted 25 s clips, but that is past training; expect drift and cost, and treat
+  15 s as where the evidence stops.
+- **Content behaviour:** the safety guardrails described on the model card are part of the **hosted** pipeline
+  (automated moderation of submitted material and enhanced prompts). The open weights carry no such filter, and
+  anatomical fidelity holds up in the image and reference paths. The licence's acceptable-use terms still apply
+  to whatever you generate; MiniMax claims no rights over outputs but places responsibility on you.
+
+- **Source (local path):** `MiniMaxAI/MiniMax-H3` model card, its `LICENSE`, and `docs/VIDEO_PROMPT_WRITING_GUIDE_{base,ref}_en.md` ;
+  `Comfy-Org/MiniMax-H3` repo tree for file names and sizes ; `comfy_extras/nodes_minimax_h3.py` ; templates
+  `video_minimax_h3_{t2v,i2v,r2v}.json`.
+
 ### PixVerse
 - **Prompt style:** `[Character] [Action] [Scene] with [Visual Style], [Cinematography], and [Mood]`; state camera work explicitly and chain it.
 - **Structure:** character/object -> scene -> cinematography (position, movement, angle) -> style/grade -> mood -> negative prompt.

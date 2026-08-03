@@ -14,6 +14,44 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+### Added
+- **MiniMax H3 local open weights, the half the kit was missing.** The MiniMax entry already covered the hosted
+  `MinimaxHailuo03*` API nodes; the open-weights release is a completely separate graph and it now has its own
+  block. Buildable from the two core nodes confirmed in `comfy_extras/nodes_minimax_h3.py`:
+  **`MiniMaxH3ImageToVideo`** (one node covering T2V, I2V and first/last frame, with `first_frame` / `last_frame`
+  simply left unconnected for text-to-video) and **`MiniMaxH3ReferenceToVideo`** (adds `audio_vae` plus the
+  `ref_images` / `ref_videos` / `ref_video_audios` / `ref_audios` slots), each returning `positive` CONDITIONING
+  and `LATENT`. Full wiring documented: `CLIPLoader` type **`minimax`**, two VAEs (video fp16 + audio fp32),
+  `res_multistep` + `simple` at 25 steps, dual `VAEDecode` / `VAEDecodeAudio` into `CreateVideo` at 24 fps.
+  Includes the **frame-count rule the templates encode and nobody writes down: the length must leave remainder 5
+  modulo 17** (124 frames for 5 s, 73 for 3 s), so a hand-set length can land off-grid.
+- **The official prompt format for H3, which is not the usual prose.** From MiniMax's own
+  `VIDEO_PROMPT_WRITING_GUIDE_{base,ref}_en.md`: three named fields (`integrated_multimodal_description`,
+  `overall_soundscape`, `non_diegetic_music`), the fixed instruction line for image modes, speaker IDs `(S1)`,
+  and dialogue wrapped in `<d>[Language] verbatim words</d>` with delivery outside the tag. That last detail
+  explains the widely reported "the speech comes out as gibberish": without `<d>` the model is never told the
+  exact words. Also `<scenetrans>` / `<cutoff>` for lines crossing a cut, quoted on-screen text, the fixed camera
+  vocabulary, and the `<Subject N>` / `<Picture N>` / `<Video N>` / `<Audio N>` reference labels for R2V.
+- **What is open and what is not:** only **H3-Base** ships and it generates at **768p**. The `H3-Context-IR`
+  prompt/context refiner (which MiniMax calls critical to output quality) and the `H3-Regenerate-2K` upscale pass
+  are hosted-only, so a local run is the base engine without the official prompt brain. Documented alongside the
+  exact file names and sizes read from the `Comfy-Org/MiniMax-H3` tree (bf16 66.3 GB, int8-convrot 34.0 GB,
+  pruned int8-convrot and pruned **fp8-scaled** 21.0 GB each, per task family), the community VRAM ladder marked
+  as unverified field reports, and the reason it is slow (the open release ships **full attention only**; sparse
+  attention is promised later).
+- **A hard licence flag, quoted from the licence file.** The MiniMax H3 Community License Agreement (2026-08-02)
+  limits all rights to an "Applicable Territory" that **excludes the European Union, the United Kingdom, the
+  Republic of Korea and the United States of America**, and section IV.4 extends that to the **outputs** as well.
+  Over 20 million USD yearly revenue needs prior written authorisation, products must display "Powered by
+  MiniMax H3", and redistribution must carry the copyright notice. Open weights, not open source.
+
+### Changed
+- **Template count 583 -> 586** (the three local `video_minimax_h3_{t2v,i2v,r2v}` templates, which landed
+  2026-08-02, after the last weekly cut). Synced across README, MODEL_INDEX, SKILL.md and all four re-rendered
+  banners; category counts recomputed from the manifest (Image 157, Video 152). The MODEL_INDEX MiniMax row now
+  reads **API + local open weights** instead of API only. Recipe and model counts are unchanged: this extends the
+  existing MiniMax family entry rather than adding a new one.
+
 ## [2.7.0] - 2026-08-02
 
 ### Added

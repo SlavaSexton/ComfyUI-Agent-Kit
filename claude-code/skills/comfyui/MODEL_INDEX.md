@@ -1,6 +1,6 @@
 # Model index: every model in the library and what the kit has for it
 
-The template library names **157 distinct models** across 583 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
+The template library names **157 distinct models** across 586 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
 provides: a full prompt recipe in [`MODELS.md`](../shared/comfyui/MODELS.md), an enhancement/utility note, or
 template-only coverage (runnable via a template, no dedicated recipe yet).
 
@@ -13,7 +13,7 @@ template-only coverage (runnable via a template, no dedicated recipe yet).
 **Totals:** ✅ 75 recipe families (covering ~128 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
 template-only · plus text encoders / inference providers that are not generative models.
 
-**Updated: 2026-08-01.** Every ✅ entry has a current prompting recipe in
+**Updated: 2026-08-03.** Every ✅ entry has a current prompting recipe in
 [`MODELS.md`](../shared/comfyui/MODELS.md); every 🔧 entry has a when-to-use + settings note.
 
 ---
@@ -79,7 +79,7 @@ template-only · plus text encoders / inference providers that are not generativ
 | Seedance | Seedance 1.0 Pro, 1.5 Pro, 2.0 (4K) | API |
 | Luma | Luma Ray, UNI-1 | API |
 | Runway | Runway Gen-4 / 4.5 | API |
-| MiniMax | MiniMax / Hailuo, MiniMax H3 | API |
+| MiniMax | MiniMax / Hailuo (API), MiniMax H3 (API + local open weights) | API / local |
 | PixVerse | PixVerse | API |
 | Vidu | Vidu Q1 / Q2 / Q3 | API |
 | Pika | Pika 2.2 / 2.5 | API |

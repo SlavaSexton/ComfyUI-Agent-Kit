@@ -832,11 +832,27 @@ finished than a local run of the same idea; that is the missing IR, not your set
 - **`MiniMaxH3ReferenceToVideo`** for reference-to-video. Same inputs plus `audio_vae` (VAE),
   `ref_images.ref_image_0..2` (IMAGE), `ref_videos.ref_video_0` (IMAGE), `ref_video_audios.ref_video_audio_0`
   (AUDIO), `ref_audios.ref_audio_0` (AUDIO). Same two outputs.
-- Wiring, identical in both templates: `UNETLoader` (the fl2va or ref2va checkpoint) -> `BasicGuider` with the
-  node's `positive`; `CLIPLoader` with type **`minimax`** -> `clip`; two `VAELoader`s -> `vae` and `audio_vae`;
-  `KSamplerSelect` **`res_multistep`** + `BasicScheduler` **`simple`, 25 steps** -> `SamplerCustomAdvanced` ->
-  **`VAEDecode`** (video, through the video VAE) and **`VAEDecodeAudio`** (through the audio VAE) ->
-  `CreateVideo` at **24 fps** -> `SaveVideo`.
+- **The complete graph, every node the template actually contains.** Drop these and wire exactly this way; the
+  list is deliberately exhaustive because a missing `RandomNoise` alone makes `SamplerCustomAdvanced` invalid.
+  - **Feeding the H3 node:** `CLIPLoader` (type **`minimax`**) -> `clip` · `VAELoader` (video VAE) -> `vae` ·
+    `VAELoader` (audio VAE) -> `audio_vae` · `ResolutionSelector` -> `width` and `height` ·
+    `PrimitiveFloat` (duration in seconds) -> `ComfyMathExpression` -> `length` ·
+    `PrimitiveStringMultiline` -> `prompt` (the templates keep the prompt in its own node, not typed into the
+    H3 widget) · `LoadImage` -> `first_frame` / `last_frame` on the FL2VA node, or -> `ref_image_N` on the
+    reference node. For plain text-to-video, connect no image at all.
+  - **Sampling:** `UNETLoader` (fl2va or ref2va) -> **both** `BasicGuider` and `BasicScheduler`, not just one.
+    The H3 node's `positive` -> `BasicGuider`. Then `RandomNoise` (NOISE), `BasicGuider` (GUIDER),
+    `KSamplerSelect` **`res_multistep`** (SAMPLER) and `BasicScheduler` **`simple`, 25 steps** (SIGMAS) all four
+    into `SamplerCustomAdvanced`, plus the H3 node's `LATENT`.
+  - **Decoding:** `SamplerCustomAdvanced`'s LATENT goes to **both** `VAEDecode` (through the video VAE) and
+    `VAEDecodeAudio` (through the audio VAE). Their IMAGE and AUDIO meet in `CreateVideo` at **24 fps** ->
+    `SaveVideo`. Skip the audio branch and you throw away the model's headline feature.
+  - **Two nodes in the I2V template that are NOT part of the live path.** It also carries
+    `ImageScaleToTotalPixels` -> `GetImageSize`, and that pair is **left disconnected**: the scaler has no input
+    wired and the size outputs feed nothing, because the generation size comes from `ResolutionSelector`. They
+    are there as the alternative route, scale the input image to the target pixel budget and take width and
+    height from it, which is worth wiring yourself when the output must follow the source image's aspect exactly
+    instead of a preset ratio. Do not copy them expecting them to do something as shipped.
 - **The frame grid, straight from the node schema.** `length` is `default 124, min 5, max 3600, step 17`, and the
   tooltip names the rule: frame count at 24 fps **snapped up to the model's "17k+5 grid"**, i.e. it must leave
   **remainder 5 when divided by 17** (124 = ~5 s, 73 = ~3 s). The templates compute it with

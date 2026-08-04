@@ -577,6 +577,21 @@ Qwen-Image-Edit, OmniGen (above), Seedream Edit, and Nano Banana edit, which are
 - **Settings:** API (open Apache-2.0 weights expected Q2 2026); 720p/1080p; 2-15s; ~80-120 words; ComfyUI partner nodes v0.18.5+.
 - **Source:** node template `wan_2-7.md` ; fal.ai / Replicate / WaveSpeedAI / Alibaba Cloud DashScope.
 
+#### Wan 3.0: a RUMOUR, and the three real things people are conflating with it (checked 2026-08-04)
+Circulating claims put Wan 3.0 at 2026-08-06 with 2 to 30 s in one generation, a hybrid MMDiT, up to 10 images /
+5 videos / 5 audio references, `length=-1` auto-duration, adaptive aspect ratio, 1080p, and multi-character
+dialogue in one 30 s take. **None of that is confirmed.** There is no Wan 3.0 repository, release or weights:
+the `Wan-Video` org currently hosts `Wan2.1`, `Wan2.2`, `Wan-Dancer`, `Wan-skills` and a diffusers fork, and
+nothing else. Do not plan a workflow on those numbers and do not repeat them as specification. What IS real and
+already published, and is probably where the rumour comes from:
+- **Wan Dancer** - shipped. `Wan-Video/Wan-Dancer` on GitHub, weights `Wan-AI/Wan-Dancer-14B` on HF under
+  **Apache-2.0** (published 2026-07-10). The official template `video_wan_dancer` is in the library, and the
+  Comfy-Org repack lists a `Wan-Dancer` repo. Image plus audio driven character animation.
+- **WanSong v1.0** - real technical report, arXiv **2607.14749**.
+- **Wan Streamer** - real, `wan-streamer.com` resolves and serves.
+Revisit after 2026-08-06: if 3.0 lands, replace this block with the verified node names and settings rather than
+promoting the rumoured list.
+
 ### LTX-2.3 (Lightricks)
 - **Prompt style (official guide):** ONE flowing cinematography paragraph, not tag dumps. Order: shot/framing ->
   scene (lighting, color, texture, atmosphere) -> action (present-tense verbs) -> character (age, clothing,
@@ -930,9 +945,78 @@ Linux behaving better. Treat the whole ladder as community reports; the numbers 
   anatomical fidelity holds up in the image and reference paths. The licence's acceptable-use terms still apply
   to whatever you generate; MiniMax claims no rights over outputs but places responsibility on you.
 
+**Community tooling for the local path (2026-08-04).** Two custom packs matter enough to build with; both are
+read from their node source, not from summaries.
+
+- **Spectrum: forecast some solver steps instead of computing them.** `xmarre/ComfyUI-Spectrum-MiniMax-H3`
+  (GPL-3.0). One node, **`SpectrumApplyMiniMaxH3`** ("Spectrum Apply MiniMax H3", category `sampling/spectrum`),
+  and it is a **MODEL patcher, not a replacement sampler**: MODEL in, MODEL out, so it sits between `UNETLoader`
+  and everything downstream (`BasicGuider` and `BasicScheduler` both take the patched model). The rest of the
+  graph is untouched. `enabled=false` passes the model through unchanged, and `require_native_minimax_h3` throws
+  if the model is not native H3, so it cannot be misapplied silently.
+  - **What it really does, in the author's own numbers:** it predicts feature trajectories with a Chebyshev fit
+    instead of running the transformer on some steps. Over 20 steps: **Euler runs 13 actual + 7 forecast**
+    (forecasting at steps 5, 7, 9, 11, 13, 15, 17), **RES multistep / CFG++ runs 14 actual + 6 forecast**. Those
+    are ~35% and ~30% fewer transformer calls. The README is careful that this is NOT the wall-clock number:
+    end-to-end gain also depends on output-head cost, CPU transfers, offload, references, CFG branching, latent
+    size and hardware. Treat circulating "1.5x" figures as one machine's result, not a spec.
+  - **Supported samplers:** `sample_euler`, `sample_res_multistep`, `sample_res_multistep_cfg_pp`. **Ancestral
+    samplers fall back to native H3 on purpose** (injected noise breaks the smooth trajectory the forecaster
+    needs), and multi-GPU parallel sampling also stays native. RES additionally **keeps its last three solver
+    steps native**, a floor that overrides a smaller `tail_actual_steps`.
+  - **Knobs:** `blend_weight` 0.5, `degree` 4 (Chebyshev order), `ridge_lambda` 0.1, `window_size` 2.0,
+    `flex_window` 0.75, `warmup_steps` 5, `tail_actual_steps` 1, `max_history` 8, `debug`, plus optional
+    `history_storage` = `system_ram` (default) or `vram`. The author measured `vram` history costing **about
+    2.2 GiB more peak** for a small and variable timing gain, so it is an option for spare VRAM, not a free win.
+  - **Version coupling is tight, and "just update to 0.30.0" is WRONG.** It targets
+    `comfy.ldm.minimax.model.MiniMaxH3Model` and needs the H3 plus packed-latent sampler APIs from ComfyUI commit
+    **`e377e263`, 2026-08-03 20:29 UTC** (the `latent_shapes` argument on `outer_sample`). **v0.30.0 was tagged
+    that same day at 03:48 UTC, about 17 hours EARLIER, and does not contain it** (verified with a commit
+    comparison: v0.30.0 is two commits behind it). As of 2026-08-04 no tagged release carries the API, so this
+    pack needs a master / nightly build newer than that commit. Advice circulating as "update to 0.30.0 or newer"
+    will leave you on a build that fails. Older revisions are unsupported, later ones are explicitly unverified,
+    and the node checks the contract at apply time so it fails loudly rather than drifting.
+  - **Honest quality note from the author:** fast action can follow a different trajectory, and fast-moving or
+    briefly visible detail can degrade. Qualitative, varies with prompt, motion, sampler, resolution and refs.
+
+- **Latent upscaler: a real two-pass at higher resolution.** `Tr1dae/ComfyUI-MiniMaxH3_LatentUpscaler` (no
+  licence file). Node **`MiniMaxH3LatentUpscaleCombined`** ("MiniMax H3 Latent Upscale Combined", category
+  `latent/minimax_h3`). It exists because **stock `LatentUpscaleBy` and `AddNoise` break on H3's `NestedTensor`
+  AV latent** (video `[B,24,T,H/16,W/16]` packed together with audio `[B,32,2,T_audio]`); this is not a learned
+  upscaler, it is spatial interpolation plus correct re-noising of that packed structure.
+  - **Inputs:** `samples` (LATENT), `scale_by` (1.5 default, 0.01-8), `method` (`nearest` / `bilinear` default /
+    `bicubic`), `model` (MODEL), `noise` (NOISE), `sigmas` (SIGMAS), `audio_denoise`, and optional `positive` /
+    `negative` (CONDITIONING). **Outputs:** `latent`, `positive`, `negative`.
+  - **Wiring, from the author's own instructions:** `SamplerCustomAdvanced` #1 runs the high-sigma majority of
+    the schedule at low resolution -> take its **`denoised_output`** (not the plain output) -> the Combined node,
+    fed the same conditioning as pass 1 plus `RandomNoise`, the LOW sigmas and the model -> build a **new
+    `BasicGuider` from the returned `positive` / `negative`** -> `SamplerCustomAdvanced` #2 with **DisableNoise**,
+    the low sigmas and the Combined latent.
+  - **`audio_denoise` is why the first reports of this node looked bad.** It defaults to **1.0**, which fully
+    re-noises the audio at `sigmas[0]` so pass 2 can rewrite it. `0` locks pass-1 audio untouched; the author
+    recommends **0.25 to 0.5** for light polish. The README's own troubleshooting says that if audio garbles at
+    `audio_denoise>0`, **run more of the schedule in pass 1, because audio settles late**, or lower the value. A
+    disappointing result at defaults is the expected outcome, not evidence the node is broken. Inferred, not
+    tested here: that is the most likely cause of the poor community result, and it is cheap to check.
+  - **Why the conditioning outputs matter (ref2va).** `minimax_refs` carries each reference with its own latent
+    and `latent_h` / `latent_w`. Grow the target canvas 2x and references sized for the old canvas sit at the
+    wrong relative scale and RoPE row layout, which is the classic identity warp. The node upscales the reference
+    visual latents and their metadata together, which is why you must rebuild the guider from its outputs rather
+    than reusing the pass-1 conditioning.
+  - **Constraint:** MiniMax's DiT patch size is `(1, 2, 2)` and the conditioning patchify does not pad, so the
+    upscaled **height and width must stay even**. Also avoid forced cache-empty or model-unload nodes between the
+    two passes, especially with `--disable-dynamic-vram` plus a quantized H3 and SageAttention.
+
+**Community performance reports (2026-08, unverified here, treat as anecdote).** A 16 GB RTX 4090 Laptop with
+32 GB RAM reportedly did 960x540, 5 s, 20 steps on pruned INT8 + NVFP4 in ~182 s; an RTX 4080 run reported
+608x352, ~5.2 s at ~157 s with peak VRAM ~9.5 GiB thanks to offload plus pruned INT8. Several users report
+dropping 20 steps to 15 with little visible loss. None of this was measured here, and the low VRAM peaks in
+particular depend on offload settings that trade speed for memory.
+
 - **Source (local path):** `MiniMaxAI/MiniMax-H3` model card, its `LICENSE`, and `docs/VIDEO_PROMPT_WRITING_GUIDE_{base,ref}_en.md` ;
   `Comfy-Org/MiniMax-H3` repo tree for file names and sizes ; `comfy_extras/nodes_minimax_h3.py` ; templates
-  `video_minimax_h3_{t2v,i2v,r2v}.json`.
+  `video_minimax_h3_{t2v,i2v,r2v}.json` ; `xmarre/ComfyUI-Spectrum-MiniMax-H3` and
+  `Tr1dae/ComfyUI-MiniMaxH3_LatentUpscaler` node source and READMEs.
 
 ### PixVerse
 - **Prompt style:** `[Character] [Action] [Scene] with [Visual Style], [Cinematography], and [Mood]`; state camera work explicitly and chain it.

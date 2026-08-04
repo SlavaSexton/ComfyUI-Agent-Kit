@@ -15,6 +15,38 @@ vx.y.z`), which can become a GitHub Release.
 ## [Unreleased]
 
 ### Added
+- **Spectrum, the first acceleration for local MiniMax H3** (`xmarre/ComfyUI-Spectrum-MiniMax-H3`, GPL-3.0), read
+  from its node source. Node **`SpectrumApplyMiniMaxH3`**, category `sampling/spectrum`, and the important
+  correction to how it is being described around the community: it is a **MODEL patcher, not a replacement
+  sampler**, so it drops between `UNETLoader` and everything downstream and the rest of the graph is untouched.
+  Documented with the author's own step accounting rather than a headline multiplier: over 20 steps Euler runs 13
+  actual + 7 forecast and RES multistep / CFG++ runs 14 actual + 6, about 35% and 30% fewer transformer calls,
+  while the README is explicit that wall-clock gain depends on offload, references, CFG branching and hardware.
+  Also the parts that bite: ancestral samplers and multi-GPU sampling deliberately fall back to native, RES keeps
+  its last three steps native regardless of `tail_actual_steps`, `history_storage=vram` costs ~2.2 GiB peak for a
+  small and variable gain, and the version requirement that the circulating advice gets wrong:
+  it pins to commit `e377e263` (2026-08-03 20:29 UTC) and **v0.30.0 does not contain it**, having been tagged
+  ~17 hours earlier, so as of 2026-08-04 no tagged release carries the API and a master build is required, and the author's own note that fast motion and briefly
+  visible detail can degrade.
+- **A working two-pass latent upscale for H3** (`Tr1dae/ComfyUI-MiniMaxH3_LatentUpscaler`, no licence file). Node
+  **`MiniMaxH3LatentUpscaleCombined`**, category `latent/minimax_h3`. It exists because stock `LatentUpscaleBy`
+  and `AddNoise` **break on H3's packed `NestedTensor`** latent, which carries video and audio together. Recorded
+  the full two-pass wiring (pass 1's `denoised_output`, not its plain output; a NEW guider built from the node's
+  returned conditioning; pass 2 with DisableNoise and the low sigmas) and the reason the conditioning must be
+  rebuilt: `minimax_refs` carry per-reference `latent_h` / `latent_w`, and a grown canvas leaves them at the
+  wrong scale and RoPE row layout, which is the classic identity warp. **The likely explanation for the poor
+  community results is in the defaults:** `audio_denoise` ships at 1.0, a full audio re-noise, where the author
+  recommends 0.25 to 0.5, and the README's own advice is to run more of the schedule in pass 1 because audio
+  settles late. Marked inferred, not tested here.
+- **Community H3 performance reports from 2026-08**, carried as anecdote and labelled as such: a 16 GB 4090
+  Laptop at 960x540 / 5 s / 20 steps in ~182 s on pruned INT8 + NVFP4, a 4080 run at 608x352 with ~9.5 GiB peak,
+  and repeated reports that 20 steps can drop to 15 with little visible loss.
+- **Wan 3.0 is flagged as a RUMOUR, with the three real things it is being confused with.** The circulating
+  2026-08-06 date and spec list (2 to 30 s, hybrid MMDiT, `length=-1` auto-duration, 10 images / 5 videos /
+  5 audio refs) has no repository, release or weights behind it: the `Wan-Video` org hosts Wan2.1, Wan2.2,
+  Wan-Dancer, Wan-skills and a diffusers fork, nothing more. What is real and verified: **Wan Dancer** shipped
+  with Apache-2.0 weights `Wan-AI/Wan-Dancer-14B` and an official `video_wan_dancer` template, **WanSong v1.0**
+  as arXiv 2607.14749, and **Wan Streamer** as a live site. Written so nobody plans a workflow on the rumour.
 - **MiniMax H3 local open weights, the half the kit was missing.** The MiniMax entry already covered the hosted
   `MinimaxHailuo03*` API nodes; the open-weights release is a completely separate graph and it now has its own
   block. Buildable from the two core nodes confirmed in `comfy_extras/nodes_minimax_h3.py`:

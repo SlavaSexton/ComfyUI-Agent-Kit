@@ -67,14 +67,22 @@ for src_rel, name in DIRS.items():
 
 print(f"built claude-code/skills/comfyui/ : {len(copied)} items -> {', '.join(copied)}")
 
-# Second shipped skill: seedance. Model-side knowledge that applies in ComfyUI AND outside it
-# (Dreamina / Jimeng / the BytePlus API), so it ships as its own skill rather than inside comfyui.
-SEEDANCE_SRC = os.path.join(ROOT, "shared", "seedance")
-SEEDANCE_DST = os.path.join(ROOT, "claude-code", "skills", "seedance")
-if os.path.isdir(SEEDANCE_SRC):
-    if os.path.isdir(SEEDANCE_DST):
-        shutil.rmtree(SEEDANCE_DST)
-    shutil.copytree(SEEDANCE_SRC, SEEDANCE_DST)
-    print(f"built claude-code/skills/seedance/ : {len(os.listdir(SEEDANCE_DST))} files")
-else:
-    print("  MISSING shared/seedance, seedance skill not bundled")
+# Every OTHER skill under shared/ ships as its own bundled skill. Model-side knowledge that also
+# applies outside ComfyUI (a vendor's own app or API) lives beside `comfyui` rather than inside it.
+# Discovered rather than listed, so a new shared/<skill>/ is bundled the moment it exists instead of
+# being silently left out of the plugin. RESPONSIBLE FOR: generalised from a hardcoded seedance-only
+# block, 2026-08-06, when the second such skill (minimax-h3) would have gone unbundled.
+SHARED_ROOT = os.path.join(ROOT, "shared")
+extra = sorted(
+    d for d in os.listdir(SHARED_ROOT)
+    if d != "comfyui" and os.path.isfile(os.path.join(SHARED_ROOT, d, "SKILL.md"))
+)
+for skill in extra:
+    src = os.path.join(SHARED_ROOT, skill)
+    dst = os.path.join(ROOT, "claude-code", "skills", skill)
+    if os.path.isdir(dst):
+        shutil.rmtree(dst)
+    shutil.copytree(src, dst)
+    print(f"built claude-code/skills/{skill}/ : {len(os.listdir(dst))} files")
+if not extra:
+    print("  no extra shared/<skill>/ dirs found")

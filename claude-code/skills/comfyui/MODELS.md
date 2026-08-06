@@ -945,6 +945,12 @@ Linux behaving better. Treat the whole ladder as community reports; the numbers 
   anatomical fidelity holds up in the image and reference paths. The licence's acceptable-use terms still apply
   to whatever you generate; MiniMax claims no rights over outputs but places responsibility on you.
 
+**Full prompting and operating brain: the dedicated `minimax-h3` skill** (`~/.claude/skills/minimax-h3/`).
+It carries the three-field prompt format, the `<d>` dialogue syntax, the camera vocabulary, the reference
+labelling system, the Krea production-job taxonomy, the quant and acceleration ladder (GGUF sizes, the
+larryvrh/drbaph Turbo LoRA, Spectrum, the latent upscaler) and a symptom-to-cause table. Read it before writing
+an H3 prompt or picking a quant; this entry stays the node-level reference.
+
 **Community tooling for the local path (2026-08-04).** Two custom packs matter enough to build with; both are
 read from their node source, not from summaries.
 
@@ -972,7 +978,7 @@ read from their node source, not from summaries.
     `comfy.ldm.minimax.model.MiniMaxH3Model` and needs the H3 plus packed-latent sampler APIs from ComfyUI commit
     **`e377e263`, 2026-08-03 20:29 UTC** (the `latent_shapes` argument on `outer_sample`). **v0.30.0 was tagged
     that same day at 03:48 UTC, about 17 hours EARLIER, and does not contain it** (verified with a commit
-    comparison: v0.30.0 is two commits behind it). As of 2026-08-04 no tagged release carries the API, so this
+    comparison: v0.30.0 is two commits behind it). As of 2026-08-06 no tagged release carries the API, so this
     pack needs a master / nightly build newer than that commit. Advice circulating as "update to 0.30.0 or newer"
     will leave you on a build that fails. Older revisions are unsupported, later ones are explicitly unverified,
     and the node checks the contract at apply time so it fails loudly rather than drifting.
@@ -987,11 +993,13 @@ read from their node source, not from summaries.
   - **Inputs:** `samples` (LATENT), `scale_by` (1.5 default, 0.01-8), `method` (`nearest` / `bilinear` default /
     `bicubic`), `model` (MODEL), `noise` (NOISE), `sigmas` (SIGMAS), `audio_denoise`, and optional `positive` /
     `negative` (CONDITIONING). **Outputs:** `latent`, `positive`, `negative`.
-  - **Wiring, from the author's own instructions:** `SamplerCustomAdvanced` #1 runs the high-sigma majority of
-    the schedule at low resolution -> take its **`denoised_output`** (not the plain output) -> the Combined node,
-    fed the same conditioning as pass 1 plus `RandomNoise`, the LOW sigmas and the model -> build a **new
-    `BasicGuider` from the returned `positive` / `negative`** -> `SamplerCustomAdvanced` #2 with **DisableNoise**,
-    the low sigmas and the Combined latent.
+  - **Wiring, from the author's own instructions.** Split the schedule first: one `BasicScheduler` feeds a
+    **`SplitSigmas`** (documented in `NODE_LIBRARY/samplers.md`), whose HIGH half goes to pass 1 and LOW half to
+    both the Combined node and pass 2. Without it there is no "high" and "low" sigma set to talk about.
+    `SamplerCustomAdvanced` #1 runs the high half at low resolution -> take its **`denoised_output`** (not the
+    plain output) -> the Combined node, fed the same conditioning as pass 1 plus `RandomNoise`, the LOW sigmas
+    and the model -> build a **new `BasicGuider` from the returned `positive` / `negative`** ->
+    `SamplerCustomAdvanced` #2 with **DisableNoise**, the low sigmas and the Combined latent.
   - **`audio_denoise` is why the first reports of this node looked bad.** It defaults to **1.0**, which fully
     re-noises the audio at `sigmas[0]` so pass 2 can rewrite it. `0` locks pass-1 audio untouched; the author
     recommends **0.25 to 0.5** for light polish. The README's own troubleshooting says that if audio garbles at
@@ -1006,6 +1014,16 @@ read from their node source, not from summaries.
   - **Constraint:** MiniMax's DiT patch size is `(1, 2, 2)` and the conditioning patchify does not pad, so the
     upscaled **height and width must stay even**. Also avoid forced cache-empty or model-unload nodes between the
     two passes, especially with `--disable-dynamic-vram` plus a quantized H3 and SageAttention.
+
+- **kijai's VRAM patch, and a name collision worth knowing.** `kijai/ComfyUI-KJNodes` ships
+  **`MiniMaxH3MemoryEfficientSageAttentionPatch`** ("MiniMax H3 Mem Eff Sage Attention Patch", category
+  `KJNodes/minimax`, flagged EXPERIMENTAL). Like Spectrum it is a **MODEL patcher** (MODEL in, MODEL out), so the
+  two chain: it swaps a custom SageAttention into H3's self-attention on every transformer block **to cut peak
+  VRAM**, where Spectrum cuts step count. It refuses to apply unless sageattention is new enough, the ComfyUI
+  build supports H3, and the model really is a `MiniMaxH3Model`. This is the "kijai patch" that appears in
+  community reference-to-video test configs alongside SageAttention.
+  **Do not confuse it with `MiniMaxRemover`** (`zibojia/minimax-remover`), an unrelated video object-removal
+  model that kijai wires in `ComfyUI-WanVideoWrapper`; grepping "minimax" in his repos hits that too.
 
 **Community performance reports (2026-08, unverified here, treat as anecdote).** A 16 GB RTX 4090 Laptop with
 32 GB RAM reportedly did 960x540, 5 s, 20 steps on pruned INT8 + NVFP4 in ~182 s; an RTX 4080 run reported

@@ -183,6 +183,48 @@ Flag the NONCOMMERCIAL ones (rgb2x, CHORD, UniRelight, the MultiDiffusion part o
 
 **Wan2.1-VACE-14B (Apache-2.0) recipe:** three input modes - R2V (`src_ref_images`, no preprocessing), V2V (`src_video`, needs preprocessing for depth/pose), MV2V (masked video editing, needs preprocessing); V2V/MV2V run the `vace_preproccess.py` step, R2V skips it. Resolution targets: 480P (~81x480x832) and 720P (~81x720x1280) - the 14B supports both, the 1.3B is 480P only. CLI: `--model_name vace-14B` (or `vace-1.3B`) with `--src_ref_images` / `--src_video` / `--src_mask`; a negative prompt is recommended (same boilerplate as T2V/I2V). Full per-task parameter docs: github.com/ali-vilab/VACE/blob/main/UserGuide.md.
 
+
+## Training a LoRA inside ComfyUI, natively (core, no wrapper pack)
+
+ComfyUI core carries a working LoRA training path, and as of 2026-08 it gained the data-prep layer that was
+missing. Status: the trainer is in released core; the **16 dataset nodes are on master only** and had not landed
+in a tagged release as of 2026-08-06, so check your build before promising them.
+
+**The trainer** (`comfy_extras/nodes_train.py`): **`TrainLoraNode`** ("Train LoRA") returns `lora`, a `loss_map`
+and `steps`; **`SaveLoRA`** ("Save LoRA Weights") writes it out; **`LoraModelLoader`** ("Load LoRA Model") loads
+one back; **`LossGraphNode`** ("Plot Loss Graph") renders the loss curve so you can see divergence rather than
+guess at it.
+
+**The dataset layer** (`comfy_extras/nodes_dataset.py`, 16 nodes, master):
+- **Load:** `LoadImageDataSetFromFolder`, `LoadImageTextDataSetFromFolder` (image plus caption pairs, the shape
+  LoRA training actually wants), `LoadVideoDataSetFromFolder`, `LoadVideoTextDataSetFromFolder`. Images are
+  PNG / JPG / JPEG / WEBP, videos MP4 / AVI / MOV / WEBM / MKV / FLV.
+- **Save:** `SaveImageDataSetToFolder`, `SaveImageTextDataSetToFolder` (captions written as sidecar TXT).
+- **Shuffle:** `ShuffleImageTextDataset`, `ShuffleVideoDataset`, `ShuffleVideoTextDataset`.
+- **Video sampling:** `VideoFrameSample` (fixed frame count by strategy), `VideoTemporalCrop`,
+  `VideoRandomTemporalCrop` - the pieces for turning long clips into training-length segments.
+- **`ResolutionBucket`** - the classic multi-aspect bucketing step, so a mixed-aspect set trains without
+  everybody being squashed to one square.
+- **`MakeTrainingDataset`, `SaveTrainingDataset`, `LoadTrainingDataset`** - build a dataset once, persist it,
+  reuse it across runs instead of re-walking folders every time.
+
+**Why this matters for the kit:** a caption-paired dataset, bucketing, shuffling and a trainer with a loss plot
+is the whole loop, in-graph, with no external trainer to install. For LTX-2 specifically the official Lightricks
+trainer is still the deeper route (`docs/LTX2_TRAINING.md`); this native path is the general one and it is the
+right first suggestion when someone wants a style or subject LoRA without leaving ComfyUI.
+
+## Gaussian splats are native now (master, 2026-08)
+
+`comfy_extras/nodes_gaussian_splat.py` adds 3D Gaussian splatting to core with two new IO types, **`IO.Splat`**
+and **`IO.File3DSplatAny`**. Eight nodes: **`RenderSplat`** ("Render Splat", an anisotropic EWA rasterizer, width
+and height to 2048, and a `frames` input so it can render a sequence rather than one still),
+**`CreateCameraInfo`** (the camera the render sees from), **`TransformSplat`**, **`MergeSplat`**,
+**`GetSplatCount`**, **`SplatToMesh`** ("Extract Mesh from Splat", a coloured mesh), plus **`SplatToFile3D`** /
+**`File3DToSplat`** to serialise into and out of the File3D object the Save / Preview 3D nodes already use.
+
+For a VFX pipeline this is the interesting one: splats in, camera move, render a frame sequence out, or convert
+to mesh for a conventional 3D package. Same status caveat, master only as of 2026-08-06.
+
 ## Sources
 
 Strengths/limits: github.com/comfyanonymous/ComfyUI (+ issues 7322, 500, 11905, 11791, 9156, 11660, 13116, 2229) ; docs.comfy.org/development/comfyui-server/comms_routes ; docs.comfy.org/custom-nodes/backend/server_overview ; blog.comfy.org (subgraph-official-release, dynamic-vram-in-comfyui-saving-local, comfyui-native-api-nodes, launching-comfyui-registry, comfyui-2025-jan-security-update). Temporal: docs.comfy.org/tutorials/video/wan/vace ; deepwiki.com/kijai/ComfyUI-WanVideoWrapper ; civitai.com/articles/5906 (unsampling). PBR: blog.comfy.org/p/ubisoft-open-sources-the-chord-model ; research.nvidia.com/labs/toronto-ai/UniRelight ; the repos in the table. Detail/precision: the repos in the table ; neurocanvas.net/blog/fp8-vs-bf16-comfyui-guide.

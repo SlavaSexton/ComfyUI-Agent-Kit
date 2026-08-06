@@ -15,6 +15,49 @@ vx.y.z`), which can become a GitHub Release.
 ## [Unreleased]
 
 ### Added
+- **A dedicated `minimax-h3` skill** (`shared/minimax-h3/`, third shipped skill after `comfyui` and `seedance`).
+  SKILL.md owns the prompt format (the three named fields, `<d>[Language]` dialogue, the camera vocabulary, the
+  reference labels, **a complete worked prompt end to end** rather than placeholders) and a symptom-to-cause
+  table; `reference.md` owns weights, quant ladder, the acceleration packs and their wiring. Distilled from
+  MiniMax's own writing guides and the node source, plus Krea's 2026-08-05 production-job taxonomy.
+- **The MiniMax H3 quant and acceleration ladder, verified file by file.** Official Comfy-Org weights (bf16
+  66.3 GB, int8-convrot 34.0, pruned int8-convrot and pruned fp8-scaled 21.0 each per task family) and the
+  community GGUF set (`Abiray/MiniMax-H3-GGUF`: Q3_K 15.6 GB, Q4_0 18.6, Q4_K 19.9, Q5_0 22.8, paired Q4_K_M
+  text encoder 14.6 GB), with the loader caveat that GGUF needs `city96/ComfyUI-GGUF` and that the Turbo LoRA,
+  converted for the pruned safetensors layout, may not key-match a GGUF UNet at all.
+- **The Turbo LoRA, with its author's own caveat.** `larryvrh/MiniMax-H3-Turbo-Lora`, converted for ComfyUI by
+  `drbaph` (Apache-2.0): four steps instead of ~20, about a 5x cut in sampling wall-clock, in **four** files not
+  two (the `ckpt500` pair is further-trained and is the recommended start). The original author calls it an
+  under-trained preview whose quality is not representative, so it is documented as a draft mode.
+- **kijai's `MiniMaxH3MemoryEfficientSageAttentionPatch`** (KJNodes, EXPERIMENTAL): a MODEL patcher that swaps a
+  custom SageAttention into H3 self-attention to cut peak VRAM, chaining with Spectrum which cuts step count.
+  This is the "kijai patch" in community R2V configs. Also records the name collision with `MiniMaxRemover`,
+  an unrelated object-removal model kijai wires in WanVideoWrapper.
+- **Native LoRA training and gaussian splats in ComfyUI core** (`docs/ADVANCED.md`). Core already had
+  `TrainLoraNode` / `SaveLoRA` / `LossGraphNode`; master now adds the missing data layer, 16 dataset nodes
+  including `LoadImageTextDataSetFromFolder`, `ResolutionBucket` and `MakeTrainingDataset`. Separately,
+  `nodes_gaussian_splat.py` adds 8 splat nodes with new `IO.Splat` / `IO.File3DSplatAny` types, including
+  `RenderSplat` (EWA rasterizer with a frame count, so camera moves render as sequences) and `SplatToMesh`.
+  Both are **master-only** as of 2026-08-06 and flagged as such.
+
+### Changed
+- **`tools/build_plugin.py` now discovers skills instead of listing them.** It bundled `seedance` from a
+  hardcoded block, so `minimax-h3` would have been silently left out of the plugin. It now walks `shared/` and
+  bundles every directory containing a `SKILL.md`.
+
+### Fixed
+- **Corrected a wrong attribution before it shipped.** An earlier draft said kijai had nothing for MiniMax H3.
+  He has no H3 *weights*, but he does ship the SageAttention patch above inside KJNodes. The search was done at
+  repository granularity and missed a node inside an existing pack.
+- **Council review caught four defects in the new entry, all fixed:** the two-pass upscale recipe never named
+  **`SplitSigmas`**, so "high sigmas" and "low sigmas" had no source and the graph was not buildable; the
+  `inferred` marker on the `audio_denoise` diagnosis survived only in MODELS.md and was asserted flat in both
+  skill files; SKILL.md described three Autogrow reference families when the node has four, silently dropping
+  `ref_video_audios`; and the same claim carried two different dates. The routing also pointed at
+  `~/.claude/skills/minimax-h3/`, which did not exist until the skill was installed there.
+
+
+### Added
 - **Spectrum, the first acceleration for local MiniMax H3** (`xmarre/ComfyUI-Spectrum-MiniMax-H3`, GPL-3.0), read
   from its node source. Node **`SpectrumApplyMiniMaxH3`**, category `sampling/spectrum`, and the important
   correction to how it is being described around the community: it is a **MODEL patcher, not a replacement

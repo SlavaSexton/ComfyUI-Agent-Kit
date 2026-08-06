@@ -12,7 +12,33 @@ for a breaking change (e.g. renaming a config key or the install layout). `0.x` 
 rename it to `[x.y.z] - <date>`, tag the commit (`git tag -a vx.y.z -m ...`), and push the tag (`git push origin
 vx.y.z`), which can become a GitHub Release.
 
-## [3.0.0] - 2026-08-06
+## [3.0.0] - 2026-08-06 - Kit audit and restructuring, plus the Krea and MiniMax H3 skills
+
+The largest release the kit has had: **12 commits, 78 files, +6251 / -2384 lines** since 2.7.0. Two things
+happened at once, and the second is the reason this is a major version.
+
+**New knowledge.** Two dedicated model skills, `minimax-h3` and `krea`, bringing the shipped count to four
+alongside `comfyui` and `seedance`. With them: MiniMax H3's open weights and its three-field prompt format,
+the full quant and acceleration ladder, the Spectrum accelerator, a working two-pass latent upscale, Krea's
+hosted API nodes with their real price matrix, FLUX.1 Krea Dev, Krea Realtime, and the Krea 2 custom-node
+ecosystem. Plus native LoRA training and gaussian splats in ComfyUI core, documented node by node and routed
+from the task layer.
+
+**A full audit, which found the kit did not work for anyone but its author.** A council of five advisors, then three
+peer reviewers over their anonymised findings, then three adversarial reviewers on the release itself plus a
+fourth that fact-checked every external claim, and finally a live end-to-end run on a real ComfyUI. The headline defect: the
+documented installer copied three files, so a fresh install left **21 of SKILL.md's 22 routes dead** and only
+the plugin path shipped a working kit. Also found and fixed: `MODELS.md` had outgrown a readable file and
+silently returned nothing for 57% of models; updating the kit destroyed the machine block it had just taught
+you to write; step 1 of every task route pointed at a file nobody had located; the 94 blueprints were absent
+from the lookup meant to find them. The build gained a gate that fails on the classes behind those, so they
+cannot come back quietly.
+
+**And a set of claims this release had to walk back**, each verified false against the primary source rather
+than quietly edited: a Spectrum commit and tag that do not exist, an org that hosts zero models, a repository
+that was never real, and a "no ComfyUI path" that a real node pack refutes. Wan 3.0 shipped hours before the
+tag and its entry was rewritten the same day. Those corrections are named in place, not overwritten, because
+a kit whose job is to be trusted has to show where it was wrong.
 
 **MAJOR because the install layout changed**, which is this project's own stated trigger for a major bump.
 Read this before updating.

@@ -16,8 +16,9 @@ are local-first.
    `templates/<name>.json` and parameterize it. Building from scratch is the fallback, not the default.
 2. **Pick the model with the hardware-aware check** - size it against live VRAM / RAM / disk (SKILL.md
    "hardware-aware") and recommend the variant that fits BEFORE downloading.
-3. **Read the model's `MODELS.md` entry BEFORE writing the prompt** - each model has its own dialect and its own
-   negative-prompt rule. Never carry one model's style to another.
+3. **Read the model's recipe BEFORE writing the prompt** - look the model up in `MODELS.md`, then read the
+   family file it names under `MODELS/`. Each model has its own dialect and its own negative-prompt rule.
+   Never carry one model's style to another, and do not stop at the index: it holds no recipes.
 4. **Validate** (SKILL.md step 5): every `class_type` is in `/object_info`, types match at every seam, model
    filenames exist locally, AND the graph has an input node + an output/save node. API / partner nodes often emit
    a tensor but include NO save node by default - add and wire one, or the job runs and produces nothing. Run

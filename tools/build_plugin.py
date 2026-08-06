@@ -22,6 +22,9 @@ FILES = {
     "shared/comfyui/SKILL.md": "SKILL.md",
     "shared/comfyui/MODELS.md": "MODELS.md",
     "shared/comfyui/comfy_client.py": "comfy_client.py",
+    # Ships as a TEMPLATE only. Installers must copy it when absent and never overwrite it: it is the one
+    # file that holds per-machine state, and clobbering it is what destroyed the bootstrap before 2026-08-06.
+    "shared/comfyui/machine.md": "machine.md",
     "shared/comfyui/workflow_layout.py": "workflow_layout.py",
     "docs/MODEL_INDEX.md": "MODEL_INDEX.md",
     "docs/ADVANCED.md": "ADVANCED.md",
@@ -42,6 +45,7 @@ FILES = {
 # `docs/NODE_LIBRARY/ocio.md` reference resolves to `NODE_LIBRARY/ocio.md` next to SKILL.md in the bundle).
 DIRS = {
     "docs/NODE_LIBRARY": "NODE_LIBRARY",
+    "shared/comfyui/MODELS": "MODELS",
 }
 
 os.makedirs(DST, exist_ok=True)
@@ -86,3 +90,128 @@ for skill in extra:
     print(f"built claude-code/skills/{skill}/ : {len(os.listdir(dst))} files")
 if not extra:
     print("  no extra shared/<skill>/ dirs found")
+
+
+# ---------------------------------------------------------------------------
+# Repair pass, then the gate.
+#
+# RESPONSIBLE FOR (2026-08-06 audit): the bundle is a FLATTENED copy, so a link that is correct in the
+# repo (`../shared/comfyui/MODELS.md` from docs/, `../../docs/ADVANCED.md` from shared/) points at
+# nothing once both ends land in the same directory. Six such links shipped. Hand-fixing the bundle is
+# useless because the next build overwrites it, so the repair belongs HERE, and the gate belongs here
+# too: this script is what CREATES the breakage and it already runs before every release.
+#
+# The checks live inside this file on purpose. `.gitignore` has `/tools/`, and only this file is tracked,
+# so a new `tools/check_docs.py` would be committed nowhere and would silently never run.
+# ---------------------------------------------------------------------------
+import re
+
+LINK = re.compile(r'(\[[^\]]*\]\()([^)\s]+)(\))')
+BUNDLE = os.path.join(ROOT, "claude-code", "skills")
+
+
+def _bundle_files():
+    """basename -> list of absolute paths, so a broken link can be re-aimed at the real file."""
+    by_name = {}
+    for root, _dirs, files in os.walk(BUNDLE):
+        for f in files:
+            by_name.setdefault(f, []).append(os.path.join(root, f))
+    return by_name
+
+
+def repair_and_check():
+    by_name = _bundle_files()
+    repaired, unresolved = 0, []
+    for root, _dirs, files in os.walk(BUNDLE):
+        for f in files:
+            if not f.endswith(".md"):
+                continue
+            path = os.path.join(root, f)
+            with open(path, encoding="utf-8") as fh:
+                text = fh.read()
+            changed = False
+
+            def fix(m):
+                nonlocal changed
+                url = m.group(2)
+                if url.startswith(("http", "#", "mailto")):
+                    return m.group(0)
+                target, _, anchor = url.partition("#")
+                if os.path.exists(os.path.normpath(os.path.join(root, target))):
+                    return m.group(0)
+                # Broken here. Re-aim at the real file if the bundle carries one by that name. Prefer a
+                # candidate in THIS file's own skill dir: SKILL.md exists once per skill, so a bare
+                # basename match is ambiguous across the bundle and the local one is always the intent.
+                cands = by_name.get(os.path.basename(target), [])
+                if len(cands) > 1:
+                    same = [c for c in cands if os.path.dirname(c) == root]
+                    parent = [c for c in cands if os.path.dirname(c) == os.path.dirname(root)]
+                    cands = same or parent or cands
+                if len(cands) != 1:
+                    unresolved.append((os.path.relpath(path, ROOT), url))
+                    return m.group(0)
+                new = os.path.relpath(cands[0], root).replace(os.sep, "/")
+                changed = True
+                return m.group(1) + (new + "#" + anchor if anchor else new) + m.group(3)
+
+            new_text = LINK.sub(fix, text)
+            if changed:
+                with open(path, "w", encoding="utf-8", newline="") as fh:
+                    fh.write(new_text)
+                repaired += 1
+    return repaired, unresolved
+
+
+def check_node_library_index():
+    """Every category file must be listed in _INDEX.md. SKILL.md calls it the entry point for any node
+    question, so a file it omits is unreachable knowledge (radiance.md was, until this check existed)."""
+    d = os.path.join(ROOT, "docs", "NODE_LIBRARY")
+    idx_path = os.path.join(d, "_INDEX.md")
+    if not os.path.isfile(idx_path):
+        return ["_INDEX.md missing"]
+    idx = open(idx_path, encoding="utf-8").read()
+    return [f for f in sorted(os.listdir(d))
+            if f.endswith(".md") and not f.startswith("_") and f not in idx]
+
+
+def check_backtick_paths():
+    """A backticked repo-relative script path in the docs is an instruction. If it does not resolve, the
+    reader is being sent somewhere that does not exist (`tools/gen_quick_index.py` was, for months)."""
+    pat = re.compile(r'`((?:tools|shared/tools)/[A-Za-z0-9_./-]+\.py)`')
+    bad = set()
+    for sub in ("docs", "shared", "README.md"):
+        p = os.path.join(ROOT, sub)
+        walk = [(os.path.dirname(p), [], [os.path.basename(p)])] if os.path.isfile(p) else os.walk(p)
+        for root, _dirs, files in walk:
+            for f in files:
+                if not f.endswith(".md"):
+                    continue
+                text = open(os.path.join(root, f), encoding="utf-8", errors="ignore").read()
+                for m in pat.finditer(text):
+                    if not os.path.isfile(os.path.join(ROOT, m.group(1))):
+                        bad.add((os.path.relpath(os.path.join(root, f), ROOT), m.group(1)))
+    return sorted(bad)
+
+
+print("\n-- gate --")
+repaired, unresolved = repair_and_check()
+print(f"  links re-aimed after flattening: {repaired} file(s)")
+missing_idx = check_node_library_index()
+bad_paths = check_backtick_paths()
+fail = False
+if unresolved:
+    fail = True
+    print(f"  FAIL {len(unresolved)} link(s) resolve to nothing and no bundle file matches:")
+    for p, u in unresolved[:15]:
+        print(f"        {p} -> {u}")
+if missing_idx:
+    fail = True
+    print(f"  FAIL NODE_LIBRARY/_INDEX.md does not list: {', '.join(missing_idx)}")
+if bad_paths:
+    fail = True
+    print(f"  FAIL {len(bad_paths)} backticked script path(s) do not exist:")
+    for p, u in bad_paths[:15]:
+        print(f"        {p} -> {u}")
+if fail:
+    raise SystemExit("build_plugin: gate failed, bundle NOT fit to ship")
+print("  gate passed: bundle links resolve, _INDEX complete, script paths exist")

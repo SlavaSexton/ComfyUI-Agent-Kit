@@ -36,6 +36,13 @@ Regenerate with `tools/node_inventory.py`.
 | `ocio.md` - our ComfyUI-OCIO pack (Slava Sexton) | OCIO LogConvert + ColorSpace / Display / CDLTransform / FileTransform / LookTransform: the full Nuke OCIO set, runtime-verified |
 | SaveImageAdvanced / LTXVHDRDecodePostprocess | native EXR / linear / HDR I/O (confirmed) |
 
+### `radiance.md` - reverse-engineered reference: `fxtdstudios/radiance`
+| Entry | Purpose |
+|-------|---------|
+| 78 nodes + a v3 rewrite, read from source | the strongest public pack in our own OCIO / color domain: 32-bit color science, HDR, a WebGL viewer, an OpenEXR writer, LogC3-EI / LogC4 |
+| Ranked "what to steal" list | what to lift into ComfyUI-OCIO and what to leave; GPL-3, so it is a reference to learn from, not to copy |
+| When to read it | any color-science / HDR / VFX-viewer question, when improving our own pack, or when a task touches radiance nodes |
+
 ### `smart-upscaler.md` - our ComfyUI-Smart-Upscaler pack (Slava Sexton)
 | Entry | Purpose |
 |-------|---------|

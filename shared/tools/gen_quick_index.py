@@ -45,10 +45,38 @@ def build(templates_dir):
                 "description": desc,
             }
 
+    # Blueprints are reusable subgraph bricks, shipped in a SIBLING directory that has no index.json of its
+    # own. RESPONSIBLE FOR (2026-08-06 audit): they were absent from the index entirely, so the one blueprint
+    # TASKS.md names by example (`text_to_image_z_image_turbo`) could not be found by the lookup the same file
+    # tells you to use. The installer already sparse-checks them out; only the index skipped them.
+    bp_dir = os.path.join(os.path.dirname(os.path.abspath(templates_dir)), "blueprints")
+    blueprints = 0
+    if os.path.isdir(bp_dir):
+        for fn in sorted(os.listdir(bp_dir)):
+            # blueprints/ carries its own index.json alongside the bricks. It is a catalogue, not a
+            # blueprint, and counting it is what turned the documented 94 into 95.
+            if not fn.endswith(".json") or fn == "index.json":
+                continue
+            name = fn[:-5]
+            entry = {"title": name.replace("_", " "), "category": "Blueprints", "models": [],
+                     "tags": ["blueprint", "subgraph"], "mediaType": "", "openSource": True, "vram": 0,
+                     "description": "Reusable subgraph blueprint. Lives in blueprints/, not templates/.",
+                     "kind": "blueprint", "path": f"blueprints/{fn}"}
+            try:
+                with open(os.path.join(bp_dir, fn), "r", encoding="utf-8") as bf:
+                    data = json.load(bf)
+                entry["title"] = data.get("name") or data.get("title") or entry["title"]
+            except Exception as exc:
+                # Report it. A blueprint that will not parse is worth knowing about, and swallowing the
+                # error would put a fabricated title into the index.
+                print(f"  warn: could not read {fn}: {exc}")
+            out.setdefault(name, entry)
+            blueprints += 1
+
     dst = os.path.join(templates_dir, "_quick_index.json")
     with open(dst, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=0)
-    print(f"wrote {dst}  ({len(out)} templates)")
+    print(f"wrote {dst}  ({len(out)} entries: {len(out) - blueprints} templates + {blueprints} blueprints)")
 
 
 def _default_dir():

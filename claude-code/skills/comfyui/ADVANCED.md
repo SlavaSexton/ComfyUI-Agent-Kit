@@ -3,7 +3,7 @@
 Distilled from primary sources (official docs and blog, the ComfyUI GitHub and its issues, model cards) on
 2026-06-24. Every tool named below was checked against its real page; licenses are flagged because several are
 non-commercial. This is the "know the engine, including where it bites" reference. Pair it with
-[`MODELS.md`](../shared/comfyui/MODELS.md) (per-model prompting) and [`SKILL.md`](../shared/comfyui/SKILL.md)
+[`MODELS.md`](MODELS.md) (per-model prompting) and [`SKILL.md`](SKILL.md)
 (driving and building). Where a claim is community consensus rather than a measured fact, it says so.
 
 ## What ComfyUI is genuinely best at

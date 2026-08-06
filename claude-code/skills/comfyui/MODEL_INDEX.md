@@ -1,7 +1,7 @@
 # Model index: every model in the library and what the kit has for it
 
 The template library names **157 distinct models** across 586 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
-provides: a full prompt recipe in [`MODELS.md`](../shared/comfyui/MODELS.md), an enhancement/utility note, or
+provides: a full prompt recipe in [`MODELS.md`](MODELS.md), an enhancement/utility note, or
 template-only coverage (runnable via a template, no dedicated recipe yet).
 
 | Coverage | Meaning |
@@ -14,7 +14,7 @@ template-only coverage (runnable via a template, no dedicated recipe yet).
 template-only · plus text encoders / inference providers that are not generative models.
 
 **Updated: 2026-08-03.** Every ✅ entry has a current prompting recipe in
-[`MODELS.md`](../shared/comfyui/MODELS.md); every 🔧 entry has a when-to-use + settings note.
+[`MODELS.md`](MODELS.md); every 🔧 entry has a when-to-use + settings note.
 
 ---
 
@@ -125,7 +125,7 @@ template-only · plus text encoders / inference providers that are not generativ
 
 ## 🔧 Enhancement and utility tools
 
-Not prompt-driven, see the "Enhancement and utility" section in [`MODELS.md`](../shared/comfyui/MODELS.md) for
+Not prompt-driven, see the "Enhancement and utility" section in [`MODELS.md`](MODELS.md) for
 when-to-use + settings.
 
 - **Upscale / restore:** Real-ESRGAN (+ ESRGAN family), SUPIR, SeedVR2, FlashVSR, Topaz, Magnific
@@ -158,5 +158,5 @@ and `None` (templates with no model tag).
 ---
 
 *Counts reflect the cloned `workflow_templates` set on the build date. Run `git pull` in the templates clone and
-rerun `tools/gen_quick_index.py` to refresh; new models from Comfy-Org appear automatically in the library and can
+rerun `shared/tools/gen_quick_index.py` to refresh; new models from Comfy-Org appear automatically in the library and can
 be given a recipe on demand.*

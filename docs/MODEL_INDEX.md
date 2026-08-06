@@ -158,5 +158,5 @@ and `None` (templates with no model tag).
 ---
 
 *Counts reflect the cloned `workflow_templates` set on the build date. Run `git pull` in the templates clone and
-rerun `tools/gen_quick_index.py` to refresh; new models from Comfy-Org appear automatically in the library and can
+rerun `shared/tools/gen_quick_index.py` to refresh; new models from Comfy-Org appear automatically in the library and can
 be given a recipe on demand.*

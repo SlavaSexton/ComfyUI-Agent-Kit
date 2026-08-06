@@ -29,10 +29,26 @@ if (-not (Have "claude")) { Warn "claude CLI not on PATH; install Claude Code fi
 
 # 1. skill (shared knowledge) -> ~/.claude/skills/comfyui
 New-Item -ItemType Directory -Force -Path "$SkillsDest\comfyui\workflows" | Out-Null
-Copy-Item "$Shared\SKILL.md"        "$SkillsDest\comfyui\SKILL.md" -Force
-Copy-Item "$Shared\MODELS.md"       "$SkillsDest\comfyui\MODELS.md" -Force
-Copy-Item "$Shared\comfy_client.py" "$SkillsDest\comfyui\comfy_client.py" -Force
-Ok "comfyui skill -> $SkillsDest\comfyui"
+# RESPONSIBLE FOR (2026-08-06 audit): this block copied THREE files, so a fresh install got a SKILL.md
+# whose routing table was 21/22 dead - no docs/, no NODE_LIBRARY, no workflow_layout.py, none of the other
+# skills. Only the plugin path shipped a working kit. Install the BUILT bundle instead: claude-code/skills/
+# is exactly what tools/build_plugin.py produces from shared/ + docs/, already flattened the way SKILL.md's
+# routes expect, so there is ONE definition of what ships.
+$Bundle = Join-Path $RepoRoot "claude-code\skills"
+if (-not (Test-Path $Bundle)) { throw "bundle missing at $Bundle - run: python tools/build_plugin.py" }
+foreach ($sk in Get-ChildItem $Bundle -Directory) {
+  $dest = Join-Path $SkillsDest $sk.Name
+  # machine.md carries per-machine state the bootstrap wrote. Never overwrite it on an update.
+  $keep = Join-Path $dest "machine.md"; $tmpKeep = $null
+  if (Test-Path $keep) { $tmpKeep = [IO.Path]::GetTempFileName(); Copy-Item $keep $tmpKeep -Force }
+  New-Item -ItemType Directory -Force -Path $dest | Out-Null
+  Copy-Item (Join-Path $sk.FullName "*") $dest -Recurse -Force
+  if ($tmpKeep) { Copy-Item $tmpKeep $keep -Force; Remove-Item $tmpKeep -Force }
+  Ok "$($sk.Name) skill -> $dest"
+}
+
+
+
 
 # 2. node-building skills (Layer 4)
 $tmp = Join-Path $env:TEMP ("cns_" + [guid]::NewGuid().ToString("N").Substring(0,8))

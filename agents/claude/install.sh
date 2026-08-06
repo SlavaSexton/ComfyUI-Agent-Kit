@@ -12,10 +12,22 @@ echo; echo "[claude] adapter"
 have claude || { warn "claude CLI not found; install Claude Code first"; exit 1; }
 
 mkdir -p "$SKILLS/comfyui/workflows"
-cp "$SHARED/SKILL.md" "$SKILLS/comfyui/SKILL.md"
-cp "$SHARED/MODELS.md" "$SKILLS/comfyui/MODELS.md"
-cp "$SHARED/comfy_client.py" "$SKILLS/comfyui/comfy_client.py"
-ok "comfyui skill -> $SKILLS/comfyui"
+# RESPONSIBLE FOR (2026-08-06 audit): this copied THREE files, so a fresh install got a SKILL.md whose
+# routing table was 21/22 dead. Install the BUILT bundle: claude-code/skills/ is what tools/build_plugin.py
+# produces from shared/ + docs/, already flattened the way SKILL.md's routes expect.
+BUNDLE="$REPO_ROOT/claude-code/skills"
+[ -d "$BUNDLE" ] || { warn "bundle missing at $BUNDLE - run: python tools/build_plugin.py"; exit 1; }
+for sk in "$BUNDLE"/*/; do
+  name="$(basename "$sk")"; dest="$SKILLS/$name"
+  # machine.md carries per-machine state the bootstrap wrote. Never overwrite it on an update.
+  keep=""; [ -f "$dest/machine.md" ] && { keep="$(mktemp)"; cp "$dest/machine.md" "$keep"; }
+  mkdir -p "$dest"; cp -R "$sk". "$dest"/ 2>/dev/null || cp -R "$sk"* "$dest"/
+  [ -n "$keep" ] && { cp "$keep" "$dest/machine.md"; rm -f "$keep"; }
+  ok "$name skill -> $dest"
+done
+
+
+
 
 tmp="$(mktemp -d)"; git clone --depth 1 https://github.com/jtydhr88/comfyui-custom-node-skills.git "$tmp" >/dev/null 2>&1
 src="$tmp/plugins/comfyui-custom-nodes/skills"

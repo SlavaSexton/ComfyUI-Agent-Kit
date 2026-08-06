@@ -12,9 +12,13 @@ building/running a ComfyUI workflow. Read it first, then act.
 
 ## Files in this kit (pull the right one on demand)
 
-Only this SKILL.md auto-loads; everything else is read when relevant, so route to it instead of leaving it unread:
+Only this SKILL.md auto-loads; everything else is read when relevant, so route to it instead of leaving it unread.
+**Two layouts, same files:** in the INSTALLED skill everything sits flat next to this file, so `docs/TASKS.md`
+below means `TASKS.md` here and `docs/NODE_LIBRARY/ocio.md` means `NODE_LIBRARY/ocio.md`. In the repo the `docs/`
+prefix is literal. If a path does not resolve, drop the `docs/` and look next to this file before concluding the
+file is missing.
 
-- **`MODELS.md`** (next to this file) - a named model's prompt recipe + settings; read its entry BEFORE writing the prompt.
+- **`MODELS.md`** (next to this file) - the INDEX of per-model prompt recipes. Look the model up in its table, then read that family file under `MODELS/` BEFORE writing the prompt. Two reads, not one: the index does not carry the recipes.
 - **`~/.claude/skills/minimax-h3/`** - the dedicated MiniMax H3 (Hailuo 3) skill: prompt format (the three named fields, `<d>` dialogue, camera vocabulary), reference labelling, quants and acceleration, and a symptom-to-cause table. Read it for ANY H3 prompt or local-weights question; `MODELS.md` keeps the node-level detail.
 - **`~/.claude/skills/krea/`** - the dedicated Krea skill: the fork between Krea's hosted API (`Krea2ImageNode` / `Krea2StyleReferenceNode`, per-image pricing, moodboards, capped at 1K) and its open weights, the FLUX.1 Krea Dev graph, Krea Realtime 14B and why it has no ComfyUI path, and the Krea 2 custom-node packs for ControlNet / identity editing / conditioning control. Read it for the API path or the model choice; `MODELS.md` keeps the local Krea 2 graph.
 - **`docs/TASKS.md`** - a named common job (generate image / video / audio / 3D, upscale, remove background): the local end-to-end flow for that task, a shortcut layer over this manual.
@@ -36,25 +40,17 @@ Only this SKILL.md auto-loads; everything else is read when relevant, so route t
 - **`docs/EXAMPLE_WORKFLOWS.md`** - worked end-to-end examples + the multi-model image-edit shootout.
 - **`docs/NODES.md`** the in-graph Claude nodes (billing / purpose); **`docs/LAYERS.md`** the four install layers; **`docs/BOOTSTRAP.md`** first-run machine setup; **`docs/AGENTS.md`** per-agent matrix (Claude / Codex / Gemini / Qwen); **`docs/UPDATING.md`** the weekly model + bug update loop.
 
-## Your machine (FILL THIS IN on first run: see docs/BOOTSTRAP.md)
+## Your machine
 
-The facts below are placeholders. On the first ComfyUI task on a new machine, run the bootstrap once:
-call the MCP `health_check` (or `comfy_client.alive()` + `GET /system_stats` + `/object_info`) and rewrite
-this block with the real values. Do not assume another machine matches the example.
+**Read `machine.md` next to this file before the first ComfyUI call of a session.** It carries this install's
+real paths, GPUs, template-library location and launch command. It is deliberately NOT part of this file:
+the installer overwrites SKILL.md on every update, so a machine block living here was destroyed by the next
+`git pull` plus reinstall, and the bootstrap had to be redone (2026-08-06 audit). `machine.md` is written
+once and never overwritten.
 
-- **ComfyUI**: <Desktop or source install>, core path `<detect>`, API at **`http://127.0.0.1:8188`**
-  (alive when the server/app is running). Check: `GET /system_stats` -> 200.
-- **GPUs**: `<N>x <model>` (`cuda:0`, `cuda:1`, ...). VRAM per card `<detect>`.
-- **Models installed** (query live, do not hardcode): `GET /object_info/UNETLoader`,
-  `/object_info/CheckpointLoaderSimple`, `/object_info/CLIPLoader`, `/object_info/VAELoader`.
-- **Shared models dir / extra_model_paths**: `<detect from startup log or extra_model_paths.yaml>`.
-- **GUI workflows folder** (the bridge, see below): `<ComfyUI>/user/default/workflows/`.
-- **Launch command** (to auto-start the server headlessly when :8188 is down): `<detect, e.g. python main.py in
-  the ComfyUI dir; for Desktop the venv python + main.py + --base-directory/--extra-model-paths-config>`.
-
-> Example from the kit author's machine (yours WILL differ): ComfyUI Desktop, core `E:\ComfyUI\ComfyUI\ComfyUI`,
-> 2x RTX 3090 (24GB each), models `z_image_turbo_bf16`, `ideogram4_fp8_scaled`, VAE `ae`/`flux2-vae`,
-> text encoders `qwen3vl_8b_fp8_scaled`/`qwen_3_4b`. Treat as illustration only.
+If `machine.md` is missing or still full of angle brackets, run the bootstrap now (`docs/BOOTSTRAP.md`):
+`health_check`, or `comfy_client.alive()` plus `GET /system_stats` and `/object_info`, then write the real
+values into `machine.md`. Never assume another machine matches an example.
 
 ## The four layers (what this kit installs)
 
@@ -105,7 +101,7 @@ Official starting graphs: **Workflow -> Templates** browser (per model). Save th
 The official Comfy-Org workflow templates are the source of truth for how to do any task in ComfyUI. The kit
 clones them (sparse) to a local folder and builds a compact lookup index. Default location set by the installer;
 record it in the machine block above. Master index: `templates/_quick_index.json` (name -> title, category,
-models, tags, mediaType, vram, description), regenerate with `tools/gen_quick_index.py`. Update: `git pull` in
+models, tags, mediaType, vram, description), regenerate with `shared/tools/gen_quick_index.py`. Update: `git pull` in
 the clone, then rerun the generator.
 
 **Flow:** read `_quick_index.json`, find the template whose name/models/tags match the request, read THAT one
@@ -209,9 +205,14 @@ varies (FLUX and many turbo models ignore or break on negatives). The kit ships 
 **`MODELS.md`** (next to this file), distilled from OFFICIAL sources: each maker's docs / model cards,
 docs.comfy.org, and the `anthropic-claude` node's per-model templates.
 
-**Auto-pull rule:** when a specific model is named in the request, the workflow, or the chosen template, READ
-that model's entry in `MODELS.md` BEFORE writing the prompt, and follow its prompt structure, its
-negative-prompt rule, and its settings. Never carry one model's style to another.
+**Auto-pull rule, and it is TWO reads:** when a specific model is named in the request, the workflow, or the
+chosen template, open `MODELS.md`, find the model in its "every model with a recipe" table, then READ THAT
+FAMILY FILE under `MODELS/` BEFORE writing the prompt. Follow its prompt structure, its negative-prompt rule,
+and its settings. Never carry one model's style to another.
+
+`MODELS.md` is an index, not the reference. It was one file until the 2026-08-06 audit measured it at 175 KB
+with 57% of entries past the point where a read stops returning content, which made this rule silently no-op
+for most models while looking like it had worked. Each family file now reads whole in one call.
 
 `MODELS.md` covers (image) FLUX.1/.2 + Kontext, Z-Image-Turbo, Qwen-Image/Edit, SDXL, SD1.5, SD3.5, HiDream,
 Ideogram, Nano Banana Pro/2, Seedream 4.x/5 Lite/5 Pro, Recraft, GPT-Image, Grok, Reve, Kandinsky, BRIA, OmniGen,

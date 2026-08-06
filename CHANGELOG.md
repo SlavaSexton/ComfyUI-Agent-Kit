@@ -151,6 +151,54 @@ vx.y.z`), which can become a GitHub Release.
   as **not** recommended at 0 to 2 stars, so nobody re-finds them and assumes the kit missed something. The
   `krea` org on Hugging Face was listed exhaustively, which is how the nine official style LoRAs were confirmed
   as already covered rather than assumed missing.
+### Fixed
+
+- **The documented installer shipped a skill that could not work.** `agents/*/install.{ps1,sh}` copied three
+  files (SKILL.md, MODELS.md, comfy_client.py) plus an empty `workflows/` dir. SKILL.md routes to 22 files, so
+  a fresh install left **21 of 22 routes dead**: no `docs/`, no `NODE_LIBRARY/`, no `workflow_layout.py` (which
+  SKILL.md calls mandatory before saving any workflow), and none of the three sibling skills. Only the plugin
+  path shipped a working kit; anyone who cloned and ran the installer got a routing table pointing at nothing,
+  and GitHub traffic shows 543 unique cloners in the fourteen days before this was found. All eight installer
+  scripts now install the BUILT bundle (`claude-code/skills/`, what `tools/build_plugin.py` produces), so there
+  is one definition of what ships instead of a hand-listed subset that drifted since the scripts were written.
+  Verified by running the fixed copy logic into an empty directory and re-resolving every route: 1 alive before,
+  23 alive and 0 dead after.
+- **`MODELS.md` had outgrown a single readable file, and failed silently.** 175 KB, 1415 lines, 68 entries, of
+  which **39 (57%) sat past the point where a read stops returning content**. The kit's most-repeated rule, read
+  the model's entry BEFORE writing the prompt, therefore returned nothing for most models while looking like it
+  had succeeded: fail-open in reading, where truncation is indistinguishable from absence. Split by family into
+  `MODELS/` (10 files, largest 45 KB) with `MODELS.md` kept as the index plus a model-to-file table. The
+  auto-pull rule now says explicitly that it is two reads. Entry count verified unchanged at 68, and no content
+  line was lost against the pre-split file.
+- **Updating the kit destroyed the bootstrap.** The installer did `Copy-Item -Force` on `SKILL.md`, and the
+  machine block (paths, GPUs, launch command, local quirks) lived inside that same file. A `git pull` plus
+  reinstall wiped it, which is why the author's own installed copy had drifted and lost a route rather than
+  being updated. Per-machine state now lives in `machine.md`, created once and never overwritten.
+- **Step 1 of every task route pointed at a file nobody had located.** `TASKS.md` opens each job by reading
+  `templates/_quick_index.json`, and no file the agent reads named where that path is. `machine.md` now carries
+  a **Template library** line for it and `BOOTSTRAP.md` requires filling it.
+- **The 94 subgraph blueprints were absent from the lookup that is supposed to find them.**
+  `gen_quick_index.py` indexed `templates/` only, so `text_to_image_z_image_turbo`, the blueprint `TASKS.md`
+  names as its own example, could not be found by the method `TASKS.md` prescribes. The index now covers both:
+  verified on the real corpus at 680 entries, 586 templates plus 94 blueprints, with the named example
+  resolving to a file on disk.
+- **Six broken links shipped inside the bundle**, correct in the repo and broken by the build that flattens the
+  tree. `tools/build_plugin.py` now re-aims them after copying, and **fails the build** when a link, a
+  `NODE_LIBRARY/_INDEX.md` entry, or a backticked script path does not resolve. The checks live inside
+  `build_plugin.py` deliberately: `.gitignore` carries `/tools/`, so a new checker file there would be committed
+  nowhere and would never run.
+- **`radiance.md` was missing from `NODE_LIBRARY/_INDEX.md`**, the file SKILL.md calls the entry point for any
+  node question. It is the reverse-engineered competitor teardown, so the one file no other kit has was the one
+  the index could not reach. Now listed, and the build gate fails if any category file is omitted again.
+- **Four docs sent the reader to `tools/gen_quick_index.py`**, which does not exist; the script is at
+  `shared/tools/`. Fixed, and the gate now catches this class.
+- **README contradicted itself and the repo.** It claimed 75 recipes in two places and 68 in a third (the real
+  count is 68 entries across 63 named models), described `seedance` as "a second shipped skill" when four ship,
+  and stamped its coverage table 2026-06-25. All corrected.
+- **The installed layout was never explained.** SKILL.md routes read `docs/X.md`, while an installed skill lays
+  everything flat, so a reader following the path literally finds nothing. The routing list now states both
+  layouts up front.
+
 ### Changed
 - **`tools/build_plugin.py` now discovers skills instead of listing them.** It bundled `seedance` from a
   hardcoded block, so `minimax-h3` would have been silently left out of the plugin. It now walks `shared/` and

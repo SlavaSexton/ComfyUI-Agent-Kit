@@ -1,7 +1,7 @@
 # BOOTSTRAP: run once on a new machine
 
 After `install.ps1` / `install.sh` finishes and ComfyUI is running, have Claude do this ONE time. It detects
-the real machine and rewrites the placeholder "Your machine" block in `~/.claude/skills/comfyui/SKILL.md` so
+the real machine and writes `machine.md` next to the installed `SKILL.md` so
 every later ComfyUI task starts from accurate facts instead of the kit author's example.
 
 ## What Claude should do
@@ -41,11 +41,13 @@ every later ComfyUI task starts from accurate facts instead of the kit author's 
    `CLAUDE_API_KEY` is set (only needed for autonomous in-graph enrichment).
 
 6. **Locate the template clone.** Default `~/comfyui-agent-kit-data/workflow_templates`; confirm
-   `templates/_quick_index.json` exists. If missing, run `tools/gen_quick_index.py <templates dir>`.
+   `templates/_quick_index.json` exists. If missing, run `shared/tools/gen_quick_index.py <templates dir>`.
 
-7. **Rewrite the machine block.** Replace the "## Your machine" placeholders in `SKILL.md` with the detected
-   values (GPUs, paths, models, templates dir, workflows folder, and the launch command from step 3b). Remove the
-   "Example from the kit author" note once filled.
+7. **Write `machine.md`.** Fill the placeholders in `machine.md` (next to `SKILL.md`) with the detected values:
+   GPUs, paths, models, **the templates dir from step 6**, the workflows folder, and the launch command from
+   step 3b. Do NOT write them into `SKILL.md`: the installer overwrites that file on every update, and a machine
+   block living there is destroyed by the next `git pull` plus reinstall. `machine.md` is created once and never
+   overwritten, which is why it is a separate file.
 
 8. **Smoke test.** Build or load one small template (e.g. a turbo text-to-image), run it via the MCP or
    `comfy_client.run(...)`, download the output, and VIEW it. Confirm the full path works end to end before
@@ -53,7 +55,7 @@ every later ComfyUI task starts from accurate facts instead of the kit author's 
 
 ## Done when
 
-- `SKILL.md`'s machine block reflects this machine,
+- `machine.md` reflects this machine, including the template-library path,
 - a test generation produced a file you actually viewed,
 - and (if the owner wants graphs shown) you wrote one GUI-format workflow to the bridge folder and confirmed it
   opens cleanly in the Workflows sidebar.

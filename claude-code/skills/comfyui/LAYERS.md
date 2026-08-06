@@ -72,6 +72,6 @@ when the task is to write or modify a custom node, not for ordinary generation.
 ## Supporting asset: the template library
 
 The official `Comfy-Org/workflow_templates` repo, sparse-cloned locally (~900MB). It is the source of truth for
-how to do any task in ComfyUI: 500+ templates + reusable subgraph blueprints. `tools/gen_quick_index.py` builds
+how to do any task in ComfyUI: 500+ templates + reusable subgraph blueprints. `shared/tools/gen_quick_index.py` builds
 `templates/_quick_index.json` so Claude can match a request to a template fast. Update with `git pull` + rerun
 the generator.

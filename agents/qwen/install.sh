@@ -17,6 +17,14 @@ mkdir -p "$EXT"
 # NODE_LIBRARY route in the context file pointed at nothing. Ship the BUILT bundle.
 BUNDLE="$REPO_ROOT/claude-code/skills"
 [ -d "$BUNDLE" ] || { warn "bundle missing at $BUNDLE - run: python tools/build_plugin.py"; exit 1; }
+# MIGRATION (3.0.0): the machine block used to live inside QWEN.md, which this installer regenerates on
+# every run. Lift it out first or the upgrade destroys the bootstrap.
+if [ ! -f "$EXT/machine.md" ] && [ -f "$EXT/QWEN.md" ] && grep -q "^## Your machine" "$EXT/QWEN.md"; then
+  { printf '# Your machine\n\nMigrated out of QWEN.md by the 3.0.0 installer. Created once, never overwritten.\n\n'
+    awk '/^## Your machine/{f=1} f&&/^## /&&!/^## Your machine/{exit} f' "$EXT/QWEN.md"
+  } > "$EXT/machine.md"
+  ok "machine block migrated out of QWEN.md -> machine.md"
+fi
 keep=""; [ -f "$EXT/machine.md" ] && { keep="$(mktemp)"; cp "$EXT/machine.md" "$keep"; }
 cp -R "$BUNDLE"/comfyui/* "$EXT"/
 [ -n "$keep" ] && { cp "$keep" "$EXT/machine.md"; rm -f "$keep"; }

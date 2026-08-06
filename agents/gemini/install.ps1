@@ -27,6 +27,25 @@ Set-Content "$Ext\GEMINI.md" $gemini -Encoding utf8
 # NODE_LIBRARY route in the context file pointed at nothing. Ship the BUILT bundle.
 $Bundle = Join-Path $RepoRoot "claude-code\skills"
 if (-not (Test-Path $Bundle)) { throw "bundle missing at $Bundle - run: python tools/build_plugin.py" }
+# MIGRATION (3.0.0): the machine block used to live inside GEMINI.md, which this installer regenerates on every
+# run. Lift it out first or the upgrade destroys the bootstrap.
+$ctxFile = Join-Path $Ext "GEMINI.md"
+$machineOut = Join-Path $Ext "machine.md"
+if ((-not (Test-Path $machineOut)) -and (Test-Path $ctxFile)) {
+  $old = Get-Content $ctxFile -Raw
+  if ($old -match '(?m)^## Your machine') {
+    $buf = @(); $on = $false
+    foreach ($l in ($old -split "`r?`n")) {
+      if ($l -match '^## Your machine') { $on = $true }
+      elseif ($on -and $l -match '^## ') { break }
+      if ($on) { $buf += $l }
+    }
+    if ($buf.Count -gt 1) {
+      Set-Content $machineOut ("# Your machine`n`nMigrated out of GEMINI.md by the 3.0.0 installer. Created once, never overwritten.`n`n" + ($buf -join "`n")) -Encoding utf8
+      Ok "machine block migrated out of GEMINI.md -> machine.md"
+    }
+  }
+}
 $keep = Join-Path $Ext "machine.md"; $tmpKeep = $null
 if (Test-Path $keep) { $tmpKeep = [IO.Path]::GetTempFileName(); Copy-Item $keep $tmpKeep -Force }
 Copy-Item (Join-Path $Bundle "comfyui\*") $Ext -Recurse -Force

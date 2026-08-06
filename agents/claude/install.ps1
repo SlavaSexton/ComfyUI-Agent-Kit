@@ -40,6 +40,27 @@ foreach ($sk in Get-ChildItem $Bundle -Directory) {
   $dest = Join-Path $SkillsDest $sk.Name
   # machine.md carries per-machine state the bootstrap wrote. Never overwrite it on an update.
   $keep = Join-Path $dest "machine.md"; $tmpKeep = $null
+  # MIGRATION (3.0.0): before 3.0.0 the machine block lived INSIDE SKILL.md, which this installer
+  # overwrites. Lift it out BEFORE the copy or the upgrade destroys the bootstrap one last time - which is
+  # exactly the defect 3.0.0 exists to fix. Runs once: after this, machine.md exists and the guard below
+  # takes over.
+  $oldSkill = Join-Path $dest "SKILL.md"
+  if ((-not (Test-Path $keep)) -and (Test-Path $oldSkill)) {
+    $old = Get-Content $oldSkill -Raw
+    if ($old -match '(?m)^## Your machine' -and $old -notmatch 'machine\.md') {
+      $lines = $old -split "`r?`n"; $buf = @(); $on = $false
+      foreach ($l in $lines) {
+        if ($l -match '^## Your machine') { $on = $true }
+        elseif ($on -and $l -match '^## ') { break }
+        if ($on) { $buf += $l }
+      }
+      if ($buf.Count -gt 1) {
+        $hdr = "# Your machine`n`nMigrated out of SKILL.md by the 3.0.0 installer, which is why it survived this`nupdate. From here on this file is created once and never overwritten.`n`n"
+        Set-Content $keep ($hdr + ($buf -join "`n")) -Encoding utf8
+        Ok "$($sk.Name): machine block migrated out of SKILL.md -> machine.md"
+      }
+    }
+  }
   if (Test-Path $keep) { $tmpKeep = [IO.Path]::GetTempFileName(); Copy-Item $keep $tmpKeep -Force }
   New-Item -ItemType Directory -Force -Path $dest | Out-Null
   Copy-Item (Join-Path $sk.FullName "*") $dest -Recurse -Force

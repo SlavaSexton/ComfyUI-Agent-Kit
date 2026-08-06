@@ -20,6 +20,17 @@ BUNDLE="$REPO_ROOT/claude-code/skills"
 for sk in "$BUNDLE"/*/; do
   name="$(basename "$sk")"; dest="$SKILLS/$name"
   # machine.md carries per-machine state the bootstrap wrote. Never overwrite it on an update.
+  # MIGRATION (3.0.0): before 3.0.0 the machine block lived INSIDE SKILL.md, which this installer
+  # overwrites. Lift it out BEFORE the copy or the upgrade destroys the bootstrap one last time - which is
+  # exactly the defect 3.0.0 exists to fix. Runs once: after this, machine.md exists and the guard below
+  # takes over.
+  if [ ! -f "$dest/machine.md" ] && [ -f "$dest/SKILL.md" ] && grep -q "^## Your machine" "$dest/SKILL.md" \
+     && ! grep -q "machine.md" "$dest/SKILL.md"; then
+    { printf '# Your machine\n\nMigrated out of SKILL.md by the 3.0.0 installer, which is why it survived this\nupdate. From here on this file is created once and never overwritten.\n\n'
+      awk '/^## Your machine/{f=1} f&&/^## /&&!/^## Your machine/{exit} f' "$dest/SKILL.md"
+    } > "$dest/machine.md"
+    ok "$name: machine block migrated out of SKILL.md -> machine.md"
+  fi
   keep=""; [ -f "$dest/machine.md" ] && { keep="$(mktemp)"; cp "$dest/machine.md" "$keep"; }
   mkdir -p "$dest"; cp -R "$sk". "$dest"/ 2>/dev/null || cp -R "$sk"* "$dest"/
   [ -n "$keep" ] && { cp "$keep" "$dest/machine.md"; rm -f "$keep"; }

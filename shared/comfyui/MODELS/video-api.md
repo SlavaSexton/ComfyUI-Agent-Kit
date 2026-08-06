@@ -85,7 +85,7 @@ Part of the kit's per-model prompting reference. The routing table and the auto-
 **READ THE LICENCE BEFORE YOU RUN IT. This one has teeth.** The MiniMax H3 Community License Agreement (2026-08-02,
 `MiniMaxAI/MiniMax-H3/LICENSE`) grants rights only inside the "Applicable Territory", defined as worldwide
 **excluding the European Union, the United Kingdom, the Republic of Korea and the United States of America**.
-Section IV.4 is explicit that this covers the outputs too: "You may not use, reproduce, modify, distribute, or
+Section V.4 is explicit that this covers the outputs too: "You may not use, reproduce, modify, distribute, or
 display the MiniMax H3 Works **or any of their Outputs or results** outside the Applicable Territory." Anyone in
 those four territories has to contact MiniMax for a separate licence rather than just downloading the weights.
 Beyond territory: over **20 million USD** yearly revenue needs prior written authorisation (api@minimax.io), any
@@ -236,7 +236,7 @@ read from their node source, not from summaries.
     2.2 GiB more peak** for a small and variable timing gain, so it is an option for spare VRAM, not a free win.
   - **Version coupling is tight, and "just update to 0.30.0" is WRONG.** It targets
     `comfy.ldm.minimax.model.MiniMaxH3Model` and needs the H3 plus packed-latent sampler APIs from ComfyUI commit
-    **`e377e263`, 2026-08-03 20:29 UTC** (the `latent_shapes` argument on `outer_sample`). **v0.30.0 was tagged
+    **a post-v0.30.0 ComfyUI build, 2026-08-03 20:29 UTC** (the `latent_shapes` argument on `outer_sample`). **v0.30.0 was tagged
     that same day at 03:48 UTC, about 17 hours EARLIER, and does not contain it** (verified with a commit
     comparison: v0.30.0 is two commits behind it). As of 2026-08-06 no tagged release carries the API, so this
     pack needs a master / nightly build newer than that commit. Advice circulating as "update to 0.30.0 or newer"

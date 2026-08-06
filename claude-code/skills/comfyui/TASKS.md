@@ -45,12 +45,12 @@ are local-first.
   `Krea2ImageNode` -> `SaveImage`. Pick the tier by budget as much as by look: Medium Turbo 0.015, Medium 0.03,
   Large 0.06 USD per image, and a moodboard raises the rate. `creativity` is a combo (`raw` / `low` / `medium` /
   `high`), NOT a number, whatever the embedded node doc says.
-- **FLUX.1 Krea Dev chain (photographic look, 11.09 GB fp8):** `UNETLoader`
+- **FLUX.1 Krea Dev chain (photographic look, 11.90 GB (11.09 GiB) fp8):** `UNETLoader`
   (`flux1-krea-dev_fp8_scaled.safetensors`) + `DualCLIPLoader` (`clip_l` + `t5xxl_fp16`, type `flux`) ->
   `CLIPTextEncode` -> `KSampler` (20 steps, cfg 1.0, euler / simple) with `ConditioningZeroOut` as the negative
   and `EmptySD3LatentImage` -> `VAEDecode` (`ae.safetensors`) -> `SaveImage`. The official template carries no
   `FluxGuidance` node.
-- **Realtime video is not a ComfyUI job.** Krea Realtime 14B has no ComfyUI path; see the skill for what to run.
+- **Realtime video is barely a ComfyUI job.** The only Krea Realtime pack has 0 stars and is unproven; the skill names the paths that do have users.
 
 ## generate-video
 - **Template:** "image to video" / "text to video" + the backend (LTX-2.3, Wan 2.2, HunyuanVideo); filter by the

@@ -121,7 +121,7 @@ output-head cost, CPU transfers, offload, references, CFG branching, latent size
   `warmup_steps` 5, `tail_actual_steps` 1, `max_history` 8, `debug`, optional `history_storage` =
   `system_ram` (default) or `vram`. VRAM history measured at **~2.2 GiB more peak** for a small, variable
   timing gain, so it is an option for spare VRAM, not a guaranteed win.
-- **The version trap.** It pins to ComfyUI commit `e377e263`, **2026-08-03 20:29 UTC**. Release **v0.30.0 was
+- **The version trap.** It pins to ComfyUI a ComfyUI build newer than the v0.30.0 release. Release **v0.30.0 was
   tagged the same day at 03:48 UTC, about 17 hours earlier, and does not contain it** (a commit comparison puts
   the release two commits behind). As of 2026-08-06 no tagged release carries the API, so the pack needs a
   master build. "Update to 0.30.0 or newer" is the advice going around and it leaves you on a build that fails.

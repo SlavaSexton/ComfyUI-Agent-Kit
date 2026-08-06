@@ -38,20 +38,39 @@ Part of the kit's per-model prompting reference. The routing table and the auto-
 - **Settings:** API (open Apache-2.0 weights expected Q2 2026); 720p/1080p; 2-15s; ~80-120 words; ComfyUI partner nodes v0.18.5+.
 - **Source:** node template `wan_2-7.md` ; fal.ai / Replicate / WaveSpeedAI / Alibaba Cloud DashScope.
 
-#### Wan 3.0: a RUMOUR, and the three real things people are conflating with it (checked 2026-08-04)
-Circulating claims put Wan 3.0 at 2026-08-06 with 2 to 30 s in one generation, a hybrid MMDiT, up to 10 images /
-5 videos / 5 audio references, `length=-1` auto-duration, adaptive aspect ratio, 1080p, and multi-character
-dialogue in one 30 s take. **None of that is confirmed.** There is no Wan 3.0 repository, release or weights:
-the `Wan-Video` org currently hosts `Wan2.1`, `Wan2.2`, `Wan-Dancer`, `Wan-skills` and a diffusers fork, and
-nothing else. Do not plan a workflow on those numbers and do not repeat them as specification. What IS real and
-already published, and is probably where the rumour comes from:
-- **Wan Dancer** - shipped. `Wan-Video/Wan-Dancer` on GitHub, weights `Wan-AI/Wan-Dancer-14B` on HF under
-  **Apache-2.0** (published 2026-07-10). The official template `video_wan_dancer` is in the library, and the
-  Comfy-Org repack lists a `Wan-Dancer` repo. Image plus audio driven character animation.
+#### Wan 3.0: SHIPPED as a hosted beta on 2026-08-06, and you cannot run it (updated the day it landed)
+It stopped being a rumour. Alibaba opened a public beta the same day this kit was still calling it unconfirmed.
+**What that means for a ComfyUI job, which is the only part that changes your work:**
+
+- **No open weights.** Verified 2026-08-06 by listing the `Wan-AI` org (24 repositories, not one of them a 3.x)
+  and searching the whole hub for `Wan3.0` (zero results). Every 3.0 route is hosted.
+- **No ComfyUI node, core or API.** Verified against `comfy_api_nodes/nodes_wan.py` on **master**, not the
+  local build: ten Wan API nodes, all `Wan2*` or version-neutral (`WanTextToVideoApi`, `WanImageToVideoApi`,
+  `WanReferenceVideoApi`, `WanImageToImageApi`, `WanTextToImageApi`). The two "3.0" strings in that file are
+  `validate_audio_duration(audio, 3.0, 29.0)`, a float. Control: a known-present sibling file read fine, so the
+  absence is the file's, not the probe's.
+- **So: if a request says "Wan 3.0 in ComfyUI", the answer is that 2.2 is the newest you can wire.** Point the
+  user at Alibaba's own surfaces, or use `Wan2*` nodes for the hosted 2.x API.
+
+**Reported by the vendor and press on launch day, NOT verified here** (the sites are JavaScript apps, so the
+numbers below come from the announcement rather than from a page this kit read): native synchronised audio, up
+to **30 s**, at 480p / 720p / 1080p. API `wan3.0-video` listed in the Beijing and Singapore regions but still
+invitation-only. Pricing around **$0.04 / $0.08 / $0.17 per second** for 480p / 720p / 1080p, and Alibaba bills
+the **input reference duration as well as the output**, so a 10 s reference plus 30 s of 1080p lands near
+**$6.70** for one clip. Rollout through Alibaba Cloud Model Studio, Wanjing Yike, the Chinese Wanxiang site and
+the Qwen Creation desktop app. Early users report speech dropping out, ambience degrading into white noise,
+unstable lip-sync, and characters briefly vanishing mid-shot. Treat the price line as the load-bearing one: at
+$0.17/s plus input billing this is not a model to iterate on casually.
+
+**What the earlier rumour was conflating it with**, all three real and still worth knowing:
+- **Wan Dancer** - shipped, weights `Wan-AI/Wan-Dancer-14B` on HF under **Apache-2.0** (2026-07-10). The
+  official template `video_wan_dancer` is in the library. Image plus audio driven character animation.
 - **WanSong v1.0** - real technical report, arXiv **2607.14749**.
 - **Wan Streamer** - real, `wan-streamer.com` resolves and serves.
-Revisit after 2026-08-06: if 3.0 lands, replace this block with the verified node names and settings rather than
-promoting the rumoured list.
+
+**Correction, recorded on purpose:** until 2026-08-06 this block called Wan 3.0 unconfirmed and named a
+`Wan-Video` org that hosts zero models, plus a `Wan-skills` repository that does not exist. The right org is
+`Wan-AI`. A dated "checked" line does not make a claim durable; a model announced hours later turns it stale.
 
 ### LTX-2.3 (Lightricks)
 - **Prompt style (official guide):** ONE flowing cinematography paragraph, not tag dumps. Order: shot/framing ->

@@ -12,7 +12,26 @@ for a breaking change (e.g. renaming a config key or the install layout). `0.x` 
 rename it to `[x.y.z] - <date>`, tag the commit (`git tag -a vx.y.z -m ...`), and push the tag (`git push origin
 vx.y.z`), which can become a GitHub Release.
 
-## [Unreleased]
+## [3.0.0] - 2026-08-06
+
+**MAJOR because the install layout changed**, which is this project's own stated trigger for a major bump.
+Read this before updating.
+
+### Upgrading from 2.x
+
+- **Your machine block moves out of `SKILL.md` into a new `machine.md`.** The installers do this for you: on the
+  first 3.0.0 run they lift the `## Your machine` section out of the old `SKILL.md` (or `GEMINI.md` / `QWEN.md`)
+  and write it to `machine.md` BEFORE overwriting anything. Verified by simulating a real 2.7.0 install with a
+  filled-in block: four facts in, four facts out. Without that step the update would have destroyed the
+  bootstrap one last time, which is exactly the defect this release exists to fix.
+- **Claude Code PLUGIN users must copy the block out themselves.** The plugin cache is version-keyed, so a
+  plugin update lands in a new directory and `machine.md` does not travel with it. Keep your copy outside the
+  plugin folder. (Inferred from the cache layout, not observed through a real marketplace update.)
+- **`MODELS.md` is now an index, not the reference.** The 68 recipe entries live in `MODELS/<family>.md`.
+  Anything that deep-linked to a `MODELS.md` anchor needs repointing; the index names the file for every model.
+- **The installed skill gains `MODELS/`, `tools/` and `machine.md`.** Nothing is removed, so an old layout keeps
+  working until you reinstall.
+
 
 ### Added
 
@@ -51,8 +70,7 @@ vx.y.z`), which can become a GitHub Release.
   Also the parts that bite: ancestral samplers and multi-GPU sampling deliberately fall back to native, RES keeps
   its last three steps native regardless of `tail_actual_steps`, `history_storage=vram` costs ~2.2 GiB peak for a
   small and variable gain, and the version requirement that the circulating advice gets wrong:
-  it pins to commit `e377e263` (2026-08-03 20:29 UTC) and **v0.30.0 does not contain it**, having been tagged
-  ~17 hours earlier, so as of 2026-08-04 no tagged release carries the API and a master build is required, and the author's own note that fast motion and briefly
+  it needs a ComfyUI **newer than the v0.30.0 release**, so a master build is required. Corrected 2026-08-06: an earlier draft of this entry named a Spectrum a ComfyUI build newer than the v0.30.0 release.30.0 does not contain it". That commit does not exist in the Spectrum repository (the API returns 422 for it) and v0.30.0 is a **ComfyUI** version, not a Spectrum tag; Spectrum's own tags run v0.1.0 to v0.1.5. The requirement is real, the two identifiers were conflated, and the author's own note that fast motion and briefly
   visible detail can degrade.
 - **A working two-pass latent upscale for H3** (`Tr1dae/ComfyUI-MiniMaxH3_LatentUpscaler`, no licence file). Node
   **`MiniMaxH3LatentUpscaleCombined`**, category `latent/minimax_h3`. It exists because stock `LatentUpscaleBy`
@@ -67,12 +85,21 @@ vx.y.z`), which can become a GitHub Release.
 - **Community H3 performance reports from 2026-08**, carried as anecdote and labelled as such: a 16 GB 4090
   Laptop at 960x540 / 5 s / 20 steps in ~182 s on pruned INT8 + NVFP4, a 4080 run at 608x352 with ~9.5 GiB peak,
   and repeated reports that 20 steps can drop to 15 with little visible loss.
-- **Wan 3.0 is flagged as a RUMOUR, with the three real things it is being confused with.** The circulating
-  2026-08-06 date and spec list (2 to 30 s, hybrid MMDiT, `length=-1` auto-duration, 10 images / 5 videos /
-  5 audio refs) has no repository, release or weights behind it: the `Wan-Video` org hosts Wan2.1, Wan2.2,
-  Wan-Dancer, Wan-skills and a diffusers fork, nothing more. What is real and verified: **Wan Dancer** shipped
-  with Apache-2.0 weights `Wan-AI/Wan-Dancer-14B` and an official `video_wan_dancer` template, **WanSong v1.0**
-  as arXiv 2607.14749, and **Wan Streamer** as a live site. Written so nobody plans a workflow on the rumour.
+- **Wan 3.0 shipped, hours before this release, and the entry was rewritten the same day.** It had been
+  documented as an unconfirmed rumour; Alibaba opened a public beta on 2026-08-06. The two facts that change a
+  ComfyUI job were verified here rather than taken from the announcement: there are **no open weights** (the
+  `Wan-AI` org holds 24 repositories, none of them 3.x, and a hub-wide search for `Wan3.0` returns nothing) and
+  there is **no ComfyUI node**, checked against `comfy_api_nodes/nodes_wan.py` on **master** rather than a local
+  build, where the ten Wan API nodes are all `Wan2*` or version-neutral and the only "3.0" strings are a float
+  in `validate_audio_duration`. So the answer to "Wan 3.0 in ComfyUI" is that 2.2 is the newest you can wire.
+  The vendor's own launch numbers (30 s with native audio at 480p / 720p / 1080p, API `wan3.0-video`
+  invitation-only in Beijing and Singapore, roughly $0.04 / $0.08 / $0.17 per second with the input reference
+  duration billed on top, so about $6.70 for a 10 s reference plus 30 s of 1080p) are recorded as REPORTED, not
+  verified: those pages are JavaScript apps and nothing here read them.
+  Two errors in the old entry are named rather than quietly overwritten: it cited a `Wan-Video` org that hosts
+  **zero** models (the real one is `Wan-AI`) and a `Wan-skills` repository that does not exist. Still real and
+  still worth knowing: **Wan Dancer** with Apache-2.0 weights `Wan-AI/Wan-Dancer-14B` and the official
+  `video_wan_dancer` template, **WanSong v1.0** as arXiv 2607.14749, and **Wan Streamer** as a live site.
 - **MiniMax H3 local open weights, the half the kit was missing.** The MiniMax entry already covered the hosted
   `MinimaxHailuo03*` API nodes; the open-weights release is a completely separate graph and it now has its own
   block. Buildable from the two core nodes confirmed in `comfy_extras/nodes_minimax_h3.py`:
@@ -99,7 +126,7 @@ vx.y.z`), which can become a GitHub Release.
   attention is promised later).
 - **A hard licence flag, quoted from the licence file.** The MiniMax H3 Community License Agreement (2026-08-02)
   limits all rights to an "Applicable Territory" that **excludes the European Union, the United Kingdom, the
-  Republic of Korea and the United States of America**, and section IV.4 extends that to the **outputs** as well.
+  Republic of Korea and the United States of America**, and section V.4 extends that to the **outputs** as well.
   Over 20 million USD yearly revenue needs prior written authorisation, products must display "Powered by
   MiniMax H3", and redistribution must carry the copyright notice. Open weights, not open source.
 
@@ -132,21 +159,21 @@ vx.y.z`), which can become a GitHub Release.
   its subgraph: `UNETLoader` (`flux1-krea-dev_fp8_scaled.safetensors`) + `DualCLIPLoader` (`clip_l` +
   `t5xxl_fp16`, type `flux`) -> `CLIPTextEncode` -> `KSampler` at 20 steps, cfg 1.0, euler / simple, with
   `ConditioningZeroOut` as the negative, `ae.safetensors` on the VAE. **The template carries no `FluxGuidance`
-  node at all**, verified by string search rather than by eye. Weights measured at 11.09 GB, and the Comfy-Org
+  node at all**, verified by string search rather than by eye. Weights measured at 11.90 GB (11.09 GiB), and the Comfy-Org
   repack is ungated where the Black Forest Labs original is not.
-- **Krea Realtime 14B, and the finding that it has no ComfyUI path.** Apache-2.0, distilled from Wan 2.1 14B
+- **Krea Realtime 14B, and a negative claim this release had to walk back.** Apache-2.0, distilled from Wan 2.1 14B
   with Self-Forcing, 11 fps at 4 steps on a B200 by the vendor's own figure, KV Cache Recomputation and KV Cache
   Attention Bias against error accumulation. The negative claim was checked the way this kit has learned to
   check them: a **content** search across GitHub for the checkpoint filename, not a repository-name search. It
   returns DiffSynth-Studio, LightX2V, `daydreamlive/scope` and research forks, and no ComfyUI node. Measured
-  sizes decide the hardware question: the official single file is 26.61 GB and does not fit a 24 GB card, the
-  community fp8 repack is 13.31 GB and does.
+  sizes decide the hardware question: the official single file is 28.58 GB (26.61 GiB) and does not fit a 24 GB card, the
+  community fp8 repack is 14.29 GB (13.31 GiB) and does.
 - **The Krea 2 ComfyUI ecosystem, filtered by adoption rather than by search rank.** Three packs cover jobs the
-  kit had no answer for: `lbouaraba/comfyui-krea2edit` (410 stars) for identity-preserving instruction editing,
+  kit had no answer for: `lbouaraba/comfyui-krea2edit` (over 400 stars) for identity-preserving instruction editing,
   `facok/comfyui-krea2-controlnet` (162) for depth / canny / pose control through a Control LoRA, and
   per-layer conditioning control, recorded as a genuine two-horse choice rather than a supersede: the fork
   `huwhitememes/comfyui-krea2-conditioning` (126) RMS-renormalises Krea 2's twelve conditioning taps and argues
-  its upstream inflates their magnitude ~8.7x, but that upstream `nova452/ComfyUI-ConditioningKrea2Rebalance`
+  its upstream inflates their magnitude ~8.7x, but that upstream `nova452/Rebalance-Pack` (formerly `ComfyUI-ConditioningKrea2Rebalance`)
   carries 477 stars and is still maintained, so the fork is the minority technical case and is labelled as such.
   Five more packs were found and are named
   as **not** recommended at 0 to 2 stars, so nobody re-finds them and assumes the kit missed something. The
@@ -199,7 +226,7 @@ vx.y.z`), which can become a GitHub Release.
   is one definition of what ships instead of a hand-listed subset that drifted since the scripts were written.
   Verified by running the fixed copy logic into an empty directory and re-resolving every route: 1 alive before,
   23 alive and 0 dead after.
-- **`MODELS.md` had outgrown a single readable file, and failed silently.** 175 KB, 1415 lines, 68 entries, of
+- **`MODELS.md` had outgrown a single readable file, and failed silently.** 174 KB, 1415 lines, 68 entries, of
   which **39 (57%) sat past the point where a read stops returning content**. The kit's most-repeated rule, read
   the model's entry BEFORE writing the prompt, therefore returned nothing for most models while looking like it
   had succeeded: fail-open in reading, where truncation is indistinguishable from absence. Split by family into

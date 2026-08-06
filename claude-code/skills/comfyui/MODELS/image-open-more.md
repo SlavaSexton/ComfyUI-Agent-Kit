@@ -168,7 +168,7 @@ Part of the kit's per-model prompting reference. The routing table and the auto-
   FLUX.1 Krea Dev graph, Krea Realtime 14B, and the community packs that add ControlNet, identity-preserving
   editing and per-layer conditioning control to Krea 2. This entry stays the source of truth for the local
   Raw / Turbo graph itself.
-- **Source:** github.com/krea-ai/krea-2 (incl. `docs/prompting.md`) ; huggingface.co/Comfy-Org/Krea-2 (ComfyUI repackaged) ;
+- **Source:** github.com/krea-ai/krea-2 (incl. its own `krea-2/docs/prompting.md`, not a kit file) ; huggingface.co/Comfy-Org/Krea-2 (ComfyUI repackaged) ;
   huggingface.co/krea/Krea-2-Raw + huggingface.co/krea/Krea-2-Turbo ;
   blog.comfy.org/p/krea-2-open-source-models-are-now ; krea.ai/blog/krea-2-technical-report.
 

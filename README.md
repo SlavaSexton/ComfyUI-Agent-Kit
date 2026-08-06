@@ -76,7 +76,7 @@ guide to building your own custom nodes.
   knowledge that also applies on the vendor's own app or API ships as its own skill rather than being buried in
   the ComfyUI reference. `minimax-h3` owns the H3 three-field prompt format, `<d>` dialogue and the quant and
   acceleration ladder; `krea` owns the fork between Krea's hosted API and its open weights, FLUX.1 Krea Dev, and
-  why Krea Realtime has no ComfyUI path. The first of them, `seedance`: ByteDance's Seedance video models
+  why the only ComfyUI pack for Krea Realtime is a 0-star lead rather than a route. The first of them, `seedance`: ByteDance's Seedance video models
   run on Dreamina, Jimeng and the BytePlus API as well as in ComfyUI, so their prompting knowledge ships as its
   own skill: the three task types and the one word that switches between them, the reference label syntax, the
   timestamp storyboard, the real-person character formula, and a failure table for face drift, duplicate

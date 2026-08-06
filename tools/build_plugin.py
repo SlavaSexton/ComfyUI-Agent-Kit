@@ -56,10 +56,15 @@ DIRS = {
 
 os.makedirs(DST, exist_ok=True)
 copied = []
+missing_sources = []
 for src_rel, name in FILES.items():
     src = os.path.join(ROOT, src_rel)
     if not os.path.exists(src):
-        print(f"  MISSING source, skipped: {src_rel}")
+        # RESPONSIBLE FOR (2026-08-06, mutation test): this used to print a warning and continue, so a source
+        # deleted from the repo kept its STALE copy in the bundle and every check downstream resolved against
+        # that ghost. Deleting docs/KIJAI.md and rebuilding passed the gate. A missing source is a broken
+        # build, not a note in the log.
+        missing_sources.append(src_rel)
         continue
     shutil.copyfile(src, os.path.join(DST, name))
     copied.append(name)
@@ -67,7 +72,7 @@ for src_rel, name in FILES.items():
 for src_rel, name in DIRS.items():
     src = os.path.join(ROOT, src_rel)
     if not os.path.isdir(src):
-        print(f"  MISSING dir, skipped: {src_rel}")
+        missing_sources.append(src_rel + "/")
         continue
     dstdir = os.path.join(DST, name)
     if os.path.isdir(dstdir):
@@ -168,6 +173,30 @@ def repair_and_check():
     return repaired, unresolved
 
 
+def check_backtick_routes():
+    """The routing table is written as BACKTICKED paths, not markdown links, so the link resolver above
+    never saw it. Measured 2026-08-06 on the shipped SKILL.md: 0 markdown links, 29 backticked routes, and a
+    mutation test (delete docs/KIJAI.md, rebuild) passed the gate while the route pointed at nothing. That is
+    the exact class this gate exists to catch, missed because the probe read the wrong syntax."""
+    # Only the kit's OWN namespace. A backticked `luma.md` or a vendor's `VIDEO_PROMPT_WRITING_GUIDE.md` is a
+    # reference to somebody else's document, not a route, and flagging those would train the reader to ignore
+    # this gate. The `docs/` prefix is the kit's namespace and external references never use it.
+    bad = []
+    for root, _dirs, files in os.walk(BUNDLE):
+        for f in files:
+            if not f.endswith(".md"):
+                continue
+            text = open(os.path.join(root, f), encoding="utf-8", errors="ignore").read()
+            for m in re.finditer(r'`(docs/[A-Za-z0-9_./-]+\.md)`', text):
+                ref = m.group(1)
+                flat = ref[len("docs/"):]
+                if any(os.path.isfile(os.path.join(d, c))
+                       for d in (root, DST) for c in (ref, flat, os.path.basename(ref))):
+                    continue
+                bad.append((os.path.relpath(os.path.join(root, f), ROOT), ref))
+    return sorted(set(bad))
+
+
 def check_node_library_index():
     """Every category file must be listed in _INDEX.md. SKILL.md calls it the entry point for any node
     question, so a file it omits is unreachable knowledge (radiance.md was, until this check existed)."""
@@ -228,9 +257,28 @@ def check_backtick_paths():
 
 
 print("\n-- gate --")
+if missing_sources:
+    # RESPONSIBLE FOR (2026-08-06 mutation test): a source deleted from the repo left its STALE copy in the
+    # bundle, and every check downstream then resolved against that ghost. Removing docs/KIJAI.md and
+    # rebuilding passed the gate while the shipped skill routed to a file the repo no longer had. Purge the
+    # ghost, then fail: a routed source that has gone missing is a broken build, not a line in the log.
+    for src_rel in missing_sources:
+        key = src_rel.rstrip("/")
+        name = FILES.get(key) or DIRS.get(key)
+        ghost = os.path.join(DST, name) if name else None
+        if ghost and os.path.isfile(ghost):
+            os.remove(ghost)
+        elif ghost and os.path.isdir(ghost) and os.path.abspath(ghost) != os.path.abspath(DST):
+            shutil.rmtree(ghost)
+    print(f"\n  FAIL {len(missing_sources)} routed source(s) in the build list do not exist:")
+    for s in missing_sources:
+        print(f"        {s}")
+    raise SystemExit("build_plugin: a routed source is missing, bundle NOT fit to ship")
+
 repaired, unresolved = repair_and_check()
 print(f"  links re-aimed after flattening: {repaired} file(s)")
 missing_idx = check_node_library_index()
+bad_routes = check_backtick_routes()
 bad_paths = check_backtick_paths()
 fail = False
 if unresolved:
@@ -241,6 +289,11 @@ if unresolved:
 if missing_idx:
     fail = True
     print(f"  FAIL NODE_LIBRARY/_INDEX.md does not list: {', '.join(missing_idx)}")
+if bad_routes:
+    fail = True
+    print(f"  FAIL {len(bad_routes)} backticked route(s) point at a file the bundle does not carry:")
+    for p_, u in bad_routes[:15]:
+        print(f"        {p_} -> {u}")
 if bad_paths:
     fail = True
     print(f"  FAIL {len(bad_paths)} backticked script path(s) do not exist:")
@@ -248,4 +301,4 @@ if bad_paths:
         print(f"        {p} -> {u}")
 if fail:
     raise SystemExit("build_plugin: gate failed, bundle NOT fit to ship")
-print("  gate passed: bundle links resolve, _INDEX complete, script paths exist")
+print("  gate passed: links + backticked routes resolve, _INDEX complete, script paths exist and are tracked")

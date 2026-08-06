@@ -102,7 +102,7 @@ H3 recipe in `MODELS.md`; this is the pointer so they are findable from the pack
 - **`xmarre/ComfyUI-Spectrum-MiniMax-H3`** (GPL-3.0) - node **`SpectrumApplyMiniMaxH3`**, category
   `sampling/spectrum`. A **MODEL patcher** (MODEL in, MODEL out), not a sampler replacement: it forecasts part of
   the solver trajectory with a Chebyshev fit instead of running the transformer on those steps. Needs a ComfyUI build
-  newer than commit `e377e263` (2026-08-03 20:29 UTC). **v0.30.0 does NOT contain it** (tagged ~17 h earlier), and
+  newer than a ComfyUI build newer than the v0.30.0 release). **v0.30.0 does NOT contain it** (tagged ~17 h earlier), and
   as of 2026-08-04 no tagged release does, so this pack currently needs master / nightly.
 - **`Tr1dae/ComfyUI-MiniMaxH3_LatentUpscaler`** (no licence file) - node **`MiniMaxH3LatentUpscaleCombined`**,
   category `latent/minimax_h3`. Spatial latent upscale BETWEEN two samplers, needed because stock

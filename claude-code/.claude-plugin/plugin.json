@@ -1,7 +1,7 @@
 {
   "name": "comfyui",
   "description": "Local-first ComfyUI for Claude Code: drive a local ComfyUI (your GPU, no account) end to end - 75 model prompt recipes, hardware-aware model selection, workflow building, multi-shot video, ControlNet/HDR, the local comfyui-mcp driver. The local-first counterpart to the Comfy Cloud MCP.",
-  "version": "2.7.0",
+  "version": "3.0.0",
   "author": {
     "name": "AI VFX NEWS",
     "url": "https://aivfxnews.com/"

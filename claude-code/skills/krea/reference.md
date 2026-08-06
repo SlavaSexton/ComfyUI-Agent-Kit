@@ -70,11 +70,11 @@ Sizes read from the Hugging Face blob API on 2026-08-06, not estimated from para
 
 | File | Repo | Size | Notes |
 |---|---|---|---|
-| `flux1-krea-dev_fp8_scaled.safetensors` | `Comfy-Org/FLUX.1-Krea-dev_ComfyUI` | **11.09 GB** | ungated, the only file in the repo |
+| `flux1-krea-dev_fp8_scaled.safetensors` | `Comfy-Org/FLUX.1-Krea-dev_ComfyUI` | **11.90 GB (11.09 GiB)** | ungated, the only file in the repo |
 | (reference weights) | `black-forest-labs/FLUX.1-Krea-dev` | n/a | **gated**; metadata reads fine, file downloads return 403 without accepting terms |
-| `krea-realtime-video-14b.safetensors` | `krea/krea-realtime-video` | **26.61 GB** | single file, does not fit a 24 GB card |
-| `krea-realtime-video-14b-fp8-e4m3fn.safetensors` | `6chan/krea-realtime-video-fp8` | **13.31 GB** | community repack, no usage text on the card |
-| `krea-realtime-video-14b-fp8-e5m2.safetensors` | `6chan/krea-realtime-video-fp8` | **13.31 GB** | same |
+| `krea-realtime-video-14b.safetensors` | `krea/krea-realtime-video` | **28.58 GB (26.61 GiB)** | single file, does not fit a 24 GB card |
+| `krea-realtime-video-14b-fp8-e4m3fn.safetensors` | `6chan/krea-realtime-video-fp8` | **14.29 GB (13.31 GiB)** | community repack, no usage text on the card |
+| `krea-realtime-video-14b-fp8-e5m2.safetensors` | `6chan/krea-realtime-video-fp8` | **14.29 GB (13.31 GiB)** | same |
 
 Licences: FLUX.1 Krea Dev is `flux-1-dev-non-commercial-license` (from the repack's frontmatter, which links to
 the BFL licence file). Krea Realtime is **Apache-2.0**. Krea 2's own licence is covered in `MODELS.md`.
@@ -109,14 +109,15 @@ Source: the model card read in full including frontmatter, 2026-08-06.
   as well as the single file.
 - Third-party ports found by content search: `IPostYellow/krea-realtime-video-diffusers`,
   `felipesztutman/krea-realtime-video-14b-w4a4`, `SceneWorks/krea-realtime-14b-mlx`, plus DiffSynth-Studio and
-  LightX2V configs. **None of them is a ComfyUI node.**
+  LightX2V configs. The one ComfyUI pack is `eliteprox/ComfyUI-Krea` (0 stars, pushed 2025-11-04), found only
+  after a filename search wrongly concluded none existed.
 
 ## Ecosystem packs, what each actually does
 
 Read from each repository's README, 2026-08-06. Star and push dates from the GitHub API. Note that GitHub's
 search `updatedAt` moves on metadata touches; the dates below are real code pushes.
 
-### `lbouaraba/comfyui-krea2edit` (410 stars, 22 forks, pushed 2026-07-29, no licence file)
+### `lbouaraba/comfyui-krea2edit` (over 400 stars, 22 forks, pushed 2026-07-29, no licence file)
 Powers the **Krea 2 Identity Edit** LoRA. Node `Krea2EditModelPatch` wraps the model so the VAE-encoded source
 is prepended as clean in-context tokens at RoPE frame 1, and the same image also goes through the Qwen3-VL text
 encoder, matching the LoRA's training. Key inputs: `model` (LoRA already applied), `source_latent`, optional
@@ -137,11 +138,11 @@ LoRA with no control latent attached fails outright rather than sampling a half-
 
 ### `huwhitememes/comfyui-krea2-conditioning` (126 stars, 9 forks, pushed 2026-06-26, Apache-2.0 badge, no licence file)
 **Adoption check first, because it cuts against the fork:** its upstream
-`nova452/ComfyUI-ConditioningKrea2Rebalance` sits at **477 stars, pushed 2026-07-29**, well ahead of this fork
+`nova452/Rebalance-Pack` (formerly `ComfyUI-ConditioningKrea2Rebalance`) sits at **477 stars, pushed 2026-07-29**, well ahead of this fork
 and still actively maintained. The fork's argument below is its author's, is technically specific, and is
 untested here. Treat this as two live options, not a supersede.
 
-A fork of `nova452/ComfyUI-ConditioningKrea2Rebalance` that disputes its central default. The original reweights
+A fork of `nova452/Rebalance-Pack` (formerly `ComfyUI-ConditioningKrea2Rebalance`) that disputes its central default. The original reweights
 Krea 2's twelve Qwen3-VL conditioning taps and then multiplies the whole tensor by 4, which compounds with the
 roughly 2.2x from the per-layer gains into about **8.7x** inflated conditioning magnitude. The fork
 RMS-renormalises, shifting the ratios between taps while holding total magnitude constant. The author is careful

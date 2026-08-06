@@ -163,7 +163,7 @@ Part of the kit's per-model prompting reference. The routing table and the auto-
   titled "Ostris + Krea2 Style Reference"`.
   Source: huggingface.co/ostris/krea2_turbo_style_reference (full card incl. frontmatter) ;
   Comfy-Org/workflow_templates `image_krea2_turbo_int8_image_style_reference`.
-- **Everything Krea that is NOT this local graph lives in the `krea` skill** (`~/.claude/skills/krea/`): the
+- **Everything Krea that is NOT this local graph lives in the sibling `krea` skill** (invoke by name; beside the comfyui skill on disk): the
   hosted API nodes `Krea2ImageNode` / `Krea2StyleReferenceNode` with their price matrix and the 1K cap, the
   FLUX.1 Krea Dev graph, Krea Realtime 14B, and the community packs that add ControlNet, identity-preserving
   editing and per-layer conditioning control to Krea 2. This entry stays the source of truth for the local

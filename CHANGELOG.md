@@ -153,6 +153,26 @@ vx.y.z`), which can become a GitHub Release.
   as already covered rather than assumed missing.
 ### Fixed
 
+- **Second audit pass, after checking the findings list against the repo instead of against memory: 14 of 18
+  were closed, four were not.** Two of the four were real defects of the same class as the installer, and are
+  fixed here.
+- **Five shipped docs told the reader to run a script the shipped skill did not contain.**
+  `shared/tools/fetch_workflow.py` and `check_updates.py` are named in `SKILL.md`, `EXAMPLE_WORKFLOWS.md` and
+  `UPDATING.md`, and an installed skill had no `tools/` directory at all. The build now ships `shared/tools/`
+  as `tools/`, and `node_inventory.py`, which the node-library index tells you to regenerate with, moved there
+  too: it had been sitting in the gitignored `tools/` dir, so it did not exist for anyone who cloned. Its
+  hardcoded private-pack exclusion list is now read from `COMFY_PRIVATE_PACKS`, so the shipped file carries
+  nobody's private pack names.
+- **Routes to the sibling skills hardcoded one agent's install path.** `SKILL.md`, `TASKS.md` and two `MODELS/`
+  files sent the reader to `~/.claude/skills/<name>/`. Those files ship verbatim to Codex
+  (`~/.agents/skills/`), Gemini and Qwen (`~/.<agent>/extensions/comfyui`), where that path does not exist.
+  The routes now name the skill and say it sits beside this one, which is true on all four.
+- **The gate learned the half it was missing.** It checked that a backticked script path resolves in the REPO,
+  which says nothing about the artifact a user gets. It now also requires the file to be present in the shipped
+  skill AND tracked by git, because `.gitignore` carries `/tools/` and a script there works for the author
+  while not existing for anyone else. Confirmed by control: a reference to an untracked script turns the build
+  red with that exact reason, and removing it turns it green again.
+
 - **The kit was verified end to end on a live ComfyUI, which is what the audit's own reviewers said nobody had
   done.** Server started with the launch command the kit records for this machine (30 s to `/system_stats` 200,
   matching the documented 30 to 60 s), then the kit's own procedure followed step by step: `machine.md` gave the

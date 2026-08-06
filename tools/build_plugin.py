@@ -46,6 +46,12 @@ FILES = {
 DIRS = {
     "docs/NODE_LIBRARY": "NODE_LIBRARY",
     "shared/comfyui/MODELS": "MODELS",
+    # RESPONSIBLE FOR (2026-08-06 audit, second pass): five places in the SHIPPED docs tell the reader to run
+    # `shared/tools/fetch_workflow.py` or `check_updates.py`, and an installed skill had no `tools/` at all.
+    # A dead instruction in the artifact, same class as the installer copying three files.
+    "shared/tools": "tools",
+    # node_inventory.py lives in tools/ (gitignored dir, so it is force-added). The docs tell the reader to
+    # regenerate _INVENTORY.md with it, and that instruction was dead for everyone who cloned.
 }
 
 os.makedirs(DST, exist_ok=True)
@@ -179,6 +185,24 @@ def check_backtick_paths():
     reader is being sent somewhere that does not exist (`tools/gen_quick_index.py` was, for months)."""
     pat = re.compile(r'`((?:tools|shared/tools)/[A-Za-z0-9_./-]+\.py)`')
     bad = set()
+    # Second half of the same question, and the half that was missing: the path resolving in the REPO says
+    # nothing about the SHIPPED skill. Five shipped docs told the reader to run shared/tools/fetch_workflow.py
+    # while an installed skill had no tools/ at all. A path is only sound when it resolves on both sides.
+    shipped = os.path.join(DST, "tools")
+    import subprocess
+
+    class _Anything:
+        """Stand-in when this is not a git checkout: skip the tracked-ness half rather than fail the build
+        for a reason that has nothing to do with the docs."""
+
+        def __contains__(self, _item):
+            return True
+
+    try:
+        out = subprocess.run(["git", "-C", ROOT, "ls-files"], capture_output=True, text=True, check=True).stdout
+        TRACKED = set(out.splitlines())
+    except Exception:
+        TRACKED = _Anything()
     for sub in ("docs", "shared", "README.md"):
         p = os.path.join(ROOT, sub)
         walk = [(os.path.dirname(p), [], [os.path.basename(p)])] if os.path.isfile(p) else os.walk(p)
@@ -188,8 +212,18 @@ def check_backtick_paths():
                     continue
                 text = open(os.path.join(root, f), encoding="utf-8", errors="ignore").read()
                 for m in pat.finditer(text):
-                    if not os.path.isfile(os.path.join(ROOT, m.group(1))):
-                        bad.add((os.path.relpath(os.path.join(root, f), ROOT), m.group(1)))
+                    ref = m.group(1)
+                    if not os.path.isfile(os.path.join(ROOT, ref)):
+                        bad.add((os.path.relpath(os.path.join(root, f), ROOT), ref + "  (missing in repo)"))
+                    elif ref not in TRACKED:
+                        # Present on THIS disk but not committed. `.gitignore` carries `/tools/`, so a script
+                        # living there works for the author and does not exist for anyone who clones. Checking
+                        # the working tree alone is the probe looking at the wrong thing.
+                        bad.add((os.path.relpath(os.path.join(root, f), ROOT),
+                                 ref + "  (on disk but NOT tracked by git: a clone will not have it)"))
+                    elif not os.path.isfile(os.path.join(shipped, os.path.basename(ref))):
+                        bad.add((os.path.relpath(os.path.join(root, f), ROOT),
+                                 ref + "  (in repo, MISSING from the shipped skill)"))
     return sorted(bad)
 
 

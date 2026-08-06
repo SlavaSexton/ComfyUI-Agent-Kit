@@ -14,7 +14,7 @@ gotchas, fixes, placement, build-vs-search calls.
 library (official template bundles), classified against a live ComfyUI: **185 core,
 194 API / cloud partner, 4 custom-author** (ComfyUI-LTXVideo), 3 missing-but-used, 161
 subgraph ids. Scan it to know a node EXISTS and where it comes from, even before it has a full entry below.
-Regenerate with `tools/node_inventory.py`.
+Regenerate with `shared/tools/node_inventory.py`.
 
 ## Documented nodes
 

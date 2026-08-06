@@ -15,6 +15,7 @@ vx.y.z`), which can become a GitHub Release.
 ## [Unreleased]
 
 ### Added
+
 - **A dedicated `minimax-h3` skill** (`shared/minimax-h3/`, third shipped skill after `comfyui` and `seedance`).
   SKILL.md owns the prompt format (the three named fields, `<d>[Language]` dialogue, the camera vocabulary, the
   reference labels, **a complete worked prompt end to end** rather than placeholders) and a symptom-to-cause
@@ -151,6 +152,7 @@ vx.y.z`), which can become a GitHub Release.
   as **not** recommended at 0 to 2 stars, so nobody re-finds them and assumes the kit missed something. The
   `krea` org on Hugging Face was listed exhaustively, which is how the nine official style LoRAs were confirmed
   as already covered rather than assumed missing.
+
 ### Fixed
 
 - **Second audit pass, after checking the findings list against the repo instead of against memory: 14 of 18
@@ -233,19 +235,6 @@ vx.y.z`), which can become a GitHub Release.
   everything flat, so a reader following the path literally finds nothing. The routing list now states both
   layouts up front.
 
-### Changed
-- **`tools/build_plugin.py` now discovers skills instead of listing them.** It bundled `seedance` from a
-  hardcoded block, so `minimax-h3` would have been silently left out of the plugin. It now walks `shared/` and
-  bundles every directory containing a `SKILL.md`.
-
-- **Template count 583 -> 586** (the three local `video_minimax_h3_{t2v,i2v,r2v}` templates, which landed
-  2026-08-02, after the last weekly cut). Synced across README, MODEL_INDEX, SKILL.md and all four re-rendered
-  banners; category counts recomputed from the manifest (Image 157, Video 152). The MODEL_INDEX MiniMax row now
-  reads **API + local open weights** instead of API only. Recipe and model counts are unchanged: this extends the
-  existing MiniMax family entry rather than adding a new one.
-
-
-### Fixed
 - **Corrected a wrong attribution before it shipped.** An earlier draft said kijai had nothing for MiniMax H3.
   He has no H3 *weights*, but he does ship the SageAttention patch above inside KJNodes. The search was done at
   repository granularity and missed a node inside an existing pack.
@@ -256,6 +245,17 @@ vx.y.z`), which can become a GitHub Release.
   `ref_video_audios`; and the same claim carried two different dates. The routing also pointed at
   `~/.claude/skills/minimax-h3/`, which did not exist until the skill was installed there.
 
+### Changed
+
+- **`tools/build_plugin.py` now discovers skills instead of listing them.** It bundled `seedance` from a
+  hardcoded block, so `minimax-h3` would have been silently left out of the plugin. It now walks `shared/` and
+  bundles every directory containing a `SKILL.md`.
+
+- **Template count 583 -> 586** (the three local `video_minimax_h3_{t2v,i2v,r2v}` templates, which landed
+  2026-08-02, after the last weekly cut). Synced across README, MODEL_INDEX, SKILL.md and all four re-rendered
+  banners; category counts recomputed from the manifest (Image 157, Video 152). The MODEL_INDEX MiniMax row now
+  reads **API + local open weights** instead of API only. Recipe and model counts are unchanged: this extends the
+  existing MiniMax family entry rather than adding a new one.
 
 ## [2.7.0] - 2026-08-02
 

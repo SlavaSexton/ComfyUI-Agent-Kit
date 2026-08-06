@@ -24,7 +24,7 @@ file is missing.
 - **the sibling `krea` skill** (invoke it by name; beside this skill on disk) - the dedicated Krea skill: the fork between Krea's hosted API (`Krea2ImageNode` / `Krea2StyleReferenceNode`, per-image pricing, moodboards, capped at 1K) and its open weights, the FLUX.1 Krea Dev graph, Krea Realtime 14B and why it has no ComfyUI path, and the Krea 2 custom-node packs for ControlNet / identity editing / conditioning control. Read it for the API path or the model choice; `MODELS.md` keeps the local Krea 2 graph.
 - **`docs/TASKS.md`** - a named common job (generate image / video / audio / 3D, upscale, remove background): the local end-to-end flow for that task, a shortcut layer over this manual.
 - **`docs/NODE_LIBRARY/smart-upscaler.md`** - our Smart Upscaler pack (11 nodes): tiled upscaling that writes a separate verified prompt per tile. Read it when a tiled upscale of a BUSY or MIXED scene keeps producing confidently wrong tiles or disagreeing seams; the cheaper sampler-tilers in `ADVANCED.md` stay the right call for uniform subjects.
-- **`docs/MODEL_INDEX.md`** - the full classified list of all 157 models (recipe / utility / template-only); check whether a named model has a recipe, is a utility, or is template-only.
+- **`docs/MODEL_INDEX.md`** - the full classified list of all 156 models (recipe / utility / template-only); check whether a named model has a recipe, is a utility, or is template-only.
 - **`docs/NODE_LIBRARY/training.md`** - the nodes that let a graph MAKE a model, not just prompt one: core's
   `TrainLoraNode` / `SaveLoRA` / `LossGraphNode` plus the 16 dataset nodes (`MakeTrainingDataset`,
   `ResolutionBucket`, the image-text loaders, video temporal crops) and the full chain wired end to end. Read it

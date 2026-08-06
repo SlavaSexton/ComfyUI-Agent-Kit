@@ -162,9 +162,8 @@ timing and position can be specified. Prefer common characters; avoid rare chara
 
 # Seedance 2.5 specifics (official Dreamina User Guide, read 2026-08-02)
 
-Source: 【Dreamina】Seedance 2.5 User Guide, ByteDance, last modified 2026-07-31. Full text saved at
-`D:\Claude_Code\_research\seedance\seedance25_official_guide.txt`. This section supersedes the
-2.0-series guidance above wherever they differ.
+Source: 【Dreamina】Seedance 2.5 User Guide, ByteDance, last modified 2026-07-31, read in full. This section
+supersedes the 2.0-series guidance above wherever they differ.
 
 ## 2.5-A. Hard limits
 

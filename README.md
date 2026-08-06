@@ -48,7 +48,7 @@ guide to building your own custom nodes.
 - **Per-model "mega-brain":** 68 prompt-recipe entries covering 63 named models, distilled from **official
   sources** (image, video, audio, 3D), split by family so each file reads whole in one call;
   the agent auto-pulls the right recipe when you name a model, so it prompts each one in its own dialect.
-- **Knows where each model runs:** a [full index](docs/MODEL_INDEX.md) of all 157 library models (recipe /
+- **Knows where each model runs:** a [full index](docs/MODEL_INDEX.md) of all 156 library models (recipe /
   utility / template-only), local vs API.
 - **Hardware-aware model selection:** detects your VRAM, RAM, and free disk, then recommends the variant that
   fits (fp8 / offload / multi-GPU / quant) and refuses a download that won't fit, before wasting the bandwidth.

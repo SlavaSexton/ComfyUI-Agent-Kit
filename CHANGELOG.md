@@ -40,24 +40,6 @@ vx.y.z`), which can become a GitHub Release.
   `RenderSplat` (EWA rasterizer with a frame count, so camera moves render as sequences) and `SplatToMesh`.
   Both are **master-only** as of 2026-08-06 and flagged as such.
 
-### Changed
-- **`tools/build_plugin.py` now discovers skills instead of listing them.** It bundled `seedance` from a
-  hardcoded block, so `minimax-h3` would have been silently left out of the plugin. It now walks `shared/` and
-  bundles every directory containing a `SKILL.md`.
-
-### Fixed
-- **Corrected a wrong attribution before it shipped.** An earlier draft said kijai had nothing for MiniMax H3.
-  He has no H3 *weights*, but he does ship the SageAttention patch above inside KJNodes. The search was done at
-  repository granularity and missed a node inside an existing pack.
-- **Council review caught four defects in the new entry, all fixed:** the two-pass upscale recipe never named
-  **`SplitSigmas`**, so "high sigmas" and "low sigmas" had no source and the graph was not buildable; the
-  `inferred` marker on the `audio_denoise` diagnosis survived only in MODELS.md and was asserted flat in both
-  skill files; SKILL.md described three Autogrow reference families when the node has four, silently dropping
-  `ref_video_audios`; and the same claim carried two different dates. The routing also pointed at
-  `~/.claude/skills/minimax-h3/`, which did not exist until the skill was installed there.
-
-
-### Added
 - **Spectrum, the first acceleration for local MiniMax H3** (`xmarre/ComfyUI-Spectrum-MiniMax-H3`, GPL-3.0), read
   from its node source. Node **`SpectrumApplyMiniMaxH3`**, category `sampling/spectrum`, and the important
   correction to how it is being described around the community: it is a **MODEL patcher, not a replacement
@@ -120,12 +102,40 @@ vx.y.z`), which can become a GitHub Release.
   Over 20 million USD yearly revenue needs prior written authorisation, products must display "Powered by
   MiniMax H3", and redistribution must carry the copyright notice. Open weights, not open source.
 
+- **The training and splat nodes now have NODE_LIBRARY entries and a task route.** The previous batch shipped
+  them as prose in `ADVANCED.md` only, so an agent asked to train a LoRA would have gone to `TASKS.md` and found
+  nothing. New **`docs/NODE_LIBRARY/training.md`** carries all 20 training and dataset nodes with I/O read from
+  `nodes_train.py` and `nodes_dataset.py`, the chain drawn end to end (`LoadImageTextDataSetFromFolder` ->
+  `MakeTrainingDataset` -> `ResolutionBucket` -> `TrainLoraNode` -> `SaveLoRA` + `LossGraphNode`), the
+  `Save`/`LoadTrainingDataset` shortcut so iteration stops re-encoding, and the silent anti-pattern: encoding a
+  dataset with a VAE or CLIP the target model does not share. `three-d.md` gains the four splat nodes it was
+  missing (`File3DToSplat`, `TransformSplat`, `MergeSplat`, `GetSplatCount`) with the ordering rule that
+  unaligned splats interpenetrate when merged. `TASKS.md` gains routes for both jobs; `SKILL.md` and `_INDEX.md`
+  point at the new category. Sockets are CURATED from source, not `get_node_info`-confirmed, and labelled so.
+
 ### Changed
+- **`tools/build_plugin.py` now discovers skills instead of listing them.** It bundled `seedance` from a
+  hardcoded block, so `minimax-h3` would have been silently left out of the plugin. It now walks `shared/` and
+  bundles every directory containing a `SKILL.md`.
+
 - **Template count 583 -> 586** (the three local `video_minimax_h3_{t2v,i2v,r2v}` templates, which landed
   2026-08-02, after the last weekly cut). Synced across README, MODEL_INDEX, SKILL.md and all four re-rendered
   banners; category counts recomputed from the manifest (Image 157, Video 152). The MODEL_INDEX MiniMax row now
   reads **API + local open weights** instead of API only. Recipe and model counts are unchanged: this extends the
   existing MiniMax family entry rather than adding a new one.
+
+
+### Fixed
+- **Corrected a wrong attribution before it shipped.** An earlier draft said kijai had nothing for MiniMax H3.
+  He has no H3 *weights*, but he does ship the SageAttention patch above inside KJNodes. The search was done at
+  repository granularity and missed a node inside an existing pack.
+- **Council review caught four defects in the new entry, all fixed:** the two-pass upscale recipe never named
+  **`SplitSigmas`**, so "high sigmas" and "low sigmas" had no source and the graph was not buildable; the
+  `inferred` marker on the `audio_denoise` diagnosis survived only in MODELS.md and was asserted flat in both
+  skill files; SKILL.md described three Autogrow reference families when the node has four, silently dropping
+  `ref_video_audios`; and the same claim carried two different dates. The routing also pointed at
+  `~/.claude/skills/minimax-h3/`, which did not exist until the skill was installed there.
+
 
 ## [2.7.0] - 2026-08-02
 

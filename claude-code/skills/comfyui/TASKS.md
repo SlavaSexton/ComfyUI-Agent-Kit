@@ -36,6 +36,21 @@ are local-first.
   `SaveImage`. Edit models (Qwen-Image-Edit, FLUX Kontext, Nano Banana, Boogu Edit): feed the input image + the
   instruction per their MODELS.md entry.
 
+## generate-image with Krea (hosted API or open weights)
+- **Decide the fork first:** a **moodboard** from krea.ai, or more than one style reference image, forces the
+  hosted path. Output above 1K, or free generation, forces the local path. Read `~/.claude/skills/krea/` before
+  building either; the full Krea 2 local graph stays in `MODELS.md`.
+- **Hosted chain:** `LoadImage` -> `Krea2StyleReferenceNode` (chain node to node, max 10) ->
+  `Krea2ImageNode` -> `SaveImage`. Pick the tier by budget as much as by look: Medium Turbo 0.015, Medium 0.03,
+  Large 0.06 USD per image, and a moodboard raises the rate. `creativity` is a combo (`raw` / `low` / `medium` /
+  `high`), NOT a number, whatever the embedded node doc says.
+- **FLUX.1 Krea Dev chain (photographic look, 11.09 GB fp8):** `UNETLoader`
+  (`flux1-krea-dev_fp8_scaled.safetensors`) + `DualCLIPLoader` (`clip_l` + `t5xxl_fp16`, type `flux`) ->
+  `CLIPTextEncode` -> `KSampler` (20 steps, cfg 1.0, euler / simple) with `ConditioningZeroOut` as the negative
+  and `EmptySD3LatentImage` -> `VAEDecode` (`ae.safetensors`) -> `SaveImage`. The official template carries no
+  `FluxGuidance` node.
+- **Realtime video is not a ComfyUI job.** Krea Realtime 14B has no ComfyUI path; see the skill for what to run.
+
 ## generate-video
 - **Template:** "image to video" / "text to video" + the backend (LTX-2.3, Wan 2.2, HunyuanVideo); filter by the
   `video` tag if a text search returns image results. For i2v, feed the start frame via `LoadImage`.

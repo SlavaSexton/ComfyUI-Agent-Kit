@@ -113,6 +113,44 @@ vx.y.z`), which can become a GitHub Release.
   unaligned splats interpenetrate when merged. `TASKS.md` gains routes for both jobs; `SKILL.md` and `_INDEX.md`
   point at the new category. Sockets are CURATED from source, not `get_node_info`-confirmed, and labelled so.
 
+- **A dedicated `krea` skill** (`shared/krea/`, fourth shipped skill). It exists because the kit knew Krea 2's
+  LOCAL graph in depth and nothing else Krea makes. SKILL.md owns the fork that decides the job: the hosted API
+  (billed per image, capped at 1K, the only path that reads a krea.ai **moodboard**) against the open weights
+  (free, any resolution, no moodboard), plus the FLUX.1 Krea Dev graph, Krea Realtime 14B, and the Krea 2
+  custom-node packs. `reference.md` owns full node I/O, the price matrix and measured weight sizes. `MODELS.md`
+  stays the source of truth for the local Raw / Turbo graph and now points at the skill for everything else.
+- **The Krea hosted API nodes, read from `comfy_api_nodes/nodes_krea.py`.** `Krea2ImageNode` (three tiers:
+  Medium for expressive illustration, Large for expressive photorealism, Medium Turbo for speed) and
+  `Krea2StyleReferenceNode`, which **chains node to node** up to a hard ceiling of 10 references and raises on
+  the eleventh. Wiring and widget order confirmed against the shipped `api_krea2_t2i` and
+  `api_krea2_style_reference` templates. Price matrix from the node's own price-badge expression: 0.015 / 0.03 /
+  0.06 USD per image for Turbo / Medium / Large, rising with a style reference and again with a moodboard, and
+  a moodboard overrides rather than adds. Two traps recorded: `resolution` offers **only `1K`**, and style
+  `strength` runs -2.0 to 2.0 where negative INVERTS the style rather than weakening it.
+- **`FLUX.1 Krea Dev`, buildable.** The graph read out of the official `flux1_krea_dev` template by expanding
+  its subgraph: `UNETLoader` (`flux1-krea-dev_fp8_scaled.safetensors`) + `DualCLIPLoader` (`clip_l` +
+  `t5xxl_fp16`, type `flux`) -> `CLIPTextEncode` -> `KSampler` at 20 steps, cfg 1.0, euler / simple, with
+  `ConditioningZeroOut` as the negative, `ae.safetensors` on the VAE. **The template carries no `FluxGuidance`
+  node at all**, verified by string search rather than by eye. Weights measured at 11.09 GB, and the Comfy-Org
+  repack is ungated where the Black Forest Labs original is not.
+- **Krea Realtime 14B, and the finding that it has no ComfyUI path.** Apache-2.0, distilled from Wan 2.1 14B
+  with Self-Forcing, 11 fps at 4 steps on a B200 by the vendor's own figure, KV Cache Recomputation and KV Cache
+  Attention Bias against error accumulation. The negative claim was checked the way this kit has learned to
+  check them: a **content** search across GitHub for the checkpoint filename, not a repository-name search. It
+  returns DiffSynth-Studio, LightX2V, `daydreamlive/scope` and research forks, and no ComfyUI node. Measured
+  sizes decide the hardware question: the official single file is 26.61 GB and does not fit a 24 GB card, the
+  community fp8 repack is 13.31 GB and does.
+- **The Krea 2 ComfyUI ecosystem, filtered by adoption rather than by search rank.** Three packs cover jobs the
+  kit had no answer for: `lbouaraba/comfyui-krea2edit` (410 stars) for identity-preserving instruction editing,
+  `facok/comfyui-krea2-controlnet` (162) for depth / canny / pose control through a Control LoRA, and
+  per-layer conditioning control, recorded as a genuine two-horse choice rather than a supersede: the fork
+  `huwhitememes/comfyui-krea2-conditioning` (126) RMS-renormalises Krea 2's twelve conditioning taps and argues
+  its upstream inflates their magnitude ~8.7x, but that upstream `nova452/ComfyUI-ConditioningKrea2Rebalance`
+  carries 477 stars and is still maintained, so the fork is the minority technical case and is labelled as such.
+  Five more packs were found and are named
+  as **not** recommended at 0 to 2 stars, so nobody re-finds them and assumes the kit missed something. The
+  `krea` org on Hugging Face was listed exhaustively, which is how the nine official style LoRAs were confirmed
+  as already covered rather than assumed missing.
 ### Changed
 - **`tools/build_plugin.py` now discovers skills instead of listing them.** It bundled `seedance` from a
   hardcoded block, so `minimax-h3` would have been silently left out of the plugin. It now walks `shared/` and
@@ -170,14 +208,6 @@ vx.y.z`), which can become a GitHub Release.
   Blender: set the camera route in your DCC, export the white-model video, upload through the plugin, and
   Seedance references the white-model action and camera movement.
 
-### Fixed
-- **Two plugin manifests had drifted and nobody was watching them.** `.claude-plugin/marketplace.json`
-  and `claude-code/.claude-plugin/plugin.json` both advertised **67 model prompt recipes** against an
-  actual 75, and `plugin.json` still declared **version 1.9.0** while the repo shipped 2.6.0. Same class
-  as the GitHub About box: a surface that no file edit touches and no count sync reached. Both corrected,
-  and the manifest counts are now part of the release checklist.
-
-### Added
 - **Seedance 1.5 Pro, a whole tier the recipe had been silent about.** `docs/MODEL_INDEX.md` already listed
   it; `MODELS.md` did not mention it once, so an agent reading the recipe would never reach it. The weekly
   cycle could not catch this because `check_updates.py` reports only the delta since the last run and 1.5
@@ -194,6 +224,14 @@ vx.y.z`), which can become a GitHub Release.
   shot sequencing, the counterintuitive official rule to use 4 to 5 assets rather than the 50-asset
   ceiling, and the failure table for face drift, duplicate characters, unwanted subtitles and extension
   seams. Distilled from the official BytePlus ModelArk prompt guide.
+
+
+### Fixed
+- **Two plugin manifests had drifted and nobody was watching them.** `.claude-plugin/marketplace.json`
+  and `claude-code/.claude-plugin/plugin.json` both advertised **67 model prompt recipes** against an
+  actual 75, and `plugin.json` still declared **version 1.9.0** while the repo shipped 2.6.0. Same class
+  as the GitHub About box: a surface that no file edit touches and no count sync reached. Both corrected,
+  and the manifest counts are now part of the release checklist.
 
 
 ## [2.6.0] - 2026-08-01

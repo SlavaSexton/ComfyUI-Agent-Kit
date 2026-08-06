@@ -149,3 +149,34 @@ All I/O below is **confirmed via get_node_info: 2026-06-30** (live ComfyUI 0.25.
 - **bugs / lags + fixes:** none known in the node itself. The live pull shows a separate, explicitly DEPRECATED sibling `VoxelToMeshBasic` (display "Voxel to Mesh (Basic) (DEPRECATED)") that has no `algorithm` input; do not reach for that one, this `VoxelToMesh` with `algorithm = basic` supersedes it.
 - **anti-patterns:** using the deprecated `VoxelToMeshBasic` instead of this node. Feeding a `SPLAT` or a `MESH` (it needs a `VOXEL`; for a splat use Extract Mesh from Splat). A `threshold` set wrong for the grid can give an empty or bloated mesh; it is a normal parameter, not a bug, so adjust within the -1 to 1 range.
 - **placement:** the surfacing step in a voxel pipeline. A `VOXEL` source feeds it; its `MESH` output feeds Save 3D Model, Preview 3D, or another `MESH` consumer.
+
+### File3DToSplat  (display: "Get Splat")
+- **category:** `3d/splat` | **purpose:** parse a splat File3D back into a live `SPLAT`. The exact inverse of
+  `SplatToFile3D` ("Create 3D File (from Splat)").
+- **inputs:** `model_3d` (FILE3D) | **outputs:** `splat` (SPLAT).
+- **placement:** the entry point when your splat arrives as a file rather than from a generator: load it, then
+  transform / merge / render it in-graph.
+
+### TransformSplat  (display: "Transform Splat")
+- **category:** `3d/splat` | **purpose:** translate, rotate and scale a gaussian splat.
+- **inputs:** `splat` (SPLAT) plus nine floats, `translate_x/y/z`, `rotate_x/y/z`, `scale_x/y/z` |
+  **outputs:** `splat` (SPLAT).
+- **placement:** between load and render. This is how you align two splats into one coordinate frame before
+  `MergeSplat`, and how you re-centre a capture whose origin is somewhere unhelpful.
+
+### MergeSplat  (display: "Merge Splats")
+- **category:** `3d/splat` | **purpose:** concatenate any number of splats into one.
+- **inputs:** `splats` (Autogrow, so the socket count grows as you connect) | **outputs:** `splat` (SPLAT).
+- **placement:** after aligning inputs with `TransformSplat`. Useful for unioning several decodes of the same
+  subject, or for assembling a set piece from separately captured parts. Merging unaligned splats produces
+  interpenetrating clouds, so transform first.
+
+### GetSplatCount  (display: "Get Splat Count")
+- **category:** `3d/splat` | **purpose:** the number of splats summed across the batch.
+- **inputs:** `splat` (SPLAT) | **outputs:** `splat` (SPLAT, passthrough) + `count` (INT).
+- **placement:** inline anywhere on the splat line, since it passes the splat through. The cheap sanity check
+  before an expensive render: a count of zero or an unexpected order of magnitude tells you the decode failed
+  long before you wait on `RenderSplat`.
+
+**Status:** the splat module is **master only** as of 2026-08-06, not in a tagged release. I/O read from
+`comfy_extras/nodes_gaussian_splat.py`, not confirmed with `get_node_info`.

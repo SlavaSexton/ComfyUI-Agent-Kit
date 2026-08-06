@@ -72,3 +72,32 @@ are local-first.
   entry for the field structure.
 - **Chain:** the audio model nodes -> `SaveAudio`. Audio support is newer with fewer templates, so fall back to
   `/object_info` discovery for the available audio nodes.
+
+## Train a LoRA (in ComfyUI, no external trainer)
+
+**Route:** [`NODE_LIBRARY/training.md`](NODE_LIBRARY/training.md) for every node and socket.
+
+1. Put images and matching `.txt` captions in one folder under ComfyUI's input tree.
+2. `LoadImageTextDataSetFromFolder` -> `MakeTrainingDataset` (wire the SAME `vae` and `clip` the target model
+   uses) -> `ResolutionBucket`.
+3. `SaveTrainingDataset` once, so later runs start from `LoadTrainingDataset` instead of re-encoding.
+4. `TrainLoraNode` with the model, the bucketed `latents` and `positive`. Raise `grad_accumulation_steps`
+   rather than `batch_size` when VRAM is tight.
+5. `SaveLoRA` **and** `LossGraphNode` off its outputs, or the run leaves nothing behind and tells you nothing.
+6. `LoraModelLoader` to test the result in the same session.
+
+**Check first:** the trainer is in released core, but the dataset nodes were **master only** as of 2026-08-06.
+Probe with `get_node_info MakeTrainingDataset` before promising this flow on a given build.
+
+## Render a gaussian splat sequence
+
+**Route:** [`NODE_LIBRARY/three-d.md`](NODE_LIBRARY/three-d.md) (splat section).
+
+1. `File3DToSplat` to load, or take a `SPLAT` from its generator.
+2. `GetSplatCount` inline as a sanity check before spending time on a render.
+3. `TransformSplat` to place it, `MergeSplat` if you are combining captures (transform first, then merge).
+4. `CreateCameraInfo` for the viewpoint, then `RenderSplat` with `frames` above 1 to get a **sequence** rather
+   than a still, which is how a camera move is rendered.
+5. `SplatToMesh` instead, when the deliverable is geometry for a conventional 3D package.
+
+**Check first:** master only as of 2026-08-06.

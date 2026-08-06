@@ -19,6 +19,10 @@ Only this SKILL.md auto-loads; everything else is read when relevant, so route t
 - **`docs/TASKS.md`** - a named common job (generate image / video / audio / 3D, upscale, remove background): the local end-to-end flow for that task, a shortcut layer over this manual.
 - **`docs/NODE_LIBRARY/smart-upscaler.md`** - our Smart Upscaler pack (11 nodes): tiled upscaling that writes a separate verified prompt per tile. Read it when a tiled upscale of a BUSY or MIXED scene keeps producing confidently wrong tiles or disagreeing seams; the cheaper sampler-tilers in `ADVANCED.md` stay the right call for uniform subjects.
 - **`docs/MODEL_INDEX.md`** - the full classified list of all 157 models (recipe / utility / template-only); check whether a named model has a recipe, is a utility, or is template-only.
+- **`docs/NODE_LIBRARY/training.md`** - the nodes that let a graph MAKE a model, not just prompt one: core's
+  `TrainLoraNode` / `SaveLoRA` / `LossGraphNode` plus the 16 dataset nodes (`MakeTrainingDataset`,
+  `ResolutionBucket`, the image-text loaders, video temporal crops) and the full chain wired end to end. Read it
+  whenever someone asks to train or fine-tune anything; `docs/TASKS.md` has the short route.
 - **`docs/ADVANCED.md`** - hard tasks: real strengths, gotchas + workarounds, temporal stability, high-detail matting, crop-and-stitch inpaint, PBR, and the verified tool table with licenses.
 - **`docs/KNOWN_ISSUES.md`** - read BEFORE building, so you do not wire around a currently-broken path.
 - **`docs/NODE_LIBRARY/_INDEX.md`** - the per-node reference (Nuke-style): for any node, what each input / output is for, how it behaves, bugs + fixes, anti-patterns, and where it slots in a graph. **Start here for ANY node question**, then query `get_node_info` for live I/O. When you use or meet a node not in it, add the entry before finishing (`docs/NODE_LIBRARY/_SCHEMA.md`).

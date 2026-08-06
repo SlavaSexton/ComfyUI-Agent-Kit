@@ -59,10 +59,11 @@ One file per category; every core node used across our workflows. Live I/O alway
 | `image-1.md` | 20 | scale / upscale / composite / outpaint / mask / batch / Canny |
 | `image-2.md` | 14 | load / preview / save (WEBP/SVG), resize, mask compositing |
 | `advanced.md` | 21 | UNET/CLIP loaders, Flux conditioning, ModelSampling, CFG/SLG patches |
-| `three-d.md` | 8 | gaussian splat, Load3D / Preview3D, SaveGLB, voxel to mesh |
+| `three-d.md` | 12 | gaussian splat (render / transform / merge / count / mesh), Load3D / Preview3D, SaveGLB, voxel to mesh |
 | `video.md` | 6 | Create / Save / Load / GetComponents / Slice / SaveWEBM |
 | `audio.md` | 5 | Load / Save (MP3/Opus) / Concat / Record |
 | `text.md` | 6 | string / regex / json helpers + local TextGenerate (LLM) |
+| `training.md` | 20 | LoRA training in core (TrainLoraNode, SaveLoRA, LossGraphNode) + the 16 dataset nodes (MakeTrainingDataset, ResolutionBucket, image-text / video loaders, temporal crops) |
 | `utilities.md` | 11 | primitives, math, switch, resolution, PreviewAny, SUPIRApply |
 | `experimental.md` | 6 | VAEDecodeTiled, DifferentialDiffusion, FluxKVCache, ManualSigmas |
 

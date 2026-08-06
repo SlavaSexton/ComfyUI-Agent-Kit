@@ -153,6 +153,20 @@ vx.y.z`), which can become a GitHub Release.
   as already covered rather than assumed missing.
 ### Fixed
 
+- **The kit was verified end to end on a live ComfyUI, which is what the audit's own reviewers said nobody had
+  done.** Server started with the launch command the kit records for this machine (30 s to `/system_stats` 200,
+  matching the documented 30 to 60 s), then the kit's own procedure followed step by step: `machine.md` gave the
+  template-library path, the quick index resolved 680 entries, `MODELS.md` routed to `MODELS/image-open.md` and
+  the recipe read whole in one call, the graph was built to that recipe (1024x1024, 30 steps, CFG 7,
+  dpmpp_2m + karras, negatives, since SDXL requires them), `validate_workflow` passed, `enqueue_workflow` ran it
+  in 17.2 s, `workflow_layout.py` reported zero overlaps, and the output was fetched and looked at rather than
+  assumed: 1024x1024, matching the recipe. Every layer of the kit was exercised by the path a user takes.
+- **`COMFYUI_PATH` gates more MCP tools than the docs said.** The kit warned about it for `download_model` only.
+  On the live run `list_output_images` failed the same way, and it is the tool an agent reaches for first after
+  a render. SKILL.md now names the whole class and gives the configuration-free workaround: read filenames from
+  `/history/<prompt_id>` and bytes from `/view`, which is pure HTTP and needs no environment variable. Found by
+  running, not by reading.
+
 - **The documented installer shipped a skill that could not work.** `agents/*/install.{ps1,sh}` copied three
   files (SKILL.md, MODELS.md, comfy_client.py) plus an empty `workflows/` dir. SKILL.md routes to 22 files, so
   a fresh install left **21 of 22 routes dead**: no `docs/`, no `NODE_LIBRARY/`, no `workflow_layout.py` (which

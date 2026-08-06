@@ -335,6 +335,13 @@ ComfyUI reads models from one or more model roots. On a **source install** it is
 - Direct download is most reliable: `curl -fL -C - -o "<root>/<type>/<filename>" "<url>"`. Use the official
   Comfy-Org repackaged Hugging Face repos (`.../resolve/main/...` direct links). `-C -` resumes a partial file.
   Big models (tens of GB) are fine to run in the background; verify final size after.
+- **`COMFYUI_PATH` gates a whole family of MCP tools, not just downloads.** Anything that reads the install's
+  filesystem rather than its HTTP API fails with `COMFYUI_PATH is not configured` when it is unset:
+  `list_output_images` is the one you hit first, since it is the natural way to find what you just rendered.
+  Confirmed on a live run 2026-08-06. **The workaround needs no configuration:** pull the filenames from
+  `GET /history/<prompt_id>` and fetch the bytes from
+  `GET /view?filename=...&type=output&subfolder=...`, which is pure HTTP and always works. Set `COMFYUI_PATH`
+  to the real ComfyUI root if you want the filesystem tools as well.
 - The MCP `download_model` works ONLY if the MCP server has `COMFYUI_PATH` set, and it writes to
   `COMFYUI_PATH/models/<type>`, which on Desktop is usually NOT the shared root, so files can land where ComfyUI
   cannot see them. Prefer direct download to the detected root (or set COMFYUI_PATH to the real root first).

@@ -173,7 +173,7 @@ $0.17/s plus input billing this is not a model to iterate on casually.
     Trigger phrase **"A 360-degree panoramic video"**, weight **0.6-1** (even ~0.2 can work), aspect **2:1**, over
     the base t2v graph, optionally stacked with the distilled speed LoRA. A ready graph
     `LTX-2.3_360vr_distilled_3stage.json` ships in the panorama-stickers repo; this CivitAI LoRA is the one the
-    public Floyo template wraps (corrects my earlier "source unconfirmed" note). KNOWN ISSUE: early versions left a
+    public Floyo template wraps (corrects the earlier "source unconfirmed" note). KNOWN ISSUE: early versions left a
     visible vertical SEAM where the sphere wraps - the author reports it FIXED (civitai.com/articles/25291), and
     panorama-stickers' Seam Prep node is the in-graph fallback. (b) **flat footage -> 360 outpaint** via
     `TheBurgstall/VR-360-Outpaint-LTX2.3-IC-LoRA` (public, `cc-by-nc-4.0`, **v0.1 proof-of-concept**, file

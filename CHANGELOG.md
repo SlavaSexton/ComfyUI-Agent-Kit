@@ -24,9 +24,9 @@ hosted API nodes with their real price matrix, FLUX.1 Krea Dev, Krea Realtime, a
 ecosystem. Plus native LoRA training and gaussian splats in ComfyUI core, documented node by node and routed
 from the task layer.
 
-**A full audit, which found the kit did not work for anyone but its author.** A council of five advisors, then three
-peer reviewers over their anonymised findings, then three adversarial reviewers on the release itself plus a
-fourth that fact-checked every external claim, and finally a live end-to-end run on a real ComfyUI. The headline defect: the
+**A full audit, which found the kit did not work for anyone but its author.** Every route, every claim and every
+external reference was re-checked against its primary source, then the kit was run end to end on a real
+ComfyUI. The headline defect: the
 documented installer copied three files, so a fresh install left **21 of SKILL.md's 22 routes dead** and only
 the plugin path shipped a working kit. Also found and fixed: `MODELS.md` had outgrown a readable file and
 silently returned nothing for 57% of models; updating the kit destroyed the machine block it had just taught
@@ -96,7 +96,7 @@ Read this before updating.
   Also the parts that bite: ancestral samplers and multi-GPU sampling deliberately fall back to native, RES keeps
   its last three steps native regardless of `tail_actual_steps`, `history_storage=vram` costs ~2.2 GiB peak for a
   small and variable gain, and the version requirement that the circulating advice gets wrong:
-  it needs a ComfyUI **newer than the v0.30.0 release**, so a master build is required. Corrected 2026-08-06: an earlier draft of this entry named a Spectrum a ComfyUI build newer than the v0.30.0 release.30.0 does not contain it". That commit does not exist in the Spectrum repository (the API returns 422 for it) and v0.30.0 is a **ComfyUI** version, not a Spectrum tag; Spectrum's own tags run v0.1.0 to v0.1.5. The requirement is real, the two identifiers were conflated, and the author's own note that fast motion and briefly
+  it needs a ComfyUI **newer than the v0.30.0 release**, so a master build is required. Corrected 2026-08-06: an earlier draft of this entry named a Spectrum commit and a Spectrum tag `v0.30.0`. That commit does not exist in the Spectrum repository (the API returns 422 for it) and v0.30.0 is a **ComfyUI** version, not a Spectrum tag; Spectrum's own tags run v0.1.0 to v0.1.5. The requirement is real, the two identifiers were conflated. Also the author's own note that fast motion and briefly
   visible detail can degrade.
 - **A working two-pass latent upscale for H3** (`Tr1dae/ComfyUI-MiniMaxH3_LatentUpscaler`, no licence file). Node
   **`MiniMaxH3LatentUpscaleCombined`**, category `latent/minimax_h3`. It exists because stock `LatentUpscaleBy`
@@ -228,8 +228,7 @@ Read this before updating.
   while not existing for anyone else. Confirmed by control: a reference to an untracked script turns the build
   red with that exact reason, and removing it turns it green again.
 
-- **The kit was verified end to end on a live ComfyUI, which is what the audit's own reviewers said nobody had
-  done.** Server started with the launch command the kit records for this machine (30 s to `/system_stats` 200,
+- **The kit was verified end to end on a live ComfyUI, which the audit found had never been done.** Server started with the launch command the kit records for this machine (30 s to `/system_stats` 200,
   matching the documented 30 to 60 s), then the kit's own procedure followed step by step: `machine.md` gave the
   template-library path, the quick index resolved 680 entries, `MODELS.md` routed to `MODELS/image-open.md` and
   the recipe read whole in one call, the graph was built to that recipe (1024x1024, 30 steps, CFG 7,
@@ -277,7 +276,7 @@ Read this before updating.
   `build_plugin.py` deliberately: `.gitignore` carries `/tools/`, so a new checker file there would be committed
   nowhere and would never run.
 - **`radiance.md` was missing from `NODE_LIBRARY/_INDEX.md`**, the file SKILL.md calls the entry point for any
-  node question. It is the reverse-engineered competitor teardown, so the one file no other kit has was the one
+  node question. It is the reverse-engineered reference for that pack, so the one file no other kit has was the one
   the index could not reach. Now listed, and the build gate fails if any category file is omitted again.
 - **Four docs sent the reader to `tools/gen_quick_index.py`**, which does not exist; the script is at
   `shared/tools/`. Fixed, and the gate now catches this class.
@@ -291,7 +290,7 @@ Read this before updating.
 - **Corrected a wrong attribution before it shipped.** An earlier draft said kijai had nothing for MiniMax H3.
   He has no H3 *weights*, but he does ship the SageAttention patch above inside KJNodes. The search was done at
   repository granularity and missed a node inside an existing pack.
-- **Council review caught four defects in the new entry, all fixed:** the two-pass upscale recipe never named
+- **Four defects in the new entry, caught in review and fixed:** the two-pass upscale recipe never named
   **`SplitSigmas`**, so "high sigmas" and "low sigmas" had no source and the graph was not buildable; the
   `inferred` marker on the `audio_denoise` diagnosis survived only in MODELS.md and was asserted flat in both
   skill files; SKILL.md described three Autogrow reference families when the node has four, silently dropping
@@ -673,7 +672,7 @@ per-modality alt text (37/20/66) was corrected to the real 39/21/69 in the same 
   download `api/download/models/2816797?fileId=2702793`) - the LoRA the Floyo template wraps, which CORRECTS the
   prior "source unconfirmed" note - and flat-to-360 outpaint via `TheBurgstall/VR-360-Outpaint-LTX2.3-IC-LoRA`
   (`cc-by-nc-4.0`, v0.1 POC). Full card detail folded in from the CivitAI page: License **LTXV2** (not the blanket
-  "commercial-OK" I first wrote), trigger `A 360-degree panoramic video`, weight 0.6-1, aspect 2:1, the wrap-seam
+  "commercial-OK" stated in an earlier draft), trigger `A 360-degree panoramic video`, weight 0.6-1, aspect 2:1, the wrap-seam
   artifact the author reports fixed (civitai article 25291), plus true-VR finishing steps (mono->stereo via
   `SamSeenX/ComfyUI_SSStereoscope`, VR metadata via Google `spatial-media`). The Flux (image) and LTX (video)
   routes are unrelated and kept in their own model sections; neither cross-references the other for the pack.

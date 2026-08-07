@@ -26,8 +26,8 @@ never write it into a graph or a client-facing spec.
 - ~~**Timestamp instructions.**~~ **RESOLVED 2026-08-02, promoted to `reference.md`.** Pollo's claim
   that time-addressed direction works turned out to be correct and understated. The official Dreamina
   Seedance 2.5 User Guide makes timestamps a headline feature with a documented syntax (`0s-3s:`) and a
-  three-module long-video formula built around them. Pollo was right and I was wrong to flag it as
-  dangerous: I was generalising the official **2.0** warning about unstable timing to 2.5, which is
+  three-module long-video formula built around them. Pollo was right and this entry was wrong to flag it as
+  dangerous: it generalised the official **2.0** warning about unstable timing to 2.5, which is
   exactly the version where it was fixed. Kept here as a reminder that a third-party lead can beat a
   stale primary source.
 - ~~**Native 4K.**~~ **REFUTED.** Claimed by Pollo and Morphic. The official 2.5 guide lists output

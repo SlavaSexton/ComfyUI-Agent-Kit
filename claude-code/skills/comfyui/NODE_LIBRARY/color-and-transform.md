@@ -17,7 +17,7 @@ image ──▶ Linear→Log ──▶ [scale / transform / distort / warp / ske
 ```
 
 - **Source / status:** *confirmed.* Standard practice in The Foundry's Nuke (OCIO `OCIOLogConvert` /
-  `OCIOColorSpace`) and the kit owner's own pipeline. Feed LINEAR data (linearize sRGB first); carry float
+  `OCIOColorSpace`) and in production VFX pipelines. Feed LINEAR data (linearize sRGB first); carry float
   through the wrap; convert back before any node that expects linear / sRGB.
 - **Why it works:** a log curve allocates more code values to darks and compresses brights the way perception
   does, so resampling in that space keeps tonal detail linear interpolation would average away. Same reason
@@ -47,7 +47,7 @@ You do not need OCIO to persist linear or HDR. Confirmed via get_node_info 2026-
   to protect.
 
 ## Status
-Technique: confirmed (Nuke / OCIO standard + owner pipeline). `OCIOLogConvert` (our ComfyUI-OCIO pack): the
+Technique: confirmed (Nuke / OCIO standard + production pipeline practice). `OCIOLogConvert` (our ComfyUI-OCIO pack): the
 ACEScct path is verified by a round-trip test (2026-06-30); the OCIO-config paths need a runtime smoke test
 (see `ocio.md`). `SaveImageAdvanced`, `LTXVHDRDecodePostprocess`: I/O confirmed via
 get_node_info 2026-06-30.

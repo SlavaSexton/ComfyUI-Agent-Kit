@@ -253,7 +253,7 @@ auto-hero pipeline). When you are already driving, write the prompt yourself, it
 
 ## Build a workflow AND show it in the owner's GUI (bidirectional bridge)
 
-The owner wants to SEE the graph Claude builds, in his own ComfyUI canvas, and tweak it. The bridge is the
+The owner may want to SEE the graph Claude builds, in their own ComfyUI canvas, and tweak it. The bridge is the
 GUI workflows folder, which both sides read and write: **`<ComfyUI>/user/default/workflows/`**.
 
 Two JSON formats, keep both in mind:

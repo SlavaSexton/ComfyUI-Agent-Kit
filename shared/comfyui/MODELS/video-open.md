@@ -109,13 +109,15 @@ all. Confirmed from `comfy_extras/nodes_wan.py` on master and the official templ
     `latent_image` from `WanAnimate2ToVideo`. Its LATENT goes to `TrimVideoLatent`, whose second input is
     `trim_latent`, then `VAEDecode` fed by a **`VAELoader`** (`Wan2_1_VAE_bf16.safetensors`) -> IMAGE ->
     `CreateVideo` -> `SaveVideo`.
-  - **Two `ComfySwitchNode` (core, `comfy_extras/nodes_logic.py`) do the two toggles, and you will not find them
-    by reading the happy path.** The first sits between the LoRA and `WanAnimate2Cache` and picks input 0 (the
-    model straight from `LoraLoaderModelOnly`) or input 1 (the same model through `ContextWindowsManual`), so a
-    boolean turns context windows on and off without rewiring. The second sits after `VAEDecode` and picks
-    either the full decoded batch or that batch with its first frame removed by
-    `ImageFromBatch(start=1, length=4096)`; its boolean comes from a `PrimitiveBoolean` and it is the seam trim
-    described below, wired rather than manual.
+  - **Two `ComfySwitchNode` (core, `comfy_extras/nodes_logic.py`, display name "If/Else Switch") do the two
+    toggles, and you will not find them by reading the happy path.** Its inputs are `switch` (BOOLEAN),
+    `on_false` and `on_true`, and it returns `on_true if switch else on_false`. The first instance sits between
+    the LoRA and `WanAnimate2Cache`: `on_false` is the model straight from `LoraLoaderModelOnly`, `on_true` is
+    the same model through `ContextWindowsManual`, so one boolean turns context windows on and off without
+    rewiring. The second sits after `VAEDecode`: `on_false` is the full decoded batch, `on_true` is that batch
+    with its first frame removed by `ImageFromBatch(start=1, length=4096)`, driven by a `PrimitiveBoolean`.
+    That second switch is the seam trim described below, already wired rather than manual. **Both ship set to
+    false**, so out of the box you get no context windows and no seam trim.
   - **The rest of the top level is scaffolding, not generation:** a `ComfyMathExpression` plus `PreviewAny`
     compute and display how many subgraph copies your driving video needs; `BatchImagesNode` concatenates the
     segments; and a second subgraph, `Video Stitch`, builds the side-by-side comparison against the driving

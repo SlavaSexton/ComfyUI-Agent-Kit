@@ -228,8 +228,11 @@ checkpoint with no special loader**. Community packs are now an optional layer, 
 
 - **Where it beats Wan Animate 2, which is the fork that actually matters.** Both eat raw driving video with no
   skeleton. But SCAIL-2 keeps the three things Animate 2 does NOT have in ComfyUI: **multi-character** (6
-  identities), **character replacement into an existing plate**, and a **Relighting LoRA**
-  (`model/relighting-lora.pt`, 1.23 GB, replacement mode only). Community write-ups that put those in the
+  identities), **character replacement into an existing plate**, and a **Relighting LoRA**, replacement mode
+  only. In the ComfyUI repack that file is `loras/wan2.1_SCAIL_2_relight_lora_bf16.safetensors` (1.23 GB), not
+  the `model/relighting-lora.pt` name the upstream repo uses; take the repack name. The same repack also ships
+  `loras/wan2.1_SCAIL_2_DPO_lora_bf16.safetensors` (1.23 GB), which is the one the official template loads.
+  Community write-ups that put those in the
   Animate 2 column are reading Wan Animate **v1**. Conversely Animate 2 needs no mask at all, and SCAIL-2 needs
   one always, even in Animation Mode. That mask is the real cost of this model.
 - **The graph** (node names and every widget value below read off the official template

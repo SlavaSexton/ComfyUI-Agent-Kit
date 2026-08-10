@@ -71,11 +71,48 @@ def _blog(n=8):
         return [("", f"(blog feed unavailable: {e})", "")]
 
 
+def _head(templates_dir):
+    r = subprocess.run(["git", "-C", templates_dir, "rev-parse", "HEAD"],
+                       capture_output=True, text=True)
+    return r.stdout.strip()[:8] if r.returncode == 0 else "?"
+
+
+def _pull(templates_dir):
+    """Pull, and REFUSE to report on stale data when it fails.
+
+    Fail-CLOSED on purpose, and the asymmetry is the whole point. This script used to call
+    `git pull` with check=False, so a failed pull did not stop it: it regenerated the index
+    from the unchanged tree and printed a confident "NEW TEMPLATES (0)" plus a totals line.
+    A dead .git/index.lock did exactly that from 2026-08-03 to 2026-08-09, hiding two core
+    releases (v0.30.0 and v0.31.0) and a week of new models behind a clean all-clear. A noisy
+    refusal costs one log line and a human's attention; a false all-clear costs a missed week,
+    and it leaves no evidence that anything went wrong.
+
+    The return code is checked but is NOT treated as proof the data moved: `git pull` answers 0
+    when there was nothing to fetch even with the lock present (verified 2026-08-09), so the
+    HEAD before/after pair is printed as the actual evidence.
+    """
+    before = _head(templates_dir)
+    r = subprocess.run(["git", "-C", templates_dir, "pull", "--quiet"],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        sys.stderr.write(
+            "\nREFUSING TO REPORT: `git pull` failed (exit {}) in {}\n"
+            "The template clone was NOT updated, so any diff below would describe stale data.\n"
+            "git said:\n{}{}\n"
+            "Fix the clone (a stale .git/index.lock is the usual cause), then re-run.\n"
+            .format(r.returncode, templates_dir, r.stdout, r.stderr))
+        raise SystemExit(3)
+    after = _head(templates_dir)
+    print("  HEAD {} -> {}{}".format(before, after,
+                                     "  (no new commits)" if before == after else ""))
+
+
 def main(templates_dir):
     _, old_names, old_models = _load(templates_dir)
 
     print(f"Pulling templates: {templates_dir}")
-    subprocess.run(["git", "-C", templates_dir, "pull", "--quiet"], check=False)
+    _pull(templates_dir)
     _regen(templates_dir)
     _, new_names, new_models = _load(templates_dir)
 

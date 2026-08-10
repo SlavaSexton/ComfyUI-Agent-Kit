@@ -148,9 +148,17 @@ all. Confirmed from `comfy_extras/nodes_wan.py` on master and the official templ
   the driving clip to about 16 to 24 fps if the motion reads too slow. `pose_start_percent` / `pose_end_percent`
   also buy speed: outside that window the pose branch is skipped entirely, and since motion is established early,
   an end around 0.7 loosens fine detail while keeping the choreography.
-- **Weights** (`Comfy-Org/Wan-Animate-2` on HF and the same repo on ModelScope): `diffusion_models/wan_animate_2_int8_convrot.safetensors`,
-  `loras/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors`, `text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors`,
-  `clip_vision/clip_vision_h.safetensors`, `vae/Wan2_1_VAE_bf16.safetensors`.
+- **Weights: `Comfy-Org/Wan-Animate-2` on HF (Apache-2.0), repackaged from `Wan-AI/Wan2.2-Animate-2-14B`.** All
+  filenames below verified present in the repo file listing on 2026-08-09. The template loads
+  `diffusion_models/wan_animate_2_int8_convrot.safetensors`,
+  `loras/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors`,
+  `text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors`, `clip_vision/clip_vision_h.safetensors`,
+  `vae/Wan2_1_VAE_bf16.safetensors`. The repo ships **four** diffusion checkpoints, not one:
+  `wan_animate_2_bf16`, `wan_animate_2_int8_convrot`, and a `_distill_` variant of each, plus a second text
+  encoder `umt5_xxl_fp16`. **Inferred, not confirmed:** by name the `_distill_` checkpoints already carry the
+  step distillation that the template supplies through the separate lightx2v LoRA, so they would let you drop
+  the `LoraLoaderModelOnly` and keep cfg 1 with a low step count. The card is a bare file listing and says
+  nothing about them, so test before relying on it.
 - **Source:** `comfy_extras/nodes_wan.py` on master (classes `WanAnimate2ToVideo`, `WanAnimate2Cache`, both
   registered in `WanExtension`) ; official template `video_wan_animate2.json` including its four MarkdownNote
   guides ; ComfyUI core release **v0.31.0** (2026-08-08), PR 15362 "feat: Support Wan-Animate2 (CORE-358)" ;

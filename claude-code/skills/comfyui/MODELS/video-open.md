@@ -156,15 +156,153 @@ all. Confirmed from `comfy_extras/nodes_wan.py` on master and the official templ
   `loras/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors`,
   `text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors`, `clip_vision/clip_vision_h.safetensors`,
   `vae/Wan2_1_VAE_bf16.safetensors`. The repo ships **four** diffusion checkpoints, not one:
-  `wan_animate_2_bf16`, `wan_animate_2_int8_convrot`, and a `_distill_` variant of each, plus a second text
-  encoder `umt5_xxl_fp16`. **Inferred, not confirmed:** by name the `_distill_` checkpoints already carry the
-  step distillation that the template supplies through the separate lightx2v LoRA, so they would let you drop
-  the `LoraLoaderModelOnly` and keep cfg 1 with a low step count. The card is a bare file listing and says
-  nothing about them, so test before relying on it.
+  `wan_animate_2_bf16` and `wan_animate_2_int8_convrot`, each with a `_distill_` variant. Sizes, read from the
+  HF blob listing: bf16 pair **32.79 GB** each (30.5 GiB), int8_convrot pair **16.65 GB** each (15.5 GiB).
+  - **The card lists a `text_encoders/umt5_xxl_fp16.safetensors` that does not exist in the repository.** The
+    file listing has exactly one text encoder, the fp8_scaled one. Confirmed 2026-08-09 against the API file
+    list; the card's own storage table is wrong. Do not go looking for the fp16 encoder here.
+  - **The `_distill_` checkpoints replace the lightx2v LoRA, they do not stack with it.** Three pieces of
+    evidence: the distill file is byte-for-byte the same size as the base (a remap of the same checkpoint, not
+    an adapter); upstream `Wan-AI` publishes Base and Distillation as two separate weight releases; and the
+    upstream README runs them differently, base at **40 steps / guidance 3.0**, distillation at **10 steps /
+    guidance 1.0**, with the diffusers example commented "no classifier-free guidance". **Still inferred at the
+    last step:** no source says in words "do not attach the LoRA to distill". Note the fork this opens: the
+    ComfyUI template runs base plus LoRA at **6** steps while upstream runs native distill at **10**, so
+    swapping is not automatically faster. Only a run settles it.
+- **Four capabilities the paper and the project page advertise that you CANNOT reach from ComfyUI today.** This
+  matters because community write-ups list them as features of the release. Each checked against the node
+  schema, the ComfyUI template, the upstream inference code and the weight listings on 2026-08-09.
+  - **Multi-character animation: no.** `WanAnimate2ToVideo` has one `reference_image` slot, no masks and no
+    autogrow, and the execute path takes `reference_image[:1]`, one frame. It is not a ComfyUI gap either:
+    upstream's demo script takes a single `--refer-img-file`, and the arXiv paper (2608.06009) does not contain
+    the words multi-character or multi-person at all. Only the project page mentions it, as
+    "single-to-multiple and multiple-to-multiple", with no described binding mechanism.
+  - **Text-driven viewpoint control: no, and the "Viewpoint LoRA" file does not exist anywhere.** The paper
+    describes it as a LoRA on the cross-attention projections trained on 48 Unreal Engine camera positions
+    (12 azimuths x 4 elevations), with prompt strings shaped like "Right 60-degree View, Top View". **The
+    weights are unpublished:** absent from `Wan-AI/Wan2.2-Animate-2-14B` (which holds only base and
+    distillation), from the whole `Wan-AI` org listing, from the Comfy-Org repack, from ModelScope, and from
+    HF search. Upstream's own inference has no LoRA-loading code and no camera argument. An open upstream issue
+    asks for it and has no answer. Treat any recipe that tells you to load a Wan Animate 2 viewpoint LoRA as
+    fiction.
+  - **Wan-Animate-2-Lite, the real-time streaming variant: no weights exist.** The paper reports 24 fps at
+    400x720 on a **4x H100** cluster, split one GPU for VAE encode, **two for a 3-step DiT**, one for decode.
+    The abstract promises to release only the Base weights. Distilled and Lite are different things and the
+    community already conflates them.
+  - **Character replacement is a REGRESSION against v1, not a feature.** The v1 node `WanAnimateToVideo` has
+    `background_video`, `character_mask` and `face_video`; `WanAnimate2ToVideo` has none of the three. To drop a
+    character into existing footage keeping the plate, you stay on **Wan 2.2 Animate v1**, template
+    `video_wan2_2_14B_animate.json`, which needs `ComfyUI-segment-anything-2`, `comfyui-kjnodes` and
+    `comfyui_controlnet_aux` and does the DWPose plus SAM2 preprocessing that v2 exists to avoid. Animate 2
+    does motion transfer onto a prompt-generated background, and that is all.
+- **Gotcha with real teeth: `positive_pose` silently keeps only the first conditioning entry.** The node reads
+  `pose_cond[0][0]`, so a `ConditioningCombine` fed into the pose branch loses everything after the first item
+  with no warning. A reviewer asked for a warning on the merging PR and it was not added.
+- **Hardware, and the honest version for a 24 GB card.** Upstream tunes its defaults for **8x A800 at 720p** and
+  reports testing **2x A800 at 480p**; there is no VRAM table and no single-GPU path in the upstream repo. In
+  ComfyUI the template's index entry claims 24 GiB, which puts a 3090 or 4090 exactly on the line. The
+  arithmetic that matters: `wan_animate_2_distill_int8_convrot` is 15.5 GiB, and the template ships
+  `WanAnimate2Cache` at `device=gpu, dtype=int8`, which the node's own numbers put near 5.8 GiB, so **21.3 GiB
+  is committed before a single activation**. The template's own tip text says to set the cache to `cpu`. Take
+  the tip, not the default, especially with 128 GB of system RAM available. **Inferred:** sampler activations
+  at 81 frames were not measured here, so the remaining headroom is a subtraction, not a benchmark. Note also
+  that two 24 GB cards do not add up: ComfyUI does not shard one diffusion model across GPUs.
 - **Source:** `comfy_extras/nodes_wan.py` on master (classes `WanAnimate2ToVideo`, `WanAnimate2Cache`, both
   registered in `WanExtension`) ; official template `video_wan_animate2.json` including its four MarkdownNote
-  guides ; ComfyUI core release **v0.31.0** (2026-08-08), PR 15362 "feat: Support Wan-Animate2 (CORE-358)" ;
-  blog.comfy.org "Wan Animate 2 is now available in ComfyUI" (2026-08-08). Read 2026-08-09.
+  guides ; ComfyUI core release **v0.31.0** (2026-08-08), PR 15362 "feat: Support Wan-Animate2 (CORE-358)" by
+  kijai, merged 2026-08-07, plus its review thread ; blog.comfy.org "Wan Animate 2 is now available in ComfyUI"
+  (2026-08-08) ; upstream `Wan-Video/Wan-Animate-2` (README, `wan_animate_2_demo.py`, pipeline and model code),
+  `Wan-AI/Wan2.2-Animate-2-14B` card and file listing, and arXiv **2608.06009v1**. Read 2026-08-09.
+
+### SCAIL-2 (zai-org / Zhipu, open weights, NATIVE in core since 2026-06-09)
+Character animation and **character replacement** driven by raw video plus a colored per-identity mask. Built on
+**Wan 2.1 I2V 14B** (dense, `in_dim 20`, `mask_dim 28`, and it still loads the Wan 2.1 CLIP vision, which Wan 2.2
+dropped), so it is a Wan 2.1 derivative, not a Wan 2.2 one.
+
+**Correction, recorded on purpose:** until 2026-08-09 this kit said the ComfyUI path was the community pack
+`collbroGTR/comfyui-scail2-infinity`. That was wrong. Core merged `Comfy-Org/ComfyUI` PR **14373** (kijai) on
+2026-06-09 and multi-reference PR **14509** on 2026-06-17. The nodes are in `comfy_extras/nodes_scail.py`, two
+official templates ship (`video_wan21_scail2_character_replacement.json` and its `_int8` twin) plus subgraph
+blueprints, and detection is by the `patch_embedding_mask.weight` key, so **plain `UNETLoader` recognises the
+checkpoint with no special loader**. Community packs are now an optional layer, not the road in.
+
+- **Where it beats Wan Animate 2, which is the fork that actually matters.** Both eat raw driving video with no
+  skeleton. But SCAIL-2 keeps the three things Animate 2 does NOT have in ComfyUI: **multi-character** (6
+  identities), **character replacement into an existing plate**, and a **Relighting LoRA**
+  (`model/relighting-lora.pt`, 1.23 GB, replacement mode only). Community write-ups that put those in the
+  Animate 2 column are reading Wan Animate **v1**. Conversely Animate 2 needs no mask at all, and SCAIL-2 needs
+  one always, even in Animation Mode. That mask is the real cost of this model.
+- **The graph** (node names and every widget value below read off the official template
+  `video_wan21_scail2_character_replacement.json`, which wraps the work in a `Character Replacement (SCAIL-2
+  Base)` subgraph):
+  - **Model side:** `UNETLoader` (`wan2.1_14B_SCAIL_2_fp16.safetensors`) -> **two** `LoraLoaderModelOnly` in
+    series, first `lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors` at **0.8**, then
+    **`wan2.1_SCAIL_2_DPO_lora_bf16.safetensors` at 1.0** (a DPO preference LoRA shipped with the model, easy
+    to miss and not mentioned in any community write-up) -> `ModelSamplingSD3` shift 5 -> `SamplerCustom`.
+    `CLIPLoader` (`umt5_xxl_fp8_e4m3fn_scaled.safetensors`, type `wan`) and `VAELoader`
+    (`Wan2_1_VAE_bf16.safetensors`) as usual.
+  - **Do not misread the loaders:** there is also a `CheckpointLoaderSimple` in this graph, and it loads
+    **`sam3.1_multiplex_fp16.safetensors`**, the SAM3 tracker, not the diffusion model.
+  - **Mask side:** `CheckpointLoaderSimple` (SAM3) feeds **two** `SAM3_VideoTrack` nodes, one for the driving
+    video and one for the reference image, and both go into `SCAIL2ColoredMask`. Same on a plain MASK if you
+    already have one -> its optional `reference_masks` input.
+  - **`SCAIL2ColoredMask`** ("Create SCAIL-2 Colored Mask", category `model/conditioning/wan/scail`) has
+    `object_indices` (comma-separated, e.g. `0,2,3`, empty = all), `sort_by` (`none` / `left_to_right` /
+    `area`, default `left_to_right`) and `replacement_mode`. Outputs `pose_video_mask` and
+    `reference_image_mask`.
+  - **`sort_by` IS the character binding.** There are no named slots. The node paints a fixed 6-colour palette
+    onto tracked objects in that order and uses **the same order on both outputs**, which is what ties an
+    identity in the reference to the same identity in the driving video. Objects appearing in earlier frames
+    always sort first.
+  - **`WanAnimate2ToVideo`'s counterpart here is `WanSCAILToVideo`** (same category, EXPERIMENTAL). Inputs:
+    `positive`, `negative`, `vae`, `width` 512, `height` 896 (**both step 32**), `length` 81 (step 4),
+    `batch_size`, then optional `pose_video` (**downscaled to half the main resolution by the node**),
+    `pose_video_mask`, `replacement_mode`, `pose_strength` 1.0 (0 to 10), `pose_start` 0.0, `pose_end` 1.0,
+    `reference_image`, `reference_image_mask`, `clip_vision_output`, `video_frame_offset`,
+    `previous_frame_count` 5, `previous_frames`. Outputs: `positive`, `negative`, `latent`,
+    `video_frame_offset`.
+  - Then the tail: `SamplerCustom` -> `VAEDecode` -> **`ColorTransfer`** -> `CreateVideo` -> `SaveVideo`, with a
+    second `CreateVideo` / `SaveVideo` pair and `PreviewImage` for the comparison view, and
+    `BatchImagesNode` + `ComfyMathExpression` + `PreviewAny` doing the chunk bookkeeping at the top level.
+  - **`ColorTransfer`** ("Transfer Color", core `comfy_extras/nodes_post_processing.py`, category
+    `image/filters`) is not decoration in a replacement graph: it matches the generated character's colours
+    back to the plate. Inputs `image_target`, `image_ref`, `method` (`reinhard_lab` / `mkl_lab` / `histogram`)
+    and a `source_stats` DynamicCombo (`per_frame` / `uniform` / `target_frame`, the last revealing a
+    `target_index`). For a locked-off plate `uniform` avoids the per-frame flicker `per_frame` can introduce.
+  - **Shipped sampling settings:** `SamplerCustom` add_noise true, cfg **1**, `KSamplerSelect` **`euler`**,
+    `BasicScheduler` `simple` at **6** steps, `ModelSamplingSD3` shift 5. cfg 1 at 6 steps is the lightx2v
+    distill LoRA doing its job, same trick as Wan Animate 2. The `PrimitiveInt` / `PrimitiveFloat` nodes in the
+    subgraph expose 6 and 40 steps and cfg 1 and 5 as switchable presets, which is the un-distilled fallback.
+  - **Template resolution is 512x896 at length 65**, not the node defaults, so do not assume 81 here.
+- **The palette is not decorative.** Core hardcodes `DEFAULT_PALETTE` as exactly blue, red, green, magenta,
+  cyan, yellow with the comment that the model was trained on these exact colours, and assigns them `i % 6`.
+  **Six identities is the ceiling**, and a seventh silently reuses the first colour. White is background.
+- **`replacement_mode` must match in BOTH nodes or you get garbage.** It flips the mask background on each
+  output in opposite directions: Animation Mode = driving mask on black, reference mask on white; Replacement
+  Mode = the reverse. `WanSCAILToVideo` also turns it into the `ref_mask_flag` on the conditioning, so the two
+  nodes disagreeing means the model is told one thing and shown another.
+- **Multi-reference:** the first `reference_image` in the batch is the primary (composite every identity onto
+  it); extra batch images are additional views (back view, close-up, occluded background), each needing a
+  matching entry in the `reference_image_mask` batch in that identity's colour.
+- **Long video is chunked, and this is a real streaming path**, contrary to comparisons that say it has none:
+  feed the previous chunk's full decoded output into `previous_frames` and its `video_frame_offset` into the
+  next chunk. Trained at `previous_frame_count` **5** with 81-frame chunks and a 76-frame step. The node
+  subtracts the anchor frames from the offset itself.
+- **Weights** (`Comfy-Org/SCAIL-2`): fp16 32.79 GB, fp8_scaled 17.69 GB, int8_convrot 16.65 GB, mxfp8 17.15 GB,
+  and an nvfp4 mix whose filename carries a typo (`mxpf8`) that you must copy verbatim. Community GGUF quants
+  exist. **No author has ever published a VRAM requirement** for this model, in the card, either README, the
+  ComfyUI docs or the issue tracker; numbers circulating online are file sizes relabelled as requirements.
+- **Licence is split:** the code repo `zai-org/SCAIL-2` carries Apache-2.0 with a LICENSE file; the weights are
+  marked `license: mit` in the HF card frontmatter with no licence text shipped alongside them.
+- **Two things this entry used to get wrong besides the pack:** `pose_strength` was described as "exact-copy vs
+  style adaptation"; it is a ComfyUI-side multiplier whose tooltip reads "Strength of the pose latent", and the
+  string does not appear in the upstream repo at all. And the mask preprocessor was called "the bundled
+  SCAIL-Pose"; on the native path masks come from **SAM3**, and the kijai `ComfyUI-SCAIL-Pose` pack targets
+  SCAIL-Preview (v1) and predates this model.
+- **Source:** `comfy_extras/nodes_scail.py` on master (`WanSCAILToVideo`, `SCAIL2ColoredMask`, `DEFAULT_PALETTE`,
+  registered in `SCAILExtension`) ; `Comfy-Org/ComfyUI` PRs 14373 and 14509 ; official templates
+  `video_wan21_scail2_character_replacement{,_int8}.json` ; `zai-org/SCAIL-2` repo and config `config-14b.json` ;
+  `Comfy-Org/SCAIL-2` file listing. Read 2026-08-09.
 
 ### LTX-2.3 (Lightricks)
 - **Prompt style (official guide):** ONE flowing cinematography paragraph, not tag dumps. Order: shot/framing ->

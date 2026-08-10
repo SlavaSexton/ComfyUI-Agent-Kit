@@ -22,9 +22,10 @@ file is missing.
 - **`MODELS.md`** (next to this file) - the INDEX of per-model prompt recipes. Look the model up in its table, then read that family file under `MODELS/` BEFORE writing the prompt. Two reads, not one: the index does not carry the recipes.
 - **the sibling `minimax-h3` skill** (invoke it by name; on disk it sits beside this skill, `../minimax-h3/` on Claude Code and Codex, `minimax-h3/` on Gemini and Qwen) - the dedicated MiniMax H3 (Hailuo 3) skill: prompt format (the three named fields, `<d>` dialogue, camera vocabulary), reference labelling, quants and acceleration, and a symptom-to-cause table. Read it for ANY H3 prompt or local-weights question; `MODELS.md` keeps the node-level detail.
 - **the sibling `krea` skill** (invoke it by name; beside this skill on disk) - the dedicated Krea skill: the fork between Krea's hosted API (`Krea2ImageNode` / `Krea2StyleReferenceNode`, per-image pricing, moodboards, capped at 1K) and its open weights, the FLUX.1 Krea Dev graph, Krea Realtime 14B and why its only ComfyUI pack is an unproven lead, and the Krea 2 custom-node packs for ControlNet / identity editing / conditioning control. Read it for the API path or the model choice; `MODELS.md` keeps the local Krea 2 graph.
+- **the sibling `seedance` skill** (invoke it by name; beside this skill on disk) - the dedicated ByteDance Seedance skill: the three task types and the word that switches between them, the `@Image 1` label syntax, the full-width symbol set, shot sequencing, the asset-count rule, the timing rules that reversed in 2.5, and a failure table. Read it for ANY Seedance prompt; `MODELS.md` keeps the node-level detail and the price maths.
 - **`docs/TASKS.md`** - a named common job (generate image / video / audio / 3D, upscale, remove background): the local end-to-end flow for that task, a shortcut layer over this manual.
 - **`docs/NODE_LIBRARY/smart-upscaler.md`** - our Smart Upscaler pack (11 nodes): tiled upscaling that writes a separate verified prompt per tile. Read it when a tiled upscale of a BUSY or MIXED scene keeps producing confidently wrong tiles or disagreeing seams; the cheaper sampler-tilers in `ADVANCED.md` stay the right call for uniform subjects.
-- **`docs/MODEL_INDEX.md`** - the full classified list of all 156 models (recipe / utility / template-only); check whether a named model has a recipe, is a utility, or is template-only.
+- **`docs/MODEL_INDEX.md`** - the full classified list of all 160 models (recipe / utility / template-only); check whether a named model has a recipe, is a utility, or is template-only.
 - **`docs/NODE_LIBRARY/training.md`** - the nodes that let a graph MAKE a model, not just prompt one: core's
   `TrainLoraNode` / `SaveLoRA` / `LossGraphNode` plus the 16 dataset nodes (`MakeTrainingDataset`,
   `ResolutionBucket`, the image-text loaders, video temporal crops) and the full chain wired end to end. Read it
@@ -372,8 +373,15 @@ blindly. Detect three numbers and compare them to the model's footprint.
 **Estimate a model's footprint:**
 - VRAM needed roughly equals the diffusion model's on-disk weight size, plus VAE + text encoder + activations
   (rule of thumb: weights size + ~2-6 GB headroom; video models need much more for the latent frames).
-- Precision ladder, smaller fits more: bf16/fp16 (full) > fp8 (~half) > GGUF Q8 > Q6 > Q4 (smallest). `MODELS.md`
-  lists the recommended variant and any VRAM note per model.
+- Precision ladder, smaller fits more: bf16/fp16 (full) > **int8-convrot** and fp8 (~half) > GGUF Q8 > Q6 >
+  **int4-convrot** and Q4 (smallest). `MODELS.md` lists the recommended variant and any VRAM note per model.
+- **At the half-size tier, prefer `int8-convrot` over fp8 unless a model ships only fp8.** It is native since
+  core v0.27.0, runs faster than fp16, and matches or beats fp8 on quality, with Turing and Ampere explicitly
+  supported (RTX 20xx / 30xx). Full method, the ConvRot paper, the conversion tool and the known int8 bugs are
+  in `docs/ADVANCED.md`; read it before choosing a variant, because this one line is the summary, not the rule.
+- **"Pruned" is a fourth axis, not a rung on this ladder.** A pruned checkpoint drops weights rather than
+  narrowing their precision, so it stacks with any of the above and its quality cost is model-specific.
+  **nvfp4** is a Blackwell-generation format (RTX 50xx); on Ampere it is not an option.
 - Download size on disk roughly equals the sum of every file (model + encoder(s) + VAE). Sum them first.
 
 **Decide and recommend:**

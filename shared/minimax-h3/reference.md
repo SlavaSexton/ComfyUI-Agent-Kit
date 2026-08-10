@@ -23,17 +23,23 @@ omni-reference variant.
 
 | File | Size |
 |---|---|
-| `minimax_h3_{fl2va,ref2va}_bf16.safetensors` | 66.3 GB |
-| `minimax_h3_{fl2va,ref2va}_int8_convrot.safetensors` | 34.0 GB |
-| `minimax_h3_{fl2va,ref2va}_pruned_int8_convrot.safetensors` | 21.0 GB |
-| `minimax_h3_{fl2va,ref2va}_pruned_fp8_scaled.safetensors` | 21.0 GB |
+| `minimax_h3_{fl2va,ref2va}_bf16.safetensors` | 66.28 GB |
+| `minimax_h3_{fl2va,ref2va}_pruned_bf16.safetensors` | **40.23 GB** |
+| `minimax_h3_{fl2va,ref2va}_int8_convrot.safetensors` | 34.04 GB |
+| `minimax_h3_{fl2va,ref2va}_pruned_int8_convrot.safetensors` | 20.97 GB |
+| `minimax_h3_{fl2va,ref2va}_pruned_fp8_scaled.safetensors` | 20.96 GB |
+
+Sizes re-read from the HF blob listing 2026-08-09; the `pruned_bf16` row was missing from this table before
+that date. **Pruned is a different axis from precision:** it drops weights rather than narrowing them, so
+`pruned_bf16` at 40.23 GB is full precision on a smaller network, while `pruned_int8_convrot` stacks both and
+is the smallest thing here that still runs the real model.
 
 Plus `text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors`,
 `vae/minimax_h3_video_vae_fp16.safetensors` and `vae/minimax_h3_audio_vae_fp32.safetensors`.
 
 **Where they go on disk.** The repo paths mirror the ComfyUI model tree, so under your ComfyUI base directory:
-`models\diffusion_models\` for the fl2va / ref2va checkpoint, `models	ext_encoders\` for the Qwen3-VL
-encoder, `modelsae\` for both VAEs. On a Desktop install the base directory is the one in Settings > Server
+`models\diffusion_models\` for the fl2va / ref2va checkpoint, `models\text_encoders\` for the Qwen3-VL
+encoder, `models\vae\` for both VAEs. On a Desktop install the base directory is the one in Settings > Server
 Config, not necessarily next to `main.py`. **The fastest first run is not hand-wiring the graph**: open the
 shipped template `video_minimax_h3_t2v` from the template browser and swap the checkpoint if needed.
 
@@ -81,6 +87,57 @@ in the initial release softer because the EMA had not matured. A ready workflow 
 an in-progress training run*: under-trained, EMA not fully matured, "quality is not representative of a
 completed run". The claim is roughly **4 sampling steps instead of ~20, about a 5x cut in sampling wall-clock**.
 Treat it as a fast draft mode, not a free quality-neutral win.
+
+## Sol-Attn: skip most KV blocks instead of quantising all of them
+
+Two packs, both created 2026-08-03, both aimed at H3, and **they are not the same implementation** even though
+community posts describe them as one. Paper: arXiv **2607.24027**, "Sol-Attn: Accelerating Video Generation
+Inference via On-the-Fly Attention Sparsification".
+
+- **`kijai/ComfyUI-SolAttn_triton`** is the one to reach for. Own Triton kernels, no `flex_attention`. Node
+  **`SolAttnPatch`** ("Patch Sol-Attn", category `sol_attn`, EXPERIMENTAL), MODEL to MODEL. Widgets: `tau`
+  (default **1.3**; its own hint reads 1.0 keeps about 16 percent of blocks exact, 1.5 about 7, 2.0 about 2.7),
+  `start_percent` 0.2, `end_percent` 0.9, `min_tokens` 4096, `int8_qk` true, `sink_conditioning`
+  (`exact_kv` / `exact_kv_and_rows` / `off`, default `exact_kv_and_rows`), `morton`, `morton_curve`, `int8_pv`,
+  `verbose`, `use_tma`, `tau_profile`, `dense_blocks`. Second node `SolAttnBlockProbe`. **No licence file at
+  all**, which is fine for personal use and a problem for anything else.
+- **`KingGore/ComfyUI_sol-attn_Blackwell`** (Apache-2.0) is the `flex_attention` plus `torch.compile` one, node
+  `SolAttnMiniMaxH3Patcher`, category `model_patches/optimization`, `tau` default **1.0**. **`tau` does not
+  transport between the two packs**, do not copy a value across.
+- **It composes with the Sage patch below rather than replacing it.** Sol-Attn only runs between
+  `start_percent` and `end_percent`, so the first 20 and last 10 percent of steps still use whatever attention
+  backend you already have. Different mechanisms: SageAttention quantises **dense** attention, Sol-Attn
+  **discards most KV blocks** and quantises what survives.
+- **The "Blackwell only, SM120 only" line that circulates with these packs is a README claim, not a code gate.**
+  Checked all three execution paths in the KingGore pack: the eligibility checks are `ndim == 4`,
+  `head_dim == 128`, `bfloat16`, CUDA. The `sm in [90, 100, 120]` list is read only by an informational node
+  that prints text. kijai's own readme says tested on **RTX 4090**, which is Ada SM89. In his kernels the only
+  capability check picks pointer kernels over TMA below SM90, and pointer kernels are the default anyway.
+  **So it loads and takes the sparse path on Ampere.** What you lose on non-SM120 is the warmup, which sits
+  behind an `if sm == 120`, so the first call pays compilation.
+- **Inferred, not measured:** whether that translates into wall-clock gain on a 3090. The published 9x at 32k
+  tokens was taken on SM120 where `flex_attention` lowers into FlashAttention-3-class kernels; on Ampere
+  inductor emits an ordinary Triton kernel and the win will be smaller. Nobody in either issue tracker has
+  reported a 30-series result. Run it with `verbose=true` and check whether the log shows the sparse path or
+  `dense_fallback`, then time it against the node bypassed.
+- **Known defect in the KingGore pack:** its advertised three-level fallback is two levels. In
+  `minimax_h3_patch.py` the name `_sol_attn_fallback_fn` is assigned without being declared `global`, so the
+  module-level value stays `None` and the Triton-reference tier is unreachable. Generation still survives via
+  an outer handler, so this costs speed, not runs.
+
+## TAE preview: watch the sampling instead of guessing at it
+
+H3 samples slowly, and the default latent preview is unreadable. A **tiny autoencoder** fixes that for about
+10 MB. `Kijai/MiniMax-H3-TAE` ships `vae_approx/taeh3.safetensors` (9 791 388 bytes), and kijai's own card says
+madebyollin has since trained a better one that works with the same node, so **take madebyollin's**
+(`madebyollin/taehv`, same filename).
+
+**This is NOT a VAE for the real decode and it never touches `VAEDecode`.** Put the file in
+`ComfyUI\models\vae_approx\`, then insert **`ModelPreviewOverrideKJ`** ("Model Preview Override", category
+`KJNodes/sampling`) into the MODEL line: it is a MODEL to MODEL patcher that wraps the sampler, and its
+`tiny_vae` combo is populated from the `vae_approx` folder. Setting `tiny_vae` overrides both Latent2RGB and
+the node's optional `vae` input. Quality is approximate by design; the card's own wording is that it still
+beats latent2rgb for preview.
 
 ## kijai's VRAM patch (KJNodes)
 

@@ -10,7 +10,7 @@ template-only coverage (runnable via a template, no dedicated recipe yet).
 | 🔧 **Utility** | enhancement / utility tool, has a "when to use + settings" note (not prompt-driven) |
 | 📋 **Template only** | runnable via a workflow template, no dedicated recipe yet (niche / thin official docs) |
 
-**Totals:** ✅ 71 recipe entries (covering ~132 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
+**Totals:** ✅ 72 recipe entries (covering ~132 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
 template-only · plus text encoders / inference providers that are not generative models.
 
 **Updated: 2026-08-09.** Every ✅ entry has a current prompting recipe in
@@ -120,7 +120,7 @@ template-only · plus text encoders / inference providers that are not generativ
 | Quiver | image (text/image to SVG) | API |
 | HappyHorse 1.1 | video (t2v/i2v/r2v) + synced audio | API |
 | HuMo | video (audio+image+text, lip-sync) | local |
-| SCAIL-2 | video (character animation) | local |
+| SCAIL-2 | video (character animation + replacement, native core nodes) | local |
 | Sonilo | audio (music / video soundtrack) | API |
 
 ---

@@ -96,6 +96,30 @@ Motion type plus amplitude plus speed, and medium amplitude at normal speed is t
 appearance comes from `<Picture 1>` and whose walking motion comes from `<Video 1>`." Then `<Picture N>` is a
 frame or composition anchor, `<Video N>` an editing or temporal source, `<Audio N>` a copied signal.
 
+**Reference-to-video has its OWN output contract, and it is six sections, not the three above.** MiniMax ships
+**two** prompt guides, and until 2026-08-09 this skill knew only the first. `VIDEO_PROMPT_WRITING_GUIDE_base_en.md`
+governs T2VA / I2VA / FL2VA / L2VA and gives the three fields at the top of this file.
+`VIDEO_PROMPT_WRITING_GUIDE_ref_en.md` governs full-reference mode and opens: "A complete rewrite output
+consists of six sections in the following order":
+
+```
+subject_definitions: <Subject 1> is ... whose appearance comes from <Picture 1> ...
+summary: ...
+retention_analysis: ...
+detailed_description: [Shot 1] ...
+overall_soundscape: ...
+non_diegetic_music: ...
+```
+
+`subject_definitions` declares the references and their labels; `summary` states the task type, the target
+video and the main relationships to the references; `retention_analysis` says how each reference is retained,
+transferred or reused; `detailed_description` carries visuals, action, shots, sound and dialogue in playback
+order; the last two match their base-mode meanings. The order is fixed, and the field is **`retention_analysis`**,
+not `retention`. Note this is six named sections of prose in one string, not a JSON array, whatever a
+third-party node's docs call it. Confirmed by reading the guide on `MiniMaxAI/MiniMax-H3` (23 553 bytes,
+2026-08-09); the core node itself validates none of this, `comfy_extras/nodes_minimax_h3.py` takes a plain
+multiline string, so nothing will tell you when you get it wrong except the result.
+
 Limits from the official card: **9 images, 3 video clips, 3 audio clips, 12 files total**, clips 2 to 15 s each
 and 15 s total, and **audio can never be the only reference**. The local `MiniMaxH3ReferenceToVideo` node has
 **four** Autogrow families reaching those ceilings: `ref_images` (max 9), `ref_videos` (3),

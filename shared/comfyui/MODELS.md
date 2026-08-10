@@ -20,7 +20,7 @@ not this index, once you know which model you need.
 | Image models (API / closed) | [`MODELS/image-api.md`](MODELS/image-api.md) | 13 |
 | More open image models | [`MODELS/image-open-more.md`](MODELS/image-open-more.md) | 6 |
 | Image editing models (instruction-based) | [`MODELS/image-edit.md`](MODELS/image-edit.md) | 4 |
-| Video models (open / local-runnable) | [`MODELS/video-open.md`](MODELS/video-open.md) | 8 |
+| Video models (open / local-runnable) | [`MODELS/video-open.md`](MODELS/video-open.md) | 9 |
 | Video models (API / closed) | [`MODELS/video-api.md`](MODELS/video-api.md) | 14 |
 | Audio models | [`MODELS/audio.md`](MODELS/audio.md) | 5 |
 | 3D models | [`MODELS/three-d.md`](MODELS/three-d.md) | 4 |
@@ -70,6 +70,7 @@ not this index, once you know which model you need.
 | Wan 2.5 / 2.6 (Alibaba, API) | `MODELS/video-open.md` |
 | Wan 2.7 (Alibaba) | `MODELS/video-open.md` |
 | Wan Animate 2 (Alibaba, local character animation) | `MODELS/video-open.md` |
+| SCAIL-2 (zai-org, animation + character replacement) | `MODELS/video-open.md` |
 | LTX-2.3 (Lightricks) | `MODELS/video-open.md` |
 | LTX-2 Pro (Lightricks) | `MODELS/video-open.md` |
 | Hunyuan Video (Tencent) | `MODELS/video-open.md` |

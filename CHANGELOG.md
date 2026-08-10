@@ -41,7 +41,32 @@ vx.y.z`), which can become a GitHub Release.
   **Comfy Cloud** distribution and the node classes exist in no public source. The entry exists so nobody
   spends an afternoon hunting for nodes that are not there.
 
+- **SCAIL-2 promoted from a four-line note to a full buildable entry** and moved from `MODELS/niche.md` to
+  `MODELS/video-open.md`, where the other local video models live. The graph as the official template builds
+  it: `SAM3_VideoTrack` twice into `SCAIL2ColoredMask` into `WanSCAILToVideo`, the six-colour palette that is
+  the character binding, `sort_by` as the thing that keeps an identity on one colour across both outputs, the
+  `replacement_mode` flag that must agree in both nodes, the chunked long-video path, and the shipped
+  settings including a second **DPO LoRA** that no write-up mentions and a `ColorTransfer` pass that matches
+  the generated character back to the plate.
+
 ### Corrected
+- **The kit sent you to a community pack for SCAIL-2 when ComfyUI has had it in core since 2026-06-09.** PRs
+  14373 and 14509, nodes in `comfy_extras/nodes_scail.py`, two official templates, detection by state-dict key
+  so a plain `UNETLoader` finds the checkpoint. Two smaller errors went with it: `pose_strength` was described
+  as "exact-copy vs style adaptation" when it is a latent multiplier that does not exist upstream at all, and
+  the mask preprocessor was named as a bundled SCAIL-Pose when the native path uses SAM3.
+- **Reference-to-video on MiniMax H3 has a six-section output contract the skill did not know.** MiniMax ships
+  two prompt guides; the kit had only the base one, whose three fields are correct for T2VA / I2VA / FL2VA /
+  L2VA. Full-reference mode takes `subject_definitions`, `summary`, `retention_analysis`,
+  `detailed_description`, `overall_soundscape`, `non_diegetic_music`, in that order. Since the core node
+  validates none of it, nothing reports the mistake except the result.
+- **A text encoder that does not exist** was listed for Wan Animate 2. The Comfy-Org card advertises
+  `umt5_xxl_fp16`; the repository does not contain it. Copied from the card without checking the file listing.
+- **Four capabilities were being read as available on Wan Animate 2 that ComfyUI cannot reach:**
+  multi-character, text-driven viewpoint control (the "Viewpoint LoRA" has no published weights anywhere,
+  checked five ways), the streaming Lite variant (unreleased), and character replacement, which is a
+  **regression** against Wan Animate v1 rather than a feature. Named explicitly so the gap stops reading as
+  silence.
 - **"Seedance 2.5 has no ComfyUI nodes" was true on 2026-08-01 and wrong from 2026-08-08.** Core v0.31.0 shipped
   it. The claim appeared in three places (`MODELS/video-api.md`, `seedance/SKILL.md`, `seedance/reference.md`)
   and every one is corrected in place with the old claim named, not silently overwritten. It is the second time
@@ -58,9 +83,21 @@ vx.y.z`), which can become a GitHub Release.
   Virtual Try-On removal, Reve deprecation, `ImageUpscaleWithModel` on 4 GB cards, and a Load Checkpoint memory
   leak. The Custom Combo subgraph row was **not** promoted to "Recently fixed" despite being closed as
   completed, because the last comment on the issue says it still reproduces.
+- **Six defects found by an audit of the kit against itself**, all fixed: `SKILL.md` still claimed 156 models
+  after the rest of the repo moved to 160; README listed Wan variants as a bare "Animate", which stopped being
+  unambiguous the day Animate 2 shipped; `minimax-h3/reference.md` had two escape sequences collapsed into real
+  control characters, so `models\text_encoders\` and `models\vae\` rendered as garbage and sent files to the
+  wrong folders; the `seedance` skill existed but was absent from the routing map, so an agent reading only
+  `SKILL.md` never learned of it; the precision ladder in `SKILL.md` omitted `int8-convrot` entirely while
+  `ADVANCED.md` calls it half the size of fp16, faster, and a match for fp8, with Ampere supported; and the H3
+  weight table was missing the 40.23 GB `pruned_bf16` row.
+- **New in the H3 skill:** Sol-Attn, both packs, with the correct finding that the widely repeated "Blackwell
+  SM120 only" is a README line and not a code gate, so it loads and takes the sparse path on Ampere, plus a
+  real defect in one pack's fallback chain. And the tiny-autoencoder preview path, which is 10 MB, never
+  touches `VAEDecode`, and rides on `ModelPreviewOverrideKJ`'s `tiny_vae` slot.
 - Library counts resynced after a week that removed more templates than it added: **586 to 574 templates**
   (the Getting Started category was archived and the Reve and Hailuo MiniMax templates were deleted) and
-  **156 to 160 distinct models**. Recipe entries **68 to 71**. Updated in README, `MODEL_INDEX.md`,
+  **156 to 160 distinct models**. Recipe entries **68 to 72**. Updated in README, `MODEL_INDEX.md`,
   `MODELS.md`'s router table, the three chart generators, `cover_gen.py`, and the four rendered banners.
 
 ## [3.0.0] - 2026-08-06 - Kit audit and restructuring, plus the Krea and MiniMax H3 skills

@@ -12,6 +12,57 @@ for a breaking change (e.g. renaming a config key or the install layout). `0.x` 
 rename it to `[x.y.z] - <date>`, tag the commit (`git tag -a vx.y.z -m ...`), and push the tag (`git push origin
 vx.y.z`), which can become a GitHub Release.
 
+## [Unreleased]
+
+### Added
+- **Wan Animate 2** (`MODELS/video-open.md`), the week's one open-weight arrival. Character animation with **no
+  pose or keypoint extraction**: reference image for identity, driving video for motion, prompt for background
+  and camera. Written buildable from `comfy_extras/nodes_wan.py` on master and the official
+  `video_wan_animate2.json`: the full node chain, `WanAnimate2ToVideo`'s complete input and output list
+  including the three strength and window controls, the shipped settings (832x480, 81 frames, cfg 1, 6 steps,
+  `lcm` + `simple`, shift 5) and why cfg 1 only works with the lightx2v distill LoRA loaded, the
+  `WanAnimate2Cache` speed-for-RAM trade with its `standard_static` requirement, and the manual subgraph
+  chaining needed to pass 81 frames while native loop support is still an unmerged PR.
+- **FLUX 3 Video** (`MODELS/video-api.md`), BFL's first video model in ComfyUI, with synchronized audio. All
+  three nodes, every shared widget, the `keyframes` and `placement` mechanics on image to video, and the
+  per-second prices read off each class's own rate constants, including the fact that **continuation costs
+  roughly 2.4x a fresh generation** at 720p.
+- **Seedance 2.5 in ComfyUI** (`MODELS/video-api.md`, `seedance` skill, `seedance/reference.md`), and see
+  Corrected below for why this is also a retraction. Same `ByteDance2*` nodes, new model option; the 480p / 720p
+  ceiling, mp4-only output, 4 to 30 s duration, the 30 images plus 10 videos plus 10 audios reference capacity
+  confirmed in code, the `video_editing` toggle, the double-quote dialogue rule, and worked prices from the
+  node's own badge expression.
+- **Seedream 5.0 Pro Layer Separation** (`MODELS/image-api.md`): one image into a background plate plus up to
+  16 transparent layers, the `<bbox>` per-mille targeting syntax, all six outputs in slot order, both recompose
+  paths the official template wires, the inverted-mask gotcha, and the price.
+- **Topaz Bloom 2 and Wonder 3.5** (`MODELS/utility.md`) on `TopazImageEnhanceV2`, with the widgets each model
+  reveals, Wonder 3.5's 1x to 6x limit, and the aspect-ratio behaviour that stops you using either to reframe.
+- **Qwen Image 3.0 Pro** (`MODELS/image-api.md`) as an explicit dead end: the templates are gated to the
+  **Comfy Cloud** distribution and the node classes exist in no public source. The entry exists so nobody
+  spends an afternoon hunting for nodes that are not there.
+
+### Corrected
+- **"Seedance 2.5 has no ComfyUI nodes" was true on 2026-08-01 and wrong from 2026-08-08.** Core v0.31.0 shipped
+  it. The claim appeared in three places (`MODELS/video-api.md`, `seedance/SKILL.md`, `seedance/reference.md`)
+  and every one is corrected in place with the old claim named, not silently overwritten. It is the second time
+  in three weeks that a dated "checked" line went stale inside a week.
+- **Reve is deprecated**, not merely quiet: all three nodes carry `is_deprecated=True` in core v0.31.0 and the
+  four templates were deleted from the official library. Marked in `MODELS/image-api.md`, `MODEL_INDEX.md` and
+  the bug log.
+
+### Changed
+- `docs/KNOWN_ISSUES.md` rebuilt for v0.30.0 and v0.31.0. The headline is a **MiniMax H3 bug cluster**: ten
+  H3 issues filed from the v0.31.0 release date onward, five of them now rows here (noise output, sampler RuntimeError,
+  17-frame dark-frame artifacts, an unrecoverable VAE decode OOM whose tiled fallback is a no-op, and a roughly
+  2x slowdown), against five H3 fixes that the same release delivered. Also added: Kling legacy model and
+  Virtual Try-On removal, Reve deprecation, `ImageUpscaleWithModel` on 4 GB cards, and a Load Checkpoint memory
+  leak. The Custom Combo subgraph row was **not** promoted to "Recently fixed" despite being closed as
+  completed, because the last comment on the issue says it still reproduces.
+- Library counts resynced after a week that removed more templates than it added: **586 to 574 templates**
+  (the Getting Started category was archived and the Reve and Hailuo MiniMax templates were deleted) and
+  **156 to 160 distinct models**. Recipe entries **68 to 71**. Updated in README, `MODEL_INDEX.md`,
+  `MODELS.md`'s router table, the three chart generators, `cover_gen.py`, and the four rendered banners.
+
 ## [3.0.0] - 2026-08-06 - Kit audit and restructuring, plus the Krea and MiniMax H3 skills
 
 The largest release the kit has had: **12 commits, 78 files, +6251 / -2384 lines** since 2.7.0. Two things

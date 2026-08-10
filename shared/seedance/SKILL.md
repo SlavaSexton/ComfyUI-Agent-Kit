@@ -19,13 +19,33 @@ writing a single line.
 
 | Model | Where it runs | Refs per pass | Max length | In ComfyUI |
 |---|---|---:|---|---|
-| Seedance 2.5 | Dreamina, Jimeng AI, Doubao Pro. API "coming" on BytePlus ModelArk | 30 img + 10 video + 10 audio (audio-only allowed) | 4 to 30s; nest-extend to 60s; **Long Video mode 30 to 180s in one shot** | **No nodes** as of 2026-08-01 |
+| Seedance 2.5 | Dreamina, Jimeng AI, Doubao Pro, **and ComfyUI since core v0.31.0** | 30 img + 10 video + 10 audio (audio-only allowed) | 4 to 30s; nest-extend to 60s; **Long Video mode 30 to 180s in one shot** | **Yes**, since 2026-08-08 |
 | Seedance 2.0 / 2.0 Mini / 2.0 Fast | BytePlus ModelArk, ComfyUI | 9 img + 3 video + 3 audio | 15s | Yes |
 | Seedance 1.5 Pro | BytePlus ModelArk, ComfyUI | n/a (no omni-reference) | 4 to 12s, **min 4s enforced** | Yes, and the only one there with `generate_audio` |
 | Seedance 1.0 Lite / Pro / Pro Fast | BytePlus ModelArk, ComfyUI | n/a | n/a | Yes |
 
-**Seedance 2.5 has no ComfyUI nodes.** If the task says "in ComfyUI", the newest model available is
-2.0. Do not write a ComfyUI graph against 2.5.
+**Seedance 2.5 reached ComfyUI on 2026-08-08 (core v0.31.0, PR 15395), and this file said the
+opposite until 2026-08-09.** The old line, "Seedance 2.5 has no ComfyUI nodes", was correct on
+2026-08-01 and went stale a week later. Kept as a correction rather than silently replaced.
+
+**How to build it now.** 2.5 is a model option inside the SAME `ByteDance2*` nodes, not new nodes:
+`ByteDance2TextToVideoNode`, `ByteDance2FirstLastFrameNode`, `ByteDance2ReferenceNode` (category
+`partner/video/ByteDance`). Set the `model` DynamicCombo to `Seedance 2.5` and the widgets underneath
+change. Minimal graph: the node's `VIDEO` output straight into `SaveVideo.video`.
+
+**What ComfyUI's 2.5 gives you, read from `comfy_api_nodes/nodes_bytedance.py` on master (2026-08-09),
+not from the announcement:**
+- `resolution` is **480p or 720p only**. There is no 1080p and no 4K on 2.5 in ComfyUI; those live on
+  the `Seedance 2.0` option of the same node.
+- `duration` 4 to 30 s, `ratio` 16:9 / 4:3 / 1:1 / 3:4 / 9:16 / 21:9 / adaptive (the first-last-frame
+  node has no ratio widget), `generate_audio` on by default, `output_format` **mp4 only** even though
+  the node's own model tooltip advertises "mp4/mov".
+- `ByteDance2ReferenceNode` autogrows to **30 images, 10 videos, 10 audios**, which confirms the
+  announcement's 30+10+10 in code. Its `video_editing` toggle makes the output inherit the source
+  clip's duration and aspect, and the `duration` / `ratio` widgets are then ignored.
+- Node-level prompting rule: **put spoken lines in double quotes** to steer the generated dialogue.
+- The **Long Video 30 to 180 s** mode in the table above is a Dreamina / Jimeng feature and is **not**
+  reachable through these nodes, whose ceiling is 30 s. Nest-extend instead.
 
 ## The three task types, and the word that switches between them
 

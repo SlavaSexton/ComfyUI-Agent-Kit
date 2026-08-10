@@ -309,9 +309,31 @@ Portuguese, Vietnamese, Japanese, Korean. Translating into Chinese or English fi
 
 ---
 
-## Seedance in ComfyUI (read from node source, 2026-08-01)
+## Seedance in ComfyUI (read from node source, re-read 2026-08-09)
 
-`comfy_api_nodes/nodes_bytedance.py` on master. **Seedance 2.5 has no node.**
+`comfy_api_nodes/nodes_bytedance.py` on master.
+
+**Seedance 2.5 shipped on 2026-08-08** (core v0.31.0, PR 15395). The 2026-08-01 reading of this file
+said "Seedance 2.5 has no node", which was true then and is wrong now; it is corrected here rather
+than deleted. 2.5 is an option on the existing `ByteDance2*` nodes, model id
+`dreamina-seedance-2-5-260628`.
+
+| Node | Display name | 2.5 specifics |
+|---|---|---|
+| `ByteDance2TextToVideoNode` | ByteDance Seedance 2.5 Text to Video | prompt, resolution, ratio, duration, generate_audio, output_format |
+| `ByteDance2FirstLastFrameNode` | ByteDance Seedance 2.5 First-Last-Frame to Video | same minus `ratio`; adds `first_frame` / `last_frame` IMAGE and `first_frame_asset_id` / `last_frame_asset_id` STRING (mutually exclusive with the image inputs) |
+| `ByteDance2ReferenceNode` | ByteDance Seedance 2.5 Reference to Video | adds `video_editing`, autogrow `reference_images` (image_1..30), `reference_videos` (video_1..10), `reference_audios` (audio_1..10), `auto_downscale` (on), `auto_upscale` (off) |
+
+| 2.5 parameter | Values |
+|---|---|
+| `resolution` | **480p, 720p only** (1080p and 4k are 2.0-only) |
+| `ratio` | 16:9, 4:3, 1:1, 3:4, 9:16, 21:9, adaptive (default 16:9) |
+| `duration` | 4 to 30 s slider, default 5 |
+| `generate_audio` | default true |
+| `output_format` | **mp4 only**, despite a model tooltip that says "mp4/mov" |
+
+Node-level prompting rule, verbatim from the `prompt` tooltip: put spoken lines in double quotes to
+steer the generated dialogue.
 
 **Seedance 1.5 Pro** (`seedance-1-5-pro-251215`) appears in `ByteDanceTextToVideoNode`,
 `ByteDanceImageToVideoNode` and `ByteDanceFirstLastFrameNode`.

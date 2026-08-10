@@ -38,7 +38,7 @@ Part of the kit's per-model prompting reference. The routing table and the auto-
 - **Settings:** T2V + I2V (image = first frame, match resolution); max ~2000 chars; Storyboard/Loop are web-app only.
 - **Source:** platform.openai.com/docs/guides/video-generation ; node template `sora.md`.
 
-### Seedance 1.0, 1.5 Pro and 2.0 (ByteDance)
+### Seedance 1.0, 1.5 Pro, 2.0 and 2.5 (ByteDance)
 - **Prompt style:** structured, concise (2.0 under ~60 words + constraints); cinematic camera language is the core strength.
 - **Structure:** Subject -> Action (one verb/shot + speed + endpoint) -> Camera (shot size, then one move + angle + lens) -> Style -> Constraints; multi-shot via cut words ("Cut to / Camera switching"); 2.0 refs `@Image1 as the main character`.
 - **Strengths:** camera-language response (surround, aerial, zoom, pan, follow, handheld); multi-shot consistency; 2.0 native audio with phoneme-level lip-sync (8+ langs), camera-motion replication, beat-synced editing.
@@ -46,8 +46,84 @@ Part of the kit's per-model prompting reference. The routing table and the auto-
 - **Settings:** 480/720/1080p, **2.0 now up to 4K** (smoother gradients, richer tones, detail that holds through motion and into post; the templates default to 720p, raise the resolution field for 4K), 24fps; 2-12s (1.0) / 4-15s or auto (2.0); 2.0 inputs up to 9 images / 3 videos / 3 audio (`model.reference_images.image_1..9`, `reference_videos.video_*`, `reference_audios.audio_*`).
 - **2.0 official ComfyUI templates / modes:** T2V, reference-to-video (R2V), first-last-frame (FLF2V); R2V and FLF2V each also ship a `_real_human` variant tuned for realistic people (T2V does not); `api_seedance2_0_t2v.json` + `api_seedance2_0_{r2v,flf2v}(_real_human).json` (Comfy-Org/workflow_templates), plus community storyboard-to-video / character-swap / LLM-prompt-helper. A faster, cheaper **Seedance 2.0 Mini** is selectable in the same `ByteDance2TextToVideoNode` / `ByteDance2ReferenceNode` (templates `api_seedance2_0_mini_{t2v,r2v}.json`).
 - **Seedance 1.5 Pro - the tier the kit used to skip.** `seedance-1-5-pro-251215`, selectable in **`ByteDanceTextToVideoNode`**, **`ByteDanceImageToVideoNode`** and **`ByteDanceFirstLastFrameNode`** (NOT the `ByteDance2*` nodes, which are the 2.0 family). Templates `api_bytedance_seedance1_5_{text_to_video,image_to_video,flf2v}.json`. Confirmed from `comfy_api_nodes/nodes_bytedance.py` on master: `resolution` 480p / 720p / 1080p, `aspect_ratio` 16:9 / 4:3 / 1:1 / 3:4 / 9:16 / 21:9, `duration` slider 3-12s. Three things only the code tells you: (1) **minimum duration is 4 seconds** - the node raises `ValueError` below that even though the slider goes to 3; (2) **`generate_audio` is honoured ONLY for 1.5 Pro** and is ignored on every 1.0 model in the same nodes, and it **doubles the price** (per 10s: 480p $0.12, 720p $0.26, 1080p $0.58-0.59, scaled by `duration / 10`); (3) the node **rejects settings written into the prompt text** via `raise_if_text_params` (`resolution`, `ratio`, `duration`, `seed`, `camerafixed`, `watermark`) - set them on widgets, not in prose. `camera_fixed` only appends an instruction to your prompt and is explicitly not guaranteed.
-- **Seedance 2.5 exists but has NO ComfyUI nodes** (checked `nodes_bytedance.py` on master, 2026-08-01). Launched 2026-07-31 on Jimeng AI and Doubao Pro, API "coming" on BytePlus ModelArk; 30 images + 10 video + 10 audio per pass and 30s per generation with multi-round extension, against 9+3+3 and 15s for 2.0 (official ByteDance Seed blog). **If a request says "Seedance 2.5 in ComfyUI", the answer is that 2.0 is the newest available; do not build a graph against 2.5.** Full prompting mechanics for the family (the three task types, the `@Image 1` label syntax, the `（）<>{}【】` symbols, shot sequencing, the asset-count rule and the failure table) live in the dedicated sibling **`seedance` skill** (invoke by name; beside the comfyui skill on disk), distilled from the official BytePlus prompt guide.
-- **Source:** docs.byteplus.com (Seedance 1.0 / 1.5 / 2.0 prompt guide) ; Comfy-Org/workflow_templates `api_seedance2_0_*` ; ComfyUI "Seedance 2.0 4K is live" announce (2026-06) ; seed.bytedance.com Seedance 2.5 announce (2026-07-31) ; `comfy_api_nodes/nodes_bytedance.py` on master.
+- **Seedance 2.5 SHIPPED in ComfyUI on 2026-08-08 and this entry said the opposite until 2026-08-09.** The
+  earlier line, "Seedance 2.5 exists but has NO ComfyUI nodes", was true when written on 2026-08-01 and went
+  stale seven days later with core **v0.31.0** (PR 15395). It is kept here as a correction rather than quietly
+  overwritten. **2.5 is now a model option inside the SAME `ByteDance2*` nodes**, confirmed by reading
+  `SEEDANCE_MODELS` and the `IO.DynamicCombo` option lists in `comfy_api_nodes/nodes_bytedance.py` on master:
+  - `ByteDance2TextToVideoNode` (display "ByteDance Seedance 2.5 Text to Video"), `ByteDance2FirstLastFrameNode`
+    ("... First-Last-Frame to Video"), `ByteDance2ReferenceNode` ("... Reference to Video"), category
+    `partner/video/ByteDance`. The `model` widget is a DynamicCombo whose options are `Seedance 2.5`,
+    `Seedance 2.0`, `Seedance 2.0 Fast`, `Seedance 2.0 Mini`; picking one swaps the sub-widgets underneath it.
+    Model id behind 2.5 is `dreamina-seedance-2-5-260628`.
+  - **The graph is two nodes.** `ByteDance2TextToVideoNode.VIDEO` -> `SaveVideo.video`. That is the whole shipped
+    `api_seedance2_5_t2v.json`. FLF2V adds two `LoadImage` into `first_frame` / `last_frame`; R2V uses
+    `ByteDance2ReferenceNode` with `LoadImage` into `reference_images.image_1`. The video-editing template adds
+    one more node worth copying: `LoadVideo` -> **`Video Slice`** (core, `comfy_extras/nodes_video.py`; widgets
+    `0, 5, false` there) -> the node's `reference_videos.video_1`, so only the first 5 seconds of the source
+    clip are sent rather than the whole file.
+  - **2.5 sub-widgets:** `prompt` (multiline), `resolution` **480p or 720p ONLY**, `ratio` 16:9 / 4:3 / 1:1 /
+    3:4 / 9:16 / 21:9 / adaptive (absent on the first-last-frame node, which takes the ratio from the frames),
+    `duration` slider **4 to 30 s** (default 5), `generate_audio` (default true), `output_format` **mp4 only**.
+  - **Two limits that contradict the marketing, both read off the code.** 2.5 has **no 1080p and no 4K** in
+    ComfyUI: those resolutions exist only on the `Seedance 2.0` option. And the node's own model tooltip
+    advertises "mp4/mov output" while the `output_format` combo offers exactly `["mp4"]`. Take the widget, not
+    the tooltip.
+  - **Reference capacity, now confirmed in code rather than from the announcement:** `ByteDance2ReferenceNode`
+    on 2.5 autogrows to **30 reference images, 10 reference videos and 10 reference audios** (`image_1..30`,
+    `video_1..10`, `audio_1..10`), plus `auto_downscale` (default on) and `auto_upscale` (advanced, default off)
+    for reference videos outside the pixel budget. Its `video_editing` boolean is the edit-in-place switch: with
+    it on the output keeps the SOURCE clip's length and aspect ratio and the `duration` / `ratio` widgets are
+    ignored entirely.
+  - **Prompting rule straight from the node:** "Put spoken lines in double quotes to steer the generated
+    dialogue."
+  - **Price** (from the node's own `price_badge` expression, approximate and per run): 2.5 bills per frame at
+    24 fps times duration plus one frame, at **$0.015301** per unit without a reference video and **$0.009152**
+    with one; the per-frame unit is 400 at 480p and 900 at 720p for 16:9, with small deltas for 1:1, 4:3, 3:4
+    and 21:9. Evaluating that expression: 720p 5 s 16:9 = **$1.67**, 480p 5 s 16:9 = **$0.74**, 720p 10 s 16:9 =
+    **$3.32**. These come from running the badge's own formula, not from a quoted price list.
+  - Full prompting mechanics for the family (the three task types, the `@Image 1` label syntax, the
+    `（）<>{}【】` symbols, shot sequencing, the asset-count rule and the failure table) live in the dedicated
+    sibling **`seedance` skill** (invoke by name; beside the comfyui skill on disk), distilled from the official
+    BytePlus prompt guide.
+- **Source:** docs.byteplus.com (Seedance 1.0 / 1.5 / 2.0 prompt guide) ; Comfy-Org/workflow_templates `api_seedance2_0_*` and `api_seedance2_5_{t2v,flf2v,r2v,video_editing}.json` ; ComfyUI "Seedance 2.0 4K is live" announce (2026-06) ; seed.bytedance.com Seedance 2.5 announce (2026-07-31) ; blog.comfy.org "Seedance 2.5 is now available via Partner Nodes" (2026-08-08) ; core release v0.31.0 PR 15395 ; `comfy_api_nodes/nodes_bytedance.py` on master, read 2026-08-09.
+
+### FLUX 3 Video (Black Forest Labs, API, new in core v0.31.0)
+BFL's first video model in ComfyUI, and it generates **synchronized audio** (ambient, speech, effects) in the
+same pass. Everything below is confirmed by reading `comfy_api_nodes/nodes_bfl.py` on master (classes
+`Flux3VideoNodeBase`, `Flux3TextToVideoNode`, `Flux3ImageToVideoNode`, `Flux3VideoContinuationNode`, all three
+registered in `BFLExtension`), plus the shipped templates `api_bfl_flux3_t2v.json` / `api_bfl_flux3_i2v.json`.
+
+- **Prompt style:** plain language, and the service expands it for you. The node's own tooltip: "What you want,
+  in plain language; the prompt is interpreted and expanded before generation." So do NOT tag-dump. The one
+  piece of structure that pays: **describe ambient sound, music and speech separately** if you want layered
+  audio, because that is what the tooltip asks for. On image to video the prompt tooltip shifts to "How the
+  scene should move and sound", so write motion plus audio there, not appearance.
+- **The graph is two nodes.** `Flux3TextToVideoNode.VIDEO` -> `SaveVideo.video`; that is the entire shipped T2V
+  template. Image to video is `LoadImage` -> the node's `images` autogrow slot -> `SaveVideo`.
+- **Three nodes, category `partner/video/BFL`:**
+  - `Flux3TextToVideoNode` ("Flux 3 Text to Video"): `prompt` + the common widgets.
+  - `Flux3ImageToVideoNode` ("Flux 3 Image to Video"): `prompt`, then an autogrow group **`keyframes`** (slots
+    `image_1` to `image_10`, minimum 1, **in playback order**, each at least 256x256 and no more extreme than
+    64:1 aspect), then a DynamicCombo **`placement`** with two options: `spread across the clip` (FLUX 3 places
+    them; one image opens the clip, two become its start and end) or `at times`, which reveals a `times` string
+    taking one increasing, comma-separated second per image, e.g. `0, 2.5, 5`. Graph: `LoadImage.IMAGE` ->
+    `keyframes.image_1`, node VIDEO -> `SaveVideo`.
+  - `Flux3VideoContinuationNode` ("Flux 3 Video Continuation"): takes a `video` and carries on from its final
+    frames. The source clip is uploaded to the Comfy API first.
+- **Common widgets on all three:** `aspect_ratio` (auto, 21:9, 2:1, 16:9, 4:3, 1:1, 3:4, 9:16; default auto),
+  `duration` (auto or an integer **5 to 20** seconds; default auto), `resolution` (**720p or 1080p**, default
+  720p), `generate_audio` (default true; off gives a silent video), `safety_tolerance` (0 strictest to 4,
+  advanced, and **any request carrying an image or video is capped at 2** whatever you set), `seed` (BFL picks
+  its own seed, so results are nondeterministic regardless).
+- **Price, per second, taken from each class's `RATE_HD` / `RATE_FHD`:** text to video and image to video
+  **$0.2431/s at 720p** and **$0.4147/s at 1080p**; **continuation is much dearer at $0.5863/s and $0.7579/s**.
+  A 10 s 1080p continuation is therefore about $7.58 against $4.15 for generating the same length fresh. Set
+  `duration` to a number rather than `auto` if you want the badge to show a total instead of a rate.
+- **Gotcha:** a failed task answers the poll with a retryable-looking HTTP 5xx (500 and 503 both observed by the
+  node's author, who capped it at 3 retries per poll). If a job dies, expect a server error rather than a clean
+  failure message.
+- **Source:** `comfy_api_nodes/nodes_bfl.py` on master ; templates `api_bfl_flux3_t2v.json`, `api_bfl_flux3_i2v.json` ; core release **v0.31.0** (2026-08-08) PR 15295 ; blog.comfy.org "FLUX 3 is now available via Partner Nodes" (2026-08-05). Read 2026-08-09.
 
 ### Luma Ray 2 / Ray 3 (Dream Machine)
 - **Prompt style:** keep camera OUT of the prompt (set via API "Concepts"); content-only.

@@ -1,6 +1,6 @@
 # Model index: every model in the library and what the kit has for it
 
-The template library names **156 distinct models** across 586 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
+The template library names **160 distinct models** across 574 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
 provides: a full prompt recipe in [`MODELS.md`](../shared/comfyui/MODELS.md), an enhancement/utility note, or
 template-only coverage (runnable via a template, no dedicated recipe yet).
 
@@ -10,10 +10,10 @@ template-only coverage (runnable via a template, no dedicated recipe yet).
 | 🔧 **Utility** | enhancement / utility tool, has a "when to use + settings" note (not prompt-driven) |
 | 📋 **Template only** | runnable via a workflow template, no dedicated recipe yet (niche / thin official docs) |
 
-**Totals:** ✅ 68 recipe entries (covering ~128 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
+**Totals:** ✅ 71 recipe entries (covering ~132 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
 template-only · plus text encoders / inference providers that are not generative models.
 
-**Updated: 2026-08-03.** Every ✅ entry has a current prompting recipe in
+**Updated: 2026-08-09.** Every ✅ entry has a current prompting recipe in
 [`MODELS.md`](../shared/comfyui/MODELS.md); every 🔧 entry has a when-to-use + settings note.
 
 ---
@@ -43,11 +43,12 @@ template-only · plus text encoders / inference providers that are not generativ
 |---|---|---|
 | Ideogram | Ideogram (2.x / 3.0 / 4.0), Ideogram P-Image | API |
 | Nano Banana / Gemini Image | Nano Banana, Nano Banana Pro, Nano Banana 2, Nano Banana 2 Lite, Gemini 3 Pro Image, Gemini 3.1 Pro/flash-lite, Gemini 2.5 Flash | API |
-| Seedream | Seedream 4.0 / 4.5 / 5.0 Lite / 5.0 Pro | API |
+| Seedream | Seedream 4.0 / 4.5 / 5.0 Lite / 5.0 Pro (incl. Layer Separation) | API |
+| Qwen Image (API) | Qwen Image 3.0 Pro. **Comfy Cloud only**: the templates are gated to the cloud distribution and the node classes are not in open-source ComfyUI | API (cloud) |
 | Recraft | Recraft V3, Recraft V4 / V4.1 | API |
 | GPT-Image | GPT Image 2, GPT-Image-1 / 1.5 | API |
 | Grok Image | Grok | API |
-| Reve | Reve | API |
+| Reve | Reve. **DEPRECATED in core v0.31.0**; templates removed from the library | API |
 | Kandinsky | Kandinsky 3.x | local / API |
 
 ### Image editing (instruction-based)
@@ -64,7 +65,7 @@ template-only · plus text encoders / inference providers that are not generativ
 ### Video (open / local-runnable)
 | Family | Variants seen in templates | Run |
 |---|---|---|
-| Wan | Wan, Wan 2.1, 2.2, 2.5, 2.6, 2.7, VACE, Animate, ATI, InfiniteTalk, SCAIL | local / API |
+| Wan | Wan, Wan 2.1, 2.2, 2.5, 2.6, 2.7, VACE, Animate, **Wan Animate 2**, ATI, InfiniteTalk, SCAIL | local / API |
 | LTX | LTX-2, LTX-2.3, LTX-0.9.5 | local |
 | Hunyuan Video | Hunyuan Video | local |
 | SVD | Stable Video Diffusion | local |
@@ -76,7 +77,8 @@ template-only · plus text encoders / inference providers that are not generativ
 | Veo | Veo 3 / 3.1 | API |
 | Gemini Omni Flash (Google) | any-to-any T2V / I2V / video-edit, audio-native; official node `GeminiVideoOmni` + templates `api_google_gemini_omni_flash_*` (needs a current ComfyUI) | API |
 | Sora | Sora 2 | API |
-| Seedance | Seedance 1.0 Pro, 1.5 Pro, 2.0 (4K) | API |
+| Seedance | Seedance 1.0 Pro, 1.5 Pro, 2.0 (4K), **2.5** (480p / 720p only) | API |
+| FLUX 3 Video | Flux.3 Video (text to video, image to video, continuation), with synchronized audio | API |
 | Luma | Luma Ray, UNI-1 | API |
 | Runway | Runway Gen-4 / 4.5 | API |
 | MiniMax | MiniMax / Hailuo (API), MiniMax H3 (API + local open weights) | API / local |

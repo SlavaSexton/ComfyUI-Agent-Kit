@@ -17,11 +17,11 @@ not this index, once you know which model you need.
 | Family | File | Entries |
 |---|---|---|
 | Image models (open / local-runnable) | [`MODELS/image-open.md`](MODELS/image-open.md) | 12 |
-| Image models (API / closed) | [`MODELS/image-api.md`](MODELS/image-api.md) | 12 |
+| Image models (API / closed) | [`MODELS/image-api.md`](MODELS/image-api.md) | 13 |
 | More open image models | [`MODELS/image-open-more.md`](MODELS/image-open-more.md) | 6 |
 | Image editing models (instruction-based) | [`MODELS/image-edit.md`](MODELS/image-edit.md) | 4 |
-| Video models (open / local-runnable) | [`MODELS/video-open.md`](MODELS/video-open.md) | 7 |
-| Video models (API / closed) | [`MODELS/video-api.md`](MODELS/video-api.md) | 13 |
+| Video models (open / local-runnable) | [`MODELS/video-open.md`](MODELS/video-open.md) | 8 |
+| Video models (API / closed) | [`MODELS/video-api.md`](MODELS/video-api.md) | 14 |
 | Audio models | [`MODELS/audio.md`](MODELS/audio.md) | 5 |
 | 3D models | [`MODELS/three-d.md`](MODELS/three-d.md) | 4 |
 | Newer and niche models | [`MODELS/niche.md`](MODELS/niche.md) | 3 |
@@ -53,7 +53,8 @@ not this index, once you know which model you need.
 | Recraft (V3, and V4 / V4.1) | `MODELS/image-api.md` |
 | GPT-Image (gpt-image-2, OpenAI) | `MODELS/image-api.md` |
 | Grok Image (Grok Imagine Image, xAI) | `MODELS/image-api.md` |
-| Reve | `MODELS/image-api.md` |
+| Reve (DEPRECATED in core v0.31.0) | `MODELS/image-api.md` |
+| Qwen Image 3.0 Pro (Comfy Cloud only, no local node) | `MODELS/image-api.md` |
 | Kandinsky (3.x, Sber / FusionBrain) | `MODELS/image-api.md` |
 | BRIA 3.x | `MODELS/image-open-more.md` |
 | OmniGen (v1 / v2) - unified gen + edit | `MODELS/image-open-more.md` |
@@ -68,6 +69,7 @@ not this index, once you know which model you need.
 | Wan 2.1 & 2.2 (Alibaba) | `MODELS/video-open.md` |
 | Wan 2.5 / 2.6 (Alibaba, API) | `MODELS/video-open.md` |
 | Wan 2.7 (Alibaba) | `MODELS/video-open.md` |
+| Wan Animate 2 (Alibaba, local character animation) | `MODELS/video-open.md` |
 | LTX-2.3 (Lightricks) | `MODELS/video-open.md` |
 | LTX-2 Pro (Lightricks) | `MODELS/video-open.md` |
 | Hunyuan Video (Tencent) | `MODELS/video-open.md` |
@@ -76,7 +78,8 @@ not this index, once you know which model you need.
 | Veo 3 / 3.1 (Google) | `MODELS/video-api.md` |
 | Gemini Omni Flash (Google) | `MODELS/video-api.md` |
 | Sora 2 / Sora 2 Pro (OpenAI) | `MODELS/video-api.md` |
-| Seedance 1.0, 1.5 Pro and 2.0 (ByteDance) | `MODELS/video-api.md` |
+| Seedance 1.0, 1.5 Pro, 2.0 and 2.5 (ByteDance) | `MODELS/video-api.md` |
+| FLUX 3 Video (Black Forest Labs) | `MODELS/video-api.md` |
 | Luma Ray 2 / Ray 3 (Dream Machine) | `MODELS/video-api.md` |
 | Runway Gen-4 / Gen-4.5 | `MODELS/video-api.md` |
 | MiniMax / Hailuo | `MODELS/video-api.md` |

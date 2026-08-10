@@ -64,7 +64,62 @@ Part of the kit's per-model prompting reference. The routing table and the auto-
   - **t2i** - just the node, its `model.images.image_1` input left unconnected.
   - **edit / multi-image** - **`LoadImage`** -> `model.images.image_1` (add `image_2`, `image_3`... for more refs) -> node -> `SaveImageAdvanced`. To constrain the edit to a drawn region, route `LoadImage` through a **`Painter`** node first (draw marks; its `IMAGE` out feeds `image_1`) - the official edit template does exactly this.
   - Templates `api_bytedance_seedream_5_0_pro_{t2i,image_edit}.json`. API / paid (Comfy Cloud or a BytePlus key).
-- **Source:** blog.comfy.org/p/seedream-50-pro ; volcengine.com / byteplus docs (Seedream 5.0) ; Comfy-Org/workflow_templates `api_bytedance_seedream_5_0_pro_*`.
+- **Layer separation (new in core v0.31.0): one image in, an editable layered document out.** Node
+  **`ByteDanceSeedreamLayerSeparationNode`** ("ByteDance Seedream 5.0 Pro Layer Separation", category
+  `partner/image/ByteDance`) decomposes an image into a background plate plus **up to 16 repositionable
+  transparent layers**, each with stacking order, bounding box, name and description. Confirmed by reading
+  `comfy_api_nodes/nodes_bytedance.py` on master and the template `api_bytedance_seedream_5_0_layer_separation.json`.
+  - **Inputs:** `image` (exactly one, at least 512x512, aspect between 1:16 and 16:1; anything over about 4 MP is
+    downscaled before upload); `prompt` (**leave empty to auto-detect and separate all major elements**, or name
+    the elements in natural language, or target exact regions with `<bbox>left top right bottom</bbox>` tags in
+    **per-mille coordinates, 0 to 1000**); `size` (auto / 1K / 1.5K / 2K, auto follows the input clamped to
+    1K-2K); `seed`; `prompt_optimization` (standard / fast, advanced); `watermark`; and **`crop_layers`**, which
+    changes the SHAPE of the outputs: off = "full canvas" (each layer on a base-sized canvas at its bbox
+    position, recomposable directly with `ImageCompositeMasked`), on = "minimal size" (each layer cropped to its
+    bbox and padded to the largest layer, much smaller tensors, placement rebuilt from `bboxes`).
+  - **Outputs, in slot order:** `base_image` (IMAGE), `base_mask` (MASK, currently always fully opaque),
+    `layers` (IMAGE batch, bottom to top), `masks` (MASK batch, index-aligned with `layers`), `bboxes`
+    (BOUNDING_BOX, one per layer, carrying `name`, `desc`, `z_index`, `native_size`, `content_rect`, `flags`),
+    `layer_stack` (LAYERS).
+  - **Two recompose paths, and the shipped template wires BOTH.** Short path: `layer_stack` -> `ImageCompositor`
+    ("Create Layered Image") and you are done. Rebuild path: `base_image` + `layers` -> `BatchImagesNode`,
+    `base_mask` + `masks` -> `BatchMasksNode`, then those two plus `bboxes` -> `LayersFromBoundingBoxes`
+    ("Layers From Bounding Boxes") -> a second `ImageCompositor`. `BatchImagesNode` also feeds
+    `SaveImageAdvanced` so you can write the flat layer sheet out. `ImageCompositor`, `AddLayer` and
+    `LayersFromBoundingBoxes` all live in `comfy_extras/nodes_compositor.py`, new in the same release.
+  - **Mask convention gotcha:** `masks` follows the `LoadImage` convention where **1 means transparent**. For
+    `ImageCompositeMasked`-style compositing, put an `InvertMask` in front.
+  - **Price** (from the node's own badge expression): **$0.032 per image** at 1K or 1.5K, and a $0.032 to $0.064
+    range when `size` is anything else (auto or 2K).
+  - The template's Note says to switch to Nodes 2.0 and click `Open Compositor` to edit the stack interactively.
+- **Source:** blog.comfy.org/p/seedream-50-pro ; volcengine.com / byteplus docs (Seedream 5.0) ; Comfy-Org/workflow_templates `api_bytedance_seedream_5_0_pro_*` and `api_bytedance_seedream_5_0_layer_separation.json` ; `comfy_api_nodes/nodes_bytedance.py` + `comfy_extras/nodes_compositor.py` on master ; core release v0.31.0 PR 15317. Read 2026-08-09.
+
+### Qwen Image 3.0 Pro (Alibaba, API) - COMFY CLOUD ONLY, you cannot build this locally today
+Two templates landed on 2026-08-06 (`api_qwen3_t2i`, `api_qwen3_image_edit`) and they are **gated to the cloud
+distribution**: both carry `"includeOnDistributions": ["cloud"]` in the library index. This entry exists so
+nobody burns an afternoon looking for the nodes.
+
+- **The node classes are not in open-source ComfyUI.** `QwenImageTextToImageApi` and `QwenImageEditApi` are
+  absent from **all 38 files of `comfy_api_nodes/`**, **all 131 files of `comfy_extras/`**, and root `nodes.py`
+  on master (each listed and grepped 2026-08-09). A GitHub-wide code search for both names returns only the two
+  template JSONs themselves plus unrelated third-party projects. Do not confuse them with
+  `TextEncodeQwenImageEdit` / `TextEncodeQwenImageEditPlus` in `comfy_extras/nodes_qwen.py`, which belong to the
+  **local, open-weight** Qwen-Image-Edit and are a different thing entirely.
+- **The graph, for when it does reach your install:** t2i is `ResolutionSelector` (core, `nodes_resolution.py`:
+  `aspect_ratio` combo, `megapixels` float, `multiple` int, outputs width and height INT) -> `QwenImageTextToImageApi`
+  width / height -> `SaveImage`. Edit is `LoadImage` -> `QwenImageEditApi` -> `SaveImage`. The `model` widget
+  value in both is the string `qwen-image-3.0-pro`.
+- **Settings from the templates:** `ResolutionSelector` ships `1:1 (Square)`, megapixels 1, multiple 8, and the
+  template's own note says **megapixels can go up to 6.2**, or you delete the selector and set width / height by
+  hand.
+- **What the model is for** (official template descriptions): prompts up to **4.5k tokens**, complex single-pass
+  layouts (posters, infographics, storyboards, newspapers, menus, exam papers), **crisp 10 px text**, native
+  rendering in **12 languages**, 100-plus art styles, and 1 to 3 optional reference images for fusion editing.
+  So: write long, structured, layout-describing prompts, not keyword lists.
+- **Confirmed vs inferred:** the cloud gating, the node names, their absence from open source, and the graph
+  shape are confirmed from the index and the template JSONs. Everything under "what the model is for" is the
+  vendor's own template copy, not measured.
+- **Source:** Comfy-Org/workflow_templates `templates/index.json` + `api_qwen3_t2i.json` / `api_qwen3_image_edit.json` ; `comfy_extras/nodes_resolution.py` on master. Read 2026-08-09.
 
 ### Recraft (V3, and V4 / V4.1)
 - **Prompt style:** natural-language, specific over vague; long-text + vector design specialist.
@@ -93,7 +148,12 @@ Part of the kit's per-model prompting reference. The routing table and the auto-
 - **ComfyUI (partner node):** the Grok Image node exposes a `resolution` combo of **`1K` / `2K`** (confirmed from `comfy_api_nodes/nodes_grok.py`), plus an `aspect_ratio` combo.
 - **Source:** docs.x.ai/docs/guides/image-generations.
 
-### Reve
+### Reve (DEPRECATED in core v0.31.0, do not build new graphs on it)
+- **Status, 2026-08-09:** all three nodes carry `is_deprecated=True` in `comfy_api_nodes/nodes_reve.py` on
+  master (`ReveImageCreateNode`, `ReveImageEditNode`, `ReveImageRemixNode`), landed by PR 15331 in core
+  **v0.31.0**, and the four `api_reve_image_*` templates were deleted from the official library in the same
+  week. `Reve` also disappeared from the library's model list. Existing graphs still load; nothing new should
+  target it. Everything below is kept for reading old workflows.
 - **Prompt style:** natural-language, descriptive/conversational; high prompt adherence so be concrete and complete.
 - **Avoid:** negative prompts NOT supported (single `prompt` param); no documented weighting syntax (don't rely on `(red:1.3)`).
 - **Settings (API):** single `prompt`; aspect ratios 16:9/9:16/3:2(def)/2:3/4:3/3:4/1:1; 4K output (Reve 2.x); edit-image endpoint.

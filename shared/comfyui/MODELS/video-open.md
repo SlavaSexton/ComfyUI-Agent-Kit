@@ -72,6 +72,90 @@ $0.17/s plus input billing this is not a model to iterate on casually.
 `Wan-Video` org that hosts zero models, plus a `Wan-skills` repository that does not exist. The right org is
 `Wan-AI`. A dated "checked" line does not make a claim durable; a model announced hours later turns it stale.
 
+### Wan Animate 2 (Alibaba, open weights, native since core v0.31.0)
+Character animation, end to end: a reference image says WHO, a driving video says WHAT MOTION, and the prompt
+says what the background and camera do. **No pose or keypoint extraction.** Unlike Wan 2.2 Animate (v1), the raw
+driving frames go in directly, so there is no DWPose / OpenPose / skeleton preprocessing stage in the graph at
+all. Confirmed from `comfy_extras/nodes_wan.py` on master and the official template `video_wan_animate2.json`.
+
+- **Prompt style:** two prompts, and they do different jobs. The character prompt describes LOOKS ONLY (no motion
+  words); the pose prompt describes the MOTION in the driving video. The template's own text is
+  `Character Description: ...` newline `Background description: ...` for the first, and a plain motion sentence
+  for the second (its shipped example is Chinese: a reference video of a kitten in uniform performing an action).
+- **Structure:** `positive` = character appearance + background; `positive_pose` = the motion, e.g. "a person
+  dancing". Background is decoupled from BOTH the reference image and the driving video, so it comes only from
+  the prompt. The shipped negative is the standard Wan Chinese quality-negative string.
+- **The graph** (node ids exactly as registered; the template wraps it in a `Motion Transfer (Wan Animate 2)`
+  subgraph, but every node below is core):
+  - `UNETLoader` (`wan_animate_2_int8_convrot.safetensors`, weight_dtype `default`) -> `LoraLoaderModelOnly`
+    (`lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors`, strength 1.0) -> `ContextWindowsManual`
+    -> `WanAnimate2Cache` -> `ModelSamplingSD3` (shift 5) -> `SamplerCustom.model`.
+  - `CLIPLoader` (`umt5_xxl_fp8_e4m3fn_scaled.safetensors`, type `wan`) feeds three `CLIPTextEncode`: character,
+    negative, and pose.
+  - `CLIPVisionLoader` (`clip_vision_h.safetensors`) -> two `CLIPVisionEncode`: one on the resized reference
+    image, one on the driving video's first frame (`ImageFromBatch` 0,1).
+  - `LoadVideo` -> `GetVideoComponents` -> `ResizeImageMaskNode` -> the pose branch; `LoadImage` ->
+    `ResizeImageMaskNode` -> the reference branch. `GetImageSize` on the resized pose frames drives both the
+    reference resize and `WanAnimate2ToVideo`'s width/height, so the reference is matched to the driving video.
+  - **`WanAnimate2ToVideo`** (category `model/conditioning/wan/animate`, marked EXPERIMENTAL) is the hub.
+    Inputs: `positive`, `negative`, `vae`, `width` (832), `height` (480), `length` (81, step 4), `batch_size`,
+    plus optional `reference_image` (IMAGE), `pose_video` (IMAGE), `clip_vision_output`, `positive_pose`,
+    `clip_vision_output_pose`, `continue_motion` (IMAGE), `video_frame_offset` (INT), `pose_strength` (1.0,
+    0 to 10), `pose_start_percent` (0.0), `pose_end_percent` (1.0), `reference_image_strength` (1.0, 0 to 10).
+    Outputs, in order: `positive`, `negative`, `latent`, `trim_latent` (INT), `trim_image` (INT),
+    `video_frame_offset` (INT).
+  - `SamplerCustom` takes `model` from `ModelSamplingSD3`, `positive`/`negative` from `WanAnimate2ToVideo`,
+    `sampler` from `KSamplerSelect` (`lcm`), `sigmas` from `BasicScheduler` (`simple`, steps 6, denoise 1),
+    `latent_image` from `WanAnimate2ToVideo`. Its LATENT goes to `TrimVideoLatent`, whose second input is
+    `trim_latent`, then `VAEDecode` fed by a **`VAELoader`** (`Wan2_1_VAE_bf16.safetensors`) -> IMAGE ->
+    `CreateVideo` -> `SaveVideo`.
+  - **Two `ComfySwitchNode` (core, `comfy_extras/nodes_logic.py`) do the two toggles, and you will not find them
+    by reading the happy path.** The first sits between the LoRA and `WanAnimate2Cache` and picks input 0 (the
+    model straight from `LoraLoaderModelOnly`) or input 1 (the same model through `ContextWindowsManual`), so a
+    boolean turns context windows on and off without rewiring. The second sits after `VAEDecode` and picks
+    either the full decoded batch or that batch with its first frame removed by
+    `ImageFromBatch(start=1, length=4096)`; its boolean comes from a `PrimitiveBoolean` and it is the seam trim
+    described below, wired rather than manual.
+  - **The rest of the top level is scaffolding, not generation:** a `ComfyMathExpression` plus `PreviewAny`
+    compute and display how many subgraph copies your driving video needs; `BatchImagesNode` concatenates the
+    segments; and a second subgraph, `Video Stitch`, builds the side-by-side comparison against the driving
+    clip out of `GetVideoComponents`, `GetImageSize`, `ResizeImageMaskNode`, `ImageFromBatch`,
+    `ComfyMathExpression` and **`ImageStitch`**, ending in its own `CreateVideo` -> `SaveVideo`. Delete that
+    subgraph and you lose only the comparison video, not the result.
+- **Settings (read off the shipped template, not guessed):** 832x480, 81 frames, `SamplerCustom` cfg **1**,
+  add_noise true, 6 steps, sampler `lcm`, scheduler `simple`, `ModelSamplingSD3` shift 5. cfg 1 and 6 steps are
+  only sane because the **lightx2v cfg-step-distill LoRA** is loaded; drop the LoRA and you are back to normal
+  Wan step counts. Index metadata puts it at **24 GB** size and 24 GB VRAM.
+- **`WanAnimate2Cache` is the speed knob, and it is a RAM tradeoff.** It caches the pose branch's per-block
+  activations so the pose video runs once instead of once per sampling step, which the node's own description
+  calls roughly half the generation time. Cost: about **12.5 GB of system RAM at 480x832 / 81 frames in bf16**,
+  scaling with resolution and length. `device` is `cpu` or `gpu` (`cpu` is the node default), `dtype` is
+  `default` / `int8` / `int4` (int8 halves the cache, int4 quarters it). **With context windows use the
+  `standard_static` schedule**: uniform schedules shift the windows every step so nothing ever recurs and the
+  cache never hits. Naming trap: the cache node's own description tells you to use "static_standard", which is
+  the Python constant name (`ContextSchedules.STATIC_STANDARD`); the string the combo actually offers is
+  **`standard_static`**, confirmed in `comfy/context_windows.py` and in the shipped template's widget value. The shipped template sets `device=gpu, dtype=int8` while the template's own tip text says to
+  use `cpu` to avoid VRAM spikes. Those disagree; on a 24 GB card start at `cpu` and only move to `gpu` if it
+  fits.
+- **Extending past 81 frames is manual today.** Each subgraph makes 81 frames (about 3.4 s at 24 fps). To go
+  longer: duplicate the subgraph (Ctrl-C then Ctrl-Shift-V), wire the previous subgraph's IMAGE into the new
+  one's `continue_motion` and the previous `video_frame_offset` into the new `video_frame_offset`, then feed each
+  segment's IMAGE into `BatchImagesNode`. Segments overlap by one frame by design; `trim_image` tells you how
+  many to drop at the seam. Roughly `driving frames / 81` subgraphs are needed. Native loop support is
+  **PR Comfy-Org/ComfyUI 13180, still under review** as of this template, so there is no loop node yet.
+- **Gotchas:** framing mismatch between reference and driving video (close-up against full-body) is the
+  template's stated number one cause of bad results. Frames are consumed 1:1 with no fps resampling, so resample
+  the driving clip to about 16 to 24 fps if the motion reads too slow. `pose_start_percent` / `pose_end_percent`
+  also buy speed: outside that window the pose branch is skipped entirely, and since motion is established early,
+  an end around 0.7 loosens fine detail while keeping the choreography.
+- **Weights** (`Comfy-Org/Wan-Animate-2` on HF and the same repo on ModelScope): `diffusion_models/wan_animate_2_int8_convrot.safetensors`,
+  `loras/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors`, `text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors`,
+  `clip_vision/clip_vision_h.safetensors`, `vae/Wan2_1_VAE_bf16.safetensors`.
+- **Source:** `comfy_extras/nodes_wan.py` on master (classes `WanAnimate2ToVideo`, `WanAnimate2Cache`, both
+  registered in `WanExtension`) ; official template `video_wan_animate2.json` including its four MarkdownNote
+  guides ; ComfyUI core release **v0.31.0** (2026-08-08), PR 15362 "feat: Support Wan-Animate2 (CORE-358)" ;
+  blog.comfy.org "Wan Animate 2 is now available in ComfyUI" (2026-08-08). Read 2026-08-09.
+
 ### LTX-2.3 (Lightricks)
 - **Prompt style (official guide):** ONE flowing cinematography paragraph, not tag dumps. Order: shot/framing ->
   scene (lighting, color, texture, atmosphere) -> action (present-tense verbs) -> character (age, clothing,

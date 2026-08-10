@@ -38,6 +38,23 @@ upscale on a hero, frame interpolation on a clip, a depth map to drive ControlNe
 - **Topaz** (external API): commercial upscale/denoise/sharpen + frame interpolation via Topaz's API (built-in
   `TopazVideoEnhance` node). Upscale models Starlight (Astra) Fast/Creative + Starlight Precise 2.5; interpolation 15-240 fps, slow-mo 1-16x; needs a license.
   Source: docs.comfy.org/built-in-nodes/TopazVideoEnhance.
+  - **Images go through `TopazImageEnhanceV2`** ("Topaz Image Enhance"; the older `TopazImageEnhance` is
+    registered as "Topaz Image Enhance (Legacy)"). Its `model` is a DynamicCombo with **three** options, two of
+    them added in core v0.31.0: `Reimagine`, **`Bloom 2`**, **`Wonder 3.5`**. Picking one swaps the widgets
+    below it. Confirmed from `comfy_api_nodes/nodes_topaz.py` on master, 2026-08-09.
+  - **Bloom 2** is the creative one: optional `prompt` (**leave it empty and the model writes its own from the
+    image**, which the shipped template says in a note), `creativity` slider **1 to 9** (1 restrained
+    enhancement, 9 pronounced reinterpretation with newly generated detail), `seed` 1-2000, `color_preservation`
+    (default on), plus a grain block (`grain`, `grain_model` silver / gaussian / grey, `grain_strength`,
+    `grain_size`, `grain_density`).
+  - **Wonder 3.5** is the restrained one: `enhancement_strength` **low / medium / high** (default high) and the
+    same grain block. **It only supports upscale factors 1x to 6x.** Both new models **preserve the input aspect
+    ratio** and treat `output_width` / `output_height` as a target rather than an exact size, so you cannot use
+    them to change aspect; leave both at 0 for automatic.
+  - **Graph:** `LoadImage.IMAGE` -> `TopazImageEnhanceV2.image` -> `SaveImageAdvanced`, with `ImageCompare`
+    hung off it for a before / after wipe. That is exactly the shipped `api_topaz_image_enhance_bloom2.json` and
+    `api_topaz_image_enhance_wonder3_5.json`.
+  - Source: `comfy_api_nodes/nodes_topaz.py` on master ; core release v0.31.0 PR 15294 ; the two templates above.
 - **Magnific** (external API): cloud creative upscaler/enhancer (Freepik) up to 16K with prompt + creativity
   controls; no first-party ComfyUI node (HTTP/SDK or community wrapper). Scale 2x/4x/8x/16x. Source: docs.magnific.com.
 - **FILM** (frame interpolation): Google, handles large motion; accepts as few as 2 frames, arbitrary multipliers.

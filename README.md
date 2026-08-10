@@ -45,16 +45,16 @@ guide to building your own custom nodes.
   Claude Code is covered too. ([docs/AGENTS.md](docs/AGENTS.md))
 - **~90-tool MCP driver.** The agent operates ComfyUI directly: generate, build / edit / validate graphs, queue,
   download models, manage VRAM, read logs, diagnose.
-- **Per-model "mega-brain":** 68 prompt-recipe entries covering 63 named models, distilled from **official
+- **Per-model "mega-brain":** 71 prompt-recipe entries covering 66 named models, distilled from **official
   sources** (image, video, audio, 3D), split by family so each file reads whole in one call;
   the agent auto-pulls the right recipe when you name a model, so it prompts each one in its own dialect.
-- **Knows where each model runs:** a [full index](docs/MODEL_INDEX.md) of all 156 library models (recipe /
+- **Knows where each model runs:** a [full index](docs/MODEL_INDEX.md) of all 160 library models (recipe /
   utility / template-only), local vs API.
 - **Hardware-aware model selection:** detects your VRAM, RAM, and free disk, then recommends the variant that
   fits (fp8 / offload / multi-GPU / quant) and refuses a download that won't fit, before wasting the bandwidth.
 - **18 enhancement and utility tools:** upscale / restore (Real-ESRGAN, SUPIR, SeedVR2), frame interpolation
   (FILM, RIFE), segmentation / depth / pose (SAM3, BiRefNet, Depth Anything), plus restoration chains.
-- **586-template library** (and **94 official Subgraph Blueprints**, reusable subgraph bricks) as the source of truth, plus **fetch any shared workflow by hash** and a **model
+- **574-template library** (and **94 official Subgraph Blueprints**, reusable subgraph bricks) as the source of truth, plus **fetch any shared workflow by hash** and a **model
   shootout** (run a prompt through many models small, pick the winner, then scale up).
 - **Assembles new workflows from parts:** decomposes a task into stages, mixes templates and blueprint subgraphs,
   and wires the nodes correctly (output-to-input by type, with converters where needed), validated against
@@ -111,12 +111,12 @@ See [docs/LAYERS.md](docs/LAYERS.md) for each layer, and [docs/AGENTS.md](docs/A
 ## The template library is the source of truth
 
 The kit clones the official [Comfy-Org/workflow_templates](https://github.com/Comfy-Org/workflow_templates) and
-builds a compact lookup index so the agent can match any request to the right template. 586 templates (plus **94 official Subgraph Blueprints**, reusable subgraph bricks) span every
+builds a compact lookup index so the agent can match any request to the right template. 574 templates (plus **94 official Subgraph Blueprints**, reusable subgraph bricks) span every
 task, image, video, 3D, audio, utilities:
 
 <div align="center">
 
-<img src="docs/assets/templates_by_category.png" width="880" alt="Workflow templates by category: 157 image, 152 video, 103 use cases, 69 utility, 33 3D, 30 audio, 18 getting started, 17 LLM, 7 node basics">
+<img src="docs/assets/templates_by_category.png" width="880" alt="Workflow templates by category: 156 image, 156 video, 103 use cases, 72 utility, 33 3D, 30 audio, 17 LLM, 7 node basics">
 
 </div>
 
@@ -129,7 +129,7 @@ prompting reference distilled from **official sources** (each maker's docs and m
 the per-model templates from the `anthropic-claude` node). When you name a model in a request or a workflow,
 the agent reads that model's entry first and prompts it correctly.
 
-Covered today (68 recipe entries, 63 named models): FLUX.1/.2 + Kontext, Z-Image, Boogu, Mage-Flow, Qwen-Image/Edit, SDXL, SD1.5/3.5, HiDream,
+Covered today (71 recipe entries, 66 named models): FLUX.1/.2 + Kontext, Z-Image, Boogu, Mage-Flow, Qwen-Image/Edit, SDXL, SD1.5/3.5, HiDream,
 Ideogram, Nano Banana Pro/2, Seedream, Recraft, GPT-Image, Grok, Reve, Kandinsky, BRIA, OmniGen, Chroma, Krea 1/2,
 ERNIE-Image, FireRed/LongCat/ChronoEdit/JoyAI Image Edit (edit), Capybara, Bernini-R, Anima, NewBie, PixelDiT, Ovis-Image, Lens,
 Quiver, Wan 2.1-2.7, LTX-2.3/2 Pro, Hunyuan Video, SVD, Kling, Veo, Sora, Seedance, Luma, Runway, MiniMax, PixVerse,
@@ -141,7 +141,7 @@ object removal (VOID). Anything else falls back to the template library.
 
 <div align="center">
 
-<img src="docs/assets/models_by_modality.png" width="880" alt="Per-model prompt recipes by modality: 42 image, 23 video, 6 audio, 4 3D, 75 total, split local/open-weight vs API, plus 18 enhancement and utility tools">
+<img src="docs/assets/models_by_modality.png" width="880" alt="Per-model prompt recipes by modality: 43 image, 25 video, 6 audio, 4 3D, 78 total, split local/open-weight vs API, plus 18 enhancement and utility tools">
 
 </div>
 
@@ -237,7 +237,7 @@ Claude Code users can add the kit straight from the marketplace, no clone needed
 ```
 
 That registers the local `comfyui-mcp` driver (launched with `npx`, no manual npm step) and loads the full
-`comfyui` skill (the 68-entry recipe brain + the docs). You still need a local ComfyUI on `http://127.0.0.1:8188`; the
+`comfyui` skill (the 71-entry recipe brain + the docs). You still need a local ComfyUI on `http://127.0.0.1:8188`; the
 skill fills in your machine block on the first task. Plugins are Claude Code only, so for **Codex / Gemini CLI /
 Qwen Code** use the multi-agent installer below.
 

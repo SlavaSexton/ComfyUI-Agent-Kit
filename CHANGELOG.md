@@ -14,6 +14,8 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-08-09 - Wan Animate 2, SCAIL-2, FLUX 3 Video and the Seedance 2.5 retraction
+
 ### Added
 - **Wan Animate 2** (`MODELS/video-open.md`), the week's one open-weight arrival. Character animation with **no
   pose or keypoint extraction**: reference image for identity, driving video for motion, prompt for background

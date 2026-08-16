@@ -1,7 +1,7 @@
 # Image models (API / closed)
 
 Part of the kit's per-model prompting reference. The routing table and the auto-pull rule live in
-[`MODELS.md`](../MODELS.md); this file holds the 12 entries for this family.
+[`MODELS.md`](../MODELS.md); this file holds the 13 entries for this family.
 
 
 ### Ideogram (2.x to 4.0, plus P-Image)
@@ -94,18 +94,29 @@ Part of the kit's per-model prompting reference. The routing table and the auto-
   - The template's Note says to switch to Nodes 2.0 and click `Open Compositor` to edit the stack interactively.
 - **Source:** blog.comfy.org/p/seedream-50-pro ; volcengine.com / byteplus docs (Seedream 5.0) ; Comfy-Org/workflow_templates `api_bytedance_seedream_5_0_pro_*` and `api_bytedance_seedream_5_0_layer_separation.json` ; `comfy_api_nodes/nodes_bytedance.py` + `comfy_extras/nodes_compositor.py` on master ; core release v0.31.0 PR 15317. Read 2026-08-09.
 
-### Qwen Image 3.0 Pro (Alibaba, API) - COMFY CLOUD ONLY, you cannot build this locally today
+### Qwen Image 3.0 Pro (Alibaba, API) - CORRECTED 2026-08-15: the partner nodes now EXIST
 Two templates landed on 2026-08-06 (`api_qwen3_t2i`, `api_qwen3_image_edit`) and they are **gated to the cloud
-distribution**: both carry `"includeOnDistributions": ["cloud"]` in the library index. This entry exists so
-nobody burns an afternoon looking for the nodes.
+distribution**: both carry `"includeOnDistributions": ["cloud"]` in the library index, so the TEMPLATES may
+not show up in a local install even now. The NODES themselves shipped in core v0.32.0; see the correction
+directly below, which reverses what this entry said on 2026-08-09.
 
-- **The node classes are not in open-source ComfyUI.** `QwenImageTextToImageApi` and `QwenImageEditApi` are
-  absent from **all 38 files of `comfy_api_nodes/`**, **all 131 files of `comfy_extras/`**, and root `nodes.py`
-  on master (each listed and grepped 2026-08-09). A GitHub-wide code search for both names returns only the two
-  template JSONs themselves plus unrelated third-party projects. Do not confuse them with
+- **This entry said the opposite a week ago, and the earlier claim is now false.** On 2026-08-09 both node
+  classes really were absent from `comfy_api_nodes/` on master. They landed in core **v0.32.0** (PR 15327,
+  "[Partner Nodes] feat(Qwen): add Qwen-Image 3.0 Pro"), and `comfy_api_nodes/nodes_qwen.py` on master now
+  registers **`QwenImageTextToImageApi`** ("Qwen Image 3 Text to Image") and **`QwenImageEditApi`**
+  ("Qwen Image 3 Edit"). Both were read on 2026-08-15. Update ComfyUI to v0.32.0 or later and they appear.
+  The templates may still be cloud-gated in the library index; the NODES are not.
+- **What the nodes actually take (read from the file):** a `model` DynamicCombo over
+  `QWEN_IMAGE_MODELS = ["qwen-image-3.0-pro", "qwen-image-3.0"]`, so the Pro and the standard tier share one
+  node. Both nodes carry `prompt` and **`negative_prompt`** (multiline), `n` (image count, default 1), `seed`
+  (default 42), **`prompt_extend`** (BOOLEAN, default **True**, "enhance the prompt with AI assistance") and
+  **`watermark`** (BOOLEAN, default **False**). `QwenImageEditApi` adds an **Autogrow `images`** input for
+  reference images plus a second DynamicCombo. Turn `prompt_extend` OFF when you have written the prompt
+  precisely, exactly as with Ideogram's `prompt_upsampling`.
+- Do not confuse them with
   `TextEncodeQwenImageEdit` / `TextEncodeQwenImageEditPlus` in `comfy_extras/nodes_qwen.py`, which belong to the
   **local, open-weight** Qwen-Image-Edit and are a different thing entirely.
-- **The graph, for when it does reach your install:** t2i is `ResolutionSelector` (core, `nodes_resolution.py`:
+- **The graph:** t2i is `ResolutionSelector` (core, `nodes_resolution.py`:
   `aspect_ratio` combo, `megapixels` float, `multiple` int, outputs width and height INT) -> `QwenImageTextToImageApi`
   width / height -> `SaveImage`. Edit is `LoadImage` -> `QwenImageEditApi` -> `SaveImage`. The `model` widget
   value in both is the string `qwen-image-3.0-pro`.
@@ -116,8 +127,9 @@ nobody burns an afternoon looking for the nodes.
   layouts (posters, infographics, storyboards, newspapers, menus, exam papers), **crisp 10 px text**, native
   rendering in **12 languages**, 100-plus art styles, and 1 to 3 optional reference images for fusion editing.
   So: write long, structured, layout-describing prompts, not keyword lists.
-- **Confirmed vs inferred:** the cloud gating, the node names, their absence from open source, and the graph
-  shape are confirmed from the index and the template JSONs. Everything under "what the model is for" is the
+- **Confirmed vs inferred:** the cloud gating of the templates and the graph shape are confirmed from the
+  library index and the template JSONs; the node names, their model list and their widgets are confirmed from
+  `comfy_api_nodes/nodes_qwen.py` on master, read 2026-08-15. Everything under "what the model is for" is the
   vendor's own template copy, not measured.
 - **Source:** Comfy-Org/workflow_templates `templates/index.json` + `api_qwen3_t2i.json` / `api_qwen3_image_edit.json` ; `comfy_extras/nodes_resolution.py` on master. Read 2026-08-09.
 
@@ -145,8 +157,36 @@ nobody burns an afternoon looking for the nodes.
 - **Structure:** Subject -> Style -> Mood -> Lighting -> Camera/Framing -> Finishing; subject in the first words; 60-80 words (cut past 120); one style; in-image text ALL CAPS + quotes, 1-3 words.
 - **Strengths:** behavior-based light, concrete camera/lens, named aesthetics; `-quality` tier adds i2i (1-3 refs) and better non-English text.
 - **Avoid:** negatives IGNORED (rephrase positive); keyword stacking; mixed styles; buried subject.
+- **Grok Imagine Image 2.0 (new 2026-08, templates `api_grok_imagine_image_2_t2i.json` and
+  `..._image_edit.json`).** `grok-imagine-image-2.0` is now the first option in the model combo, above
+  `grok-imagine-image-quality`, `grok-imagine-image-pro` and the base `grok-imagine-image`.
+- **Build it (two nodes, both `category="partner/image/Grok"`, read from `comfy_api_nodes/nodes_grok.py`):**
+  - **Text to image: `GrokImageNode`** ("Grok Image") -> IMAGE -> `SaveImageAdvanced` (template ships `png`,
+    `8-bit`, `sRGB`). Widgets: `model`, `prompt`, `aspect_ratio`, `number_of_images` (1 to 10), `seed`,
+    `resolution` (`1K` / `2K`), `quality` (`medium` / `low`). **`quality` is honoured only by
+    `grok-imagine-image-2.0`** (the node's own tooltip). Thirteen aspect ratios, including the phone-native
+    `9:19.5`, `19.5:9`, `9:20`, `20:9` that the other options in this file do not offer.
+  - **Editing: `GrokImageEditNodeV2`** ("Grok Image Edit"). `LoadImage` -> its `images` input, which is an
+    **Autogrow**: connect the first and a second slot appears. Feed one image per reference. Template wires
+    two `LoadImage` nodes (a character reference and a product reference) and the prompt addresses them in
+    order as "the first reference image" / "the second reference image". Output -> `SaveImage`.
+  - **Use V2, not `GrokImageEditNode`.** The older class carries `is_deprecated=True` on master. Both share
+    the display name "Grok Image Edit", so the node picker shows two identical-looking entries.
+- **The edit node's widgets MOVE with the model (DynamicCombo), and the per-tier limits differ:**
+  `grok-imagine-image-2.0` and `grok-imagine-image-quality` and the base model take up to **3 reference
+  images**; `grok-imagine-image-pro` takes **1**. `quality` appears only under 2.0. `aspect_ratio` is absent
+  under `pro`, and under `quality` / base it is **only allowed when multiple images are connected** (its own
+  tooltip); under 2.0 it is unconditional.
+- **Price, per image, read off the nodes' `PriceBadge` expressions (multiply by `number_of_images`):**
+  2.0 at `low` quality `$0.04` (1K) / `$0.06` (2K); 2.0 at `medium` `$0.06` (1K) / `$0.08` (2K);
+  `-quality` `$0.05` (1K) / `$0.07` (2K); `-pro` `$0.07`; base `$0.02`. **Editing adds an input charge** on
+  top: `$0.01` per reference image for 2.0 and `-quality`, `$0.002` for the others, which is why the edit
+  node shows a RANGE (one to three references) for everything except `pro`, where it shows a single figure.
 - **ComfyUI (partner node):** the Grok Image node exposes a `resolution` combo of **`1K` / `2K`** (confirmed from `comfy_api_nodes/nodes_grok.py`), plus an `aspect_ratio` combo.
-- **Source:** docs.x.ai/docs/guides/image-generations.
+- **Source:** docs.x.ai/docs/guides/image-generations ; `comfy_api_nodes/nodes_grok.py` on master
+  (`GrokImageNode`, `GrokImageEditNodeV2`, `GrokImageEditNode`, `_grok_image_edit_model_inputs`,
+  `_GROK_IMAGE_QUALITY_OPTIONS`) ; official templates `api_grok_imagine_image_2_t2i.json` and
+  `api_grok_imagine_image_2_image_edit.json`. Read 2026-08-15.
 
 ### Reve (DEPRECATED in core v0.31.0, do not build new graphs on it)
 - **Status, 2026-08-09:** all three nodes carry `is_deprecated=True` in `comfy_api_nodes/nodes_reve.py` on

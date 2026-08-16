@@ -20,9 +20,9 @@ not this index, once you know which model you need.
 | Image models (API / closed) | [`MODELS/image-api.md`](MODELS/image-api.md) | 13 |
 | More open image models | [`MODELS/image-open-more.md`](MODELS/image-open-more.md) | 6 |
 | Image editing models (instruction-based) | [`MODELS/image-edit.md`](MODELS/image-edit.md) | 4 |
-| Video models (open / local-runnable) | [`MODELS/video-open.md`](MODELS/video-open.md) | 9 |
-| Video models (API / closed) | [`MODELS/video-api.md`](MODELS/video-api.md) | 14 |
-| Audio models | [`MODELS/audio.md`](MODELS/audio.md) | 5 |
+| Video models (open / local-runnable) | [`MODELS/video-open.md`](MODELS/video-open.md) | 10 |
+| Video models (API / closed) | [`MODELS/video-api.md`](MODELS/video-api.md) | 15 |
+| Audio models | [`MODELS/audio.md`](MODELS/audio.md) | 6 |
 | 3D models | [`MODELS/three-d.md`](MODELS/three-d.md) | 4 |
 | Newer and niche models | [`MODELS/niche.md`](MODELS/niche.md) | 3 |
 | Enhancement and utility (NOT prompt-driven) | [`MODELS/utility.md`](MODELS/utility.md) | 2 |
@@ -71,6 +71,7 @@ not this index, once you know which model you need.
 | Wan 2.7 (Alibaba) | `MODELS/video-open.md` |
 | Wan Animate 2 (Alibaba, local character animation) | `MODELS/video-open.md` |
 | SCAIL-2 (zai-org, animation + character replacement) | `MODELS/video-open.md` |
+| LTX-2.5 (Lightricks, open weights) | `MODELS/video-open.md` |
 | LTX-2.3 (Lightricks) | `MODELS/video-open.md` |
 | LTX-2 Pro (Lightricks) | `MODELS/video-open.md` |
 | Hunyuan Video (Tencent) | `MODELS/video-open.md` |
@@ -80,6 +81,7 @@ not this index, once you know which model you need.
 | Gemini Omni Flash (Google) | `MODELS/video-api.md` |
 | Sora 2 / Sora 2 Pro (OpenAI) | `MODELS/video-api.md` |
 | Seedance 1.0, 1.5 Pro, 2.0 and 2.5 (ByteDance) | `MODELS/video-api.md` |
+| LTX-2.5 (Lightricks, API partner nodes) | `MODELS/video-api.md` |
 | FLUX 3 Video (Black Forest Labs) | `MODELS/video-api.md` |
 | Luma Ray 2 / Ray 3 (Dream Machine) | `MODELS/video-api.md` |
 | Runway Gen-4 / Gen-4.5 | `MODELS/video-api.md` |
@@ -93,6 +95,7 @@ not this index, once you know which model you need.
 | ACE-Step | `MODELS/audio.md` |
 | ElevenLabs (API via ComfyUI nodes) | `MODELS/audio.md` |
 | ChatterBox (Resemble AI) | `MODELS/audio.md` |
+| MiniMax Music 3 (open weights) | `MODELS/audio.md` |
 | Seed Audio 1.0 (ByteDance) | `MODELS/audio.md` |
 | Hunyuan3D (Tencent) | `MODELS/three-d.md` |
 | Tripo | `MODELS/three-d.md` |

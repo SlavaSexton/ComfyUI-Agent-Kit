@@ -14,6 +14,51 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+### Added
+- **LTX-2.5** (`MODELS/video-open.md`), the week's headline arrival, day-0 in core **v0.32.0**. Written
+  buildable by parsing all three official templates rather than reading their prose: the full node chain
+  inside the shipped subgraph, both `ManualSigmas` step lists, the two-stage sampler with the x2 latent
+  upsampler between them, and the **half-resolution trap** (the template renders stage 1 at half the target
+  and lets the upsampler restore it, so feeding the full width doubles your cost). Also the exact gated file
+  names, the two separate Gemma 4 encoders (12B for conditioning, E2B for the Prompt Enhancer), what
+  `LTXVDualCFGGuider` actually does to a packed AV latent, and the i2v / flf2v differences, including that
+  flf2v has no second stage at all.
+- **LTX-2.5 partner nodes** (`MODELS/video-api.md`): all three API classes with their per-tier duration,
+  resolution and fps lists, the validator that caps anything over 10 s to 720p/1080p at 24/25 fps, and the
+  per-second prices read off the nodes' own rate tables. Names `LtxApi25AudioToVideo`, which ships no
+  template and has to be built by hand.
+- **MiniMax Music 3** (`MODELS/audio.md`), open-weight full songs with vocals, core **v0.33.1**. The graph,
+  the two-stage architecture and which knob hits which stage, the caption's three-section structure, the
+  square-bracket section tags as the only executable structural instruction, and the fact that the real
+  duration ceiling in the code is **360 s**, not the 300 s the template's own note advertises.
+- **Grok Imagine Image 2.0** (`MODELS/image-api.md`): the new model option, the `GrokImageEditNodeV2` edit
+  path with its Autogrow reference-image input, the per-tier reference limits, and both price tables.
+- **MiniMax H3 ecosystem** (`minimax-h3/reference.md`): lightx2v's Turbo family, which is the only public
+  4-step **Ref2VA** checkpoint and was missing from the kit's Turbo section; `ComfyUI-H3-FaceRefine` written
+  buildable from its own `nodes.py` (all six node classes, the `H3FACEXFORM` transform that stitching
+  depends on, and the defaults worth knowing); a pointer to `ComfyUI-MiniMax-H3-LongMedia`; and a field
+  timing datapoint for a 5090 running the stock graph with no accelerators.
+
+### Corrected
+- **Qwen Image 3.0 Pro is no longer cloud-only.** The kit stated its partner nodes did not exist in
+  open-source ComfyUI. That was true on 2026-08-09 and is false now: `QwenImageTextToImageApi` and
+  `QwenImageEditApi` shipped in core **v0.32.0**. The entry now carries the correction, the node names, their
+  shared model list and their widgets, read from `comfy_api_nodes/nodes_qwen.py`.
+- **The LTX-2 generation's API nodes are deprecated.** `LtxvApiTextToVideo` and `LtxvApiImageToVideo` both
+  carry `is_deprecated=True`, and their two templates were deleted from the official library in the same week
+  LTX-2.5 landed. Flagged on the LTX-2 Pro entry.
+
+### Changed
+- `docs/KNOWN_ISSUES.md` brought up to core **v0.33.1** and frontend **v1.51.6**. Leads with the change most
+  likely to break a working install: v0.32.0 **raised the minimum supported PyTorch to 2.7**. Notes that
+  there is no v0.33.0 release. Eleven new rows under Recently fixed, including the three H3 memory fixes that
+  answer last week's "dies in VAEDecode on long clips" row, and the Gemma 4 `thinking=false` fix that
+  silently affected the LTX-2.5 prompt enhancer on v0.32.0.
+- Headline counts moved to **75 recipe entries / 68 named models / 163 library models / 581 templates**. The
+  template total went DOWN by two despite nine arrivals, because the two old LTX API templates were deleted.
+- The per-family entry counts in each `MODELS/*.md` header were stale and are now synced. `video-open.md` had
+  been claiming 7 since it held 9.
+
 ## [3.1.0] - 2026-08-09 - Wan Animate 2, SCAIL-2, FLUX 3 Video and the Seedance 2.5 retraction
 
 ### Added

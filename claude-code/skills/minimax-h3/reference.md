@@ -88,6 +88,65 @@ an in-progress training run*: under-trained, EMA not fully matured, "quality is 
 completed run". The claim is roughly **4 sampling steps instead of ~20, about a 5x cut in sampling wall-clock**.
 Treat it as a fast draft mode, not a free quality-neutral win.
 
+**A second, independent Turbo family from lightx2v, and it is the one that covers Ref2VA.** The larryvrh /
+drbaph pair above is first-and-last-frame only. `lightx2v/Minimax-h3-Turbo` on HuggingFace (last modified
+2026-08-13, file list read from the HF API on 2026-08-15) ships both task families, and the files whose names
+end `_comfyui_` are the ones already in ComfyUI's key layout:
+
+- `minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors` - **reference-to-video in 4 steps**, and as of
+  this reading the only public 4-step checkpoint for that task.
+- `minimax_h3_fl2v_turbo_4step_v1.0_768p_comfyui_bf16.safetensors` - FL2V at 4 steps, v1.0, trained at 768p.
+- `minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors` - FL2V at 8 steps, for when 4 is too lossy.
+- Non-`comfyui` twins of each are the Diffusers-layout weights; do not load those into ComfyUI.
+
+Note the version gap: FL2V is at **v1.0**, Ref2V is still **v0.1**. Expect the reference path to be rougher.
+Same caveat as the section above applies: a distilled step-cut is a draft mode, not a free win.
+
+## Refining small faces: `Carasibana/ComfyUI-H3-FaceRefine`
+
+H3 renders distant or small faces as mush. This pack fixes it the way a compositor would: track the face,
+crop it so it fills the canvas, regenerate it with H3 at native resolution, composite it back. Modelled on
+Impact Pack's FaceDetailer but built for temporal consistency across frames rather than one still.
+
+**Six nodes, all `CATEGORY = "MiniMax H3/Face Refine"`** (read from the pack's `nodes.py`):
+`H3FaceTrackCrop`, `H3FaceStitch`, `H3InjectVideoLatent`, `H3PerFrameDenoise`, `H3FaceMaskSAM`,
+`H3FaceTransformInfo`.
+
+**The chain:**
+- **`H3FaceTrackCrop`** (display "H3 Face Track + Crop") takes `images` plus a `detector`, and returns SIX
+  outputs in this order: `crops` (IMAGE), **`transform` (a custom `H3FACEXFORM` type)**, `preview` (IMAGE),
+  `report` (STRING), `canvas_w` (INT), `canvas_h` (INT). The `transform` is the part that matters: it carries
+  the per-frame geometry, and `H3FaceStitch` cannot put the face back without it.
+- Send `crops` through an H3 pass. `H3InjectVideoLatent` ("H3 Inject Video Latent (img2img)") takes
+  `av_latent` + `images` + `vae` and returns a LATENT, which is how you get the crops into an existing AV
+  latent for an img2img-style refine.
+- **`H3FaceStitch`** ("H3 Face Stitch Back") takes `base_images`, `refined_crops` and `transform` -> IMAGE.
+- `H3FaceMaskSAM` returns MASK for a tighter paste; `H3FaceTransformInfo` just prints the transform.
+
+**Defaults worth knowing before you turn dials:** `crop_factor` 2.5 (crop side as a multiple of detected face
+HEIGHT), `canvas_width`/`canvas_height` 512 with a `canvas_mode` of `manual` / `auto_no_downscale` /
+`auto_capped_768` (the tooltip names 768 as H3's native size, so 512 is the cheap setting, not the good one),
+`smooth_window` 21 frames on the crop CENTRE and `size_smooth_window` 51 on the crop SIZE (size wants more
+smoothing than position), `smooth_method` gaussian, `size_mode` per_frame. On stitch: `paste_region`
+`face_only`, `mask_dilation` 16, `feather` 6, `colour_match` 1.0, and `undetected_frames` `fade_out`, which
+is what stops a hard pop on frames where the subject turns away.
+
+**Holding one person through a crowd:** connect a clear face image to the optional `identity_reference` and
+leave `identity_track` on; `identity_threshold` 0.28 is the minimum cosine similarity to accept a face as
+that person. Without a reference it falls back to the `select` combo (`largest` / `most_central`).
+
+Two example graphs ship: `H3_Face_Refine.json` and `H3_Face_Refine_SAM.json`. Confirmed by reading the pack's
+`nodes.py` and listing `example_workflows/` on 2026-08-15; not run here.
+
+## Long sequences on a small card: `vizart-vj/ComfyUI-MiniMax-H3-LongMedia`
+
+A node pack aimed at long H3 sequences on limited VRAM. Its own description names streamed Sol attention,
+compressed KV, adaptive VRAM guards, and chunked MLP and final output. Reported to let 16 GB cards hold heavy
+resolutions and long packed sequences, with hybrid auto modes, first and last frame anchors, loop generation
+and video reference editing. **Repository existence and description confirmed 2026-08-15; the node names and
+wiring were NOT read**, so treat this as a pointer, not a recipe, and read its `NODE_CLASS_MAPPINGS` before
+building on it.
+
 ## Sol-Attn: skip most KV blocks instead of quantising all of them
 
 Two packs, both created 2026-08-03, both aimed at H3, and **they are not the same implementation** even though
@@ -225,6 +284,11 @@ but verify any node or file name against its own repository before wiring it.
 - RTX 4080: 608x352, ~5.2 s of video, **~157 s**, peak VRAM **~9.5 GiB** with offload plus pruned INT8.
 - RTX 5090 + 96 GB RAM running `ref2va_pruned_int8_convrot` with SageAttention for reference-to-video.
 - Repeated reports that **20 steps can drop to 15** with little visible loss.
+- **RTX 5090 + 64 GB RAM: 2 megapixels, 7 s of video, 20 steps, i2v on the FULL model and FULL encoder, the
+  stock template graph with no accelerators: ~35 minutes.** A second user on the same thread reported ~23
+  minutes. Both figures are the price of refusing every optimisation on this page at once, and they are the
+  useful counterweight to the ~182 s laptop figure above, which is a small frame at low resolution on pruned
+  INT8. Field reports, 2026-08-11; not measured here.
 
 Low VRAM peaks depend on offload settings that trade speed for memory; none of this was measured here.
 

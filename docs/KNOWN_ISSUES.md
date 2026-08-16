@@ -5,11 +5,22 @@ so the kit knows what is broken BEFORE building a workflow instead of wiring aro
 repeating the same mistakes. Every row is sourced. Read this (and the "Real limits" section of
 [`ADVANCED.md`](ADVANCED.md)) before assembling a non-trivial graph.
 
-**Last updated: 2026-08-09** (statuses are as of this date and move as ComfyUI ships fixes). Current core release:
-**v0.31.0** (2026-08-08; v0.30.0 landed 2026-08-03); current frontend: **v1.50.4** (2026-08-09), though core
-v0.31.0 pins the **1.48.7** package, so the frontend line and the bundled package are not the same number.
+**Last updated: 2026-08-15** (statuses are as of this date and move as ComfyUI ships fixes). Current core release:
+**v0.33.1** (2026-08-13; v0.32.0 landed 2026-08-11). **The `v0.33.0` TAG exists but no GitHub Release was
+published for it** (`gh release view v0.33.0` answers "release not found" while the tag is in the tag list),
+and the v0.33.1 notes compare against v0.32.0 directly. A tag and a Release are different objects; do not
+read the gap as a missing version. Current frontend: **v1.51.6** (2026-08-16), the sixth 1.51.x point release
+in six days.
 
-**Read this first this week: v0.31.0 opened a MiniMax H3 bug cluster.** **Ten** separate H3 issues were filed
+**Read this first this week: v0.32.0 raised the PyTorch floor to 2.7.** "Minimum officially supported pytorch
+is now 2.7" (PR 15413). A portable or hand-built install pinned to an older torch is no longer supported, and
+that is the single change most likely to break an environment that has been working for months. Check with
+`python -c "import torch; print(torch.__version__)"` before updating core.
+
+**Last week's lead, still worth reading: v0.31.0 opened a MiniMax H3 bug cluster.** Several of these were
+addressed in v0.32.0 and v0.33.1 (see Recently fixed); the untriaged ones below have not moved.
+
+**The original note:** **Ten** separate H3 issues were filed
 from the release date onward (counted 2026-08-09 by listing every issue whose title names H3 or MiniMax and
 filtering to those created on or after 2026-08-08): noise output, sampler RuntimeError, 17-frame artifacts, an
 unrecoverable VAE decode OOM, speaker-conditioning leakage, a roughly 2x slowdown, and more. That is more than
@@ -65,6 +76,17 @@ everything else in the window combined. The rows are below. If you are running H
 
 | Fixed in | Symptom | Source |
 |---|---|---|
+| ComfyUI v0.33.1 | `Generate Text` ignored `thinking=false` on the Gemma 4 E2B / E4B encoders. This one matters for **LTX-2.5**: the shipped prompt-enhancer subgraph runs `TextGenerateLTX2Prompt` on `gemma4_e2b_it_bf16` with `thinking` off, so on v0.32.0 the enhancer was reasoning when it was told not to, burning its `max_length` budget on a block that gets stripped. | release v0.33.1 (PR 15278) |
+| ComfyUI v0.33.1 | `KSamplerAdvanced` with `add_noise` disabled crashed on nested latents (kijai). Nested latents are how packed audio-plus-video latents are carried, so this hit LTX-AV and H3 graphs. | release v0.33.1 (PR 15447) |
+| ComfyUI v0.33.1 | `float64` device error in the LTX diffusion decoder. | release v0.33.1 (PR 15516) |
+| ComfyUI v0.33.1 | MiniMax Music 3 did not work on non-dynamic-VRAM setups; fixed in the same release that shipped the model. | release v0.33.1 (PR 15588) |
+| ComfyUI v0.33.1 | `PreviewAny` escaped non-ASCII text inside dict and list previews, so any non-Latin prompt read back as escape codes. | release v0.33.1 (PR 15513) |
+| ComfyUI v0.32.0 | **Three more MiniMax H3 fixes**: kijai's VAE optimisation (chunked encode / decode, so VRAM stops scaling with clip length), a `VAEDecodeTiled` crash on nested-tensor latents, and a peak-memory fix. Together these are the direct answer to the 16 GB "dies in VAEDecode on long clips" row above; if you are still working around it, update. | release v0.32.0 (PRs 15446, 15477, 15486) |
+| ComfyUI v0.32.0 | Tiled audio decode was broken and is fixed. | release v0.32.0 (PR 15502) |
+| ComfyUI v0.32.0 | Upscale models broke on non-dynamic-VRAM low-VRAM setups. | release v0.32.0 (PR 15437) |
+| ComfyUI v0.32.0 | CLIP vision regression fixed. | release v0.32.0 (PR 15506) |
+| ComfyUI v0.32.0 | **Minimum supported PyTorch raised to 2.7.** Not a bug fix: a floor change that can break an older environment on update. | release v0.32.0 (PR 15413) |
+| ComfyUI v0.32.0 | **Correction to this kit.** Qwen Image 3.0 Pro's partner nodes (`QwenImageTextToImageApi`, `QwenImageEditApi`) shipped here. The kit previously stated they did not exist in open-source ComfyUI, which was true on 2026-08-09 and is false now. | release v0.32.0 (PR 15327) |
 | ComfyUI v0.31.0 | **Five MiniMax H3 fixes in one release**: audio corruption when EasyCache was on; wrong noise-mask sampling; full offload broken on the audio VAE; raw parameters not cast to the input device in the H3 VAEs; and sampler failures on audio, which also gained support for more samplers. If you hit any of these on 0.30.x, update rather than working around them. | release v0.31.0 (PRs 15390, 15322, 15377, 15268, 15243) |
 | ComfyUI v0.31.0 | MiniMax H3 gained `int8_convrot` VAE support, and asymmetric `w4a8_int` support landed alongside it. | release v0.31.0 (PRs 15334, 15308) |
 | ComfyUI v0.31.0 | LTX and Wan sampling sped up (kijai). Not a bug fix, but it changes your timings, so re-benchmark before comparing against older numbers. | release v0.31.0 (PR 15138) |

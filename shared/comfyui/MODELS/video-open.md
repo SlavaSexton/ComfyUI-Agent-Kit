@@ -1,7 +1,7 @@
 # Video models (open / local-runnable)
 
 Part of the kit's per-model prompting reference. The routing table and the auto-pull rule live in
-[`MODELS.md`](../MODELS.md); this file holds the 7 entries for this family.
+[`MODELS.md`](../MODELS.md); this file holds the 10 entries for this family.
 
 
 ### Wan 2.1 & 2.2 (Alibaba)
@@ -307,6 +307,93 @@ checkpoint with no special loader**. Community packs are now an optional layer, 
   `video_wan21_scail2_character_replacement{,_int8}.json` ; `zai-org/SCAIL-2` repo and config `config-14b.json` ;
   `Comfy-Org/SCAIL-2` file listing. Read 2026-08-09.
 
+### LTX-2.5 (Lightricks, open weights, native in core v0.32.0, day-0 2026-08-12)
+- **What changed from 2.3.** Pixel Diffusion (keyframe-grid generation), a diffusion video decoder (sharper faces
+  and legible text in fast motion), native multishot in a single generation, a **custom Gemma 4 12B text
+  encoder** in place of the previous encoder, a dedicated **Prompt Enhancer** model, Auto Duration, and a much
+  stronger distilled variant. Synchronized audio and 4K carry over from 2.3. Confirmed from the official
+  `video_ltx2_5_t2v.json` MarkdownNote. The kit's LTX-2.3 entry below is NOT superseded: the IC-LoRA, Director
+  and 360 tooling all target 2.3 and does not carry over.
+- **Gate first.** The weights are gated. Accept access at huggingface.co/Lightricks/LTX-2.5 BEFORE downloading,
+  or every link 403s (stated in the template's own note).
+- **Files (exact names, from the template's Model Links note):**
+  - `diffusion_models/ltx-2.5-22b-distilled-transformer-comfy-int8-convrot.safetensors`
+  - `vae/ltx-2.5-video-vae-bf16.safetensors` and `vae/ltx-2.5-audio-vae-bf16.safetensors` (two separate VAEs)
+  - `text_encoders/gemma4-12b-with-proj-ltx-2.5-comfy-int8-convrot.safetensors` (the conditioning encoder)
+  - `text_encoders/gemma4_e2b_it_bf16.safetensors` (a SECOND, small Gemma 4 that only drives the Prompt Enhancer)
+  - `latent_upscale_models/ltx-2.5-latent-spatial-upscaler-x2-bf16-1.0.safetensors`
+- **Build the t2v graph (every node confirmed by parsing `video_ltx2_5_t2v.json`, subgraph "Text to Video
+  (LTX-2.5)"; the shipped template hides all of this inside a subgraph, so "Enter subgraph" to see it):**
+  - Loaders: `UNETLoader` (weight_dtype `default`) -> MODEL. `VAELoader` x2, one per VAE. `CLIPLoader` with
+    **type `ltxv`** for the 12B encoder, and a second `CLIPLoader` type `ltxv` for the E2B enhancer model.
+    `LatentUpscaleModelLoader` -> LATENT_UPSCALE_MODEL.
+  - Prompt path: `PrimitiveStringMultiline` (your prompt) -> `TextGenerateLTX2Prompt.prompt`, with the E2B
+    `CLIPLoader` -> its `clip`. `ComfySwitchNode` picks `on_true` = enhanced text, `on_false` = your raw text,
+    switched by a `PrimitiveBoolean`. The switch output goes to `CLIPTextEncode.text` (positive). A second
+    `CLIPTextEncode` holds the negative (template ships `pc game, console game, video game, cartoon, childish,
+    ugly`). Both use the 12B `CLIPLoader`.
+  - `CLIPTextEncode` (pos, neg) -> `LTXVConditioning` (`frame_rate`, template 24) -> positive/negative out.
+  - Latents: `EmptyLTXVLatentVideo(width, height, length, batch_size)` and
+    `LTXVEmptyLatentAudio(frames_number, frame_rate, batch_size, audio_vae)` -> both into
+    `LTXVConcatAVLatent(video_latent, audio_latent)` -> one packed AV latent.
+  - Stage 1: `SamplerCustomAdvanced` with `RandomNoise` (user seed), `LTXVDualCFGGuider(model, positive,
+    negative, video_cfg, audio_cfg)`, `KSamplerSelect` = **`euler_ancestral`**, and `ManualSigmas` =
+    `1.0, 0.99375, 0.9875, 0.98125, 0.975, 0.909375, 0.725, 0.421875, 0.0` (8 steps).
+  - Upscale: `LTXVSeparateAVLatent` -> video latent into `LTXVLatentUpsampler(samples, upscale_model, vae)`
+    (x2, video VAE), audio latent passes through untouched -> a second `LTXVConcatAVLatent`.
+  - Stage 2: a second `SamplerCustomAdvanced`, `RandomNoise` seed **42 fixed**, its own `LTXVDualCFGGuider`,
+    `euler_ancestral`, `ManualSigmas` = `0.85, 0.7250, 0.4219, 0.0` (3 steps).
+  - Decode: `LTXVSeparateAVLatent` -> video into `VAEDecodeTiled` (video VAE; widgets `512, 64, 64, 16`), audio
+    into `LTXVAudioVAEDecode` (audio VAE) -> both into `CreateVideo(images, audio, fps)` -> `SaveVideo`.
+- **The half-resolution trap, and it is the one thing that breaks a hand-built copy.** The template runs stage 1
+  at HALF the target size. `ComfyMathExpression` `a/2` sits on both width and height into
+  `EmptyLTXVLatentVideo`; the x2 latent upsampler restores full size before stage 2. Feed the full width into
+  the empty latent and you render at 2x the intended resolution and pay for it. Frame count is a third
+  `ComfyMathExpression` `a * b + 1` (duration x frame_rate + 1), which lands on LTX's 8k+1 frame grid: 5 s at
+  24 fps = 121 frames. The same value feeds `LTXVEmptyLatentAudio.frames_number`, so video and audio stay aligned.
+- **Resolution.** A top-level `ResolutionSelector` (`16:9 (Widescreen)`, `0.9` megapixels, multiple `32`) drives
+  the subgraph's width/height. That combination computes to **1280x736**, not the 1280x720 sitting in the
+  subgraph's own widgets: the link overrides the widget, so the widget value is dead. Verified by running the
+  node's arithmetic (`round(16*sqrt(0.9*1024*1024/144)/32)*32`) and against the template's own megapixel table.
+- **Settings that are not obvious:** the distilled transformer runs at **`video_cfg` 1.0 and `audio_cfg` 1.0**
+  (both `LTXVDualCFGGuider` instances in every shipped template). `LTXVDualCFGGuider` exists precisely to give
+  the audio half of the packed latent a different scale from the video half; at equal scales it falls back to
+  plain single-CFG (read from `Guider_LTXAVDualCFG.predict_noise` in `comfy_extras/nodes_lt.py`). Raising
+  `audio_cfg` alone is the supported way to push audio adherence.
+- **Prompt Enhancer, what it actually does.** `TextGenerateLTX2Prompt` detects `gemma4` in the loaded clip name
+  and switches to the LTX 2.4 system prompts, wraps your text in Gemma 4 turn markers, strips any `<think>`
+  block, and **falls back to your original prompt if the model returns nothing** (all four behaviours read from
+  `comfy_extras/nodes_textgen.py`). Template widgets: `max_length` 600, sampling on, temperature 0.7, top_k 64,
+  top_p 0.95, min_p 0.05, repetition_penalty 1.15, thinking off, use_default_template on. Turn it OFF when you
+  have already written a full cinematography paragraph; it is for expanding short prompts.
+- **Auto Duration is real but NOT wired in any LTX-2.5 template.** `LTXVDurationPredictor` lives in
+  `comfy_extras/nodes_lt.py` and needs a separate LTX 2.4 duration head loaded through `ModelPatchLoader` into
+  its `duration_head` input; it outputs `num_frames` (snapped to the 8k+1 grid) and raw `seconds`. Nothing in
+  the three shipped graphs uses it, so treat it as an opt-in extra, not part of the default recipe.
+- **i2v differences (from `video_ltx2_5_i2v.json`):** `LoadImage` -> `ResizeImageMaskNode` (`scale longer
+  dimension`, 1536, `lanczos`) -> `LTXVPreprocess` (`img_compression` **18**) -> `LTXVImgToVideoInplace`. That
+  node appears TWICE: strength **1.0** on the stage-1 latent, strength **0.7** on the upsampled stage-2 latent.
+  It rewrites the latent in place rather than producing conditioning, so it sits between the concat and the
+  sampler, not next to `CLIPTextEncode`.
+- **flf2v differences (from `video_ltx2_5_flf2v.json`), and they are larger than they look:** there is **no
+  upsampler and no second stage**. One `SamplerCustomAdvanced` only, driven by `SamplerEulerAncestral`
+  (eta 0, s_noise 1) instead of `KSamplerSelect`, on the 8-step sigma list. Both frames go
+  `LoadImage` -> `ResizeImageMaskNode` (`scale dimensions`, **640x360 fixed**, `center`, `nearest-exact`) ->
+  `LTXVPreprocess` (18) -> `LTXVAddGuide`, first frame at `frame_idx` **0** and last at **-1**, both strength
+  **0.7**, then `LTXVCropGuides` before sampling. There is no `ResolutionSelector` in this template.
+- **Prompting.** The 2.3 guidance below still applies (one flowing cinematography paragraph, dialogue in
+  quotes, physical performance not emotions). The shipped 2.5 prompts confirm the style and add one habit worth
+  copying: they state the constraint explicitly at the end, for example `No text, no black frames.` in the i2v
+  example, and they name in-image text as a full sentence about the lettering rather than a bare string.
+- **Ecosystem, week of 2026-08-12 (reported, NOT verified against the files):** Lightricks published a
+  texture-preserving spatial upscale LoRA and a community NVFP4 quantization around 18 GB aimed at Blackwell
+  cards. Neither is referenced by any official template and neither filename has been read here, so do not
+  build a graph on them from this line; treat it as a pointer to go check.
+- **Source:** official templates `video_ltx2_5_{t2v,i2v,flf2v}.json` (nodes, links and widget values parsed, not
+  eyeballed) and their MarkdownNote guides ; `comfy_extras/nodes_lt.py`, `nodes_lt_audio.py`,
+  `nodes_lt_upsampler.py`, `nodes_textgen.py`, `nodes_resolution.py` on master ;
+  blog.comfy.org/p/ltx-25-day-0-support-in-comfyui ; huggingface.co/Lightricks/LTX-2.5. Read 2026-08-15.
+
 ### LTX-2.3 (Lightricks)
 - **Prompt style (official guide):** ONE flowing cinematography paragraph, not tag dumps. Order: shot/framing ->
   scene (lighting, color, texture, atmosphere) -> action (present-tense verbs) -> character (age, clothing,
@@ -433,6 +520,12 @@ checkpoint with no special loader**. Community packs are now an optional layer, 
 - **Source:** https://ltx.io/blog/ltx-2-3-prompt-guide (official prompt guide) ; docs.comfy.org/tutorials/video/ltx/ltx-2-3 ; huggingface.co/Lightricks/LTX-2.3 ; github.com/Lightricks/ComfyUI-LTXVideo.
 
 ### LTX-2 Pro (Lightricks)
+- **Status, 2026-08-15: the API nodes for this generation are DEPRECATED.** Both `LtxvApiTextToVideo` and
+  `LtxvApiImageToVideo` carry `is_deprecated=True` in `comfy_api_nodes/nodes_ltxv.py` on master, and the
+  official `api_ltxv_text_to_video.json` / `api_ltxv_image_to_video.json` templates were **deleted** from the
+  library in the same week LTX-2.5 landed (verified by diffing the template repo). Build new hosted graphs on
+  the LTX-2.5 partner nodes in [`video-api.md`](video-api.md). The local weights and everything below still
+  work; only the hosted path moved.
 - **Prompt style:** single flowing paragraph (4-8 sentences), not tag lists (the model resists keyword dumps); a shot list a camera operator could execute.
 - **Structure:** scene anchor (location/time/atmosphere) -> subject + action verb -> camera + lens (movement, focal length, aperture, framing) -> style/color science -> motion/time cue; start with the action.
 - **Strengths:** physically plausible camera work, lens/aperture realism, multi-keyframe interpolation, beat-matched audio, camera presets.

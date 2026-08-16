@@ -218,14 +218,17 @@ for most models while looking like it had worked. Each family file now reads who
 
 `MODELS.md` covers (image) FLUX.1/.2 + Kontext, Z-Image-Turbo, Qwen-Image/Edit, SDXL, SD1.5, SD3.5, HiDream,
 Ideogram, Nano Banana Pro/2, Seedream 4.x/5 Lite/5 Pro (incl. 5.0 Pro Layer Separation), Qwen Image 3.0 Pro
-(Comfy Cloud only), Recraft, GPT-Image, Grok, Reve (deprecated in core v0.31.0), Kandinsky, BRIA, OmniGen,
+(partner nodes shipped in core v0.32.0), Recraft, GPT-Image, Grok (incl. Grok Imagine Image 2.0
+and the V2 edit node), Reve (deprecated in core v0.31.0), Kandinsky, BRIA, OmniGen,
 Chroma, Krea (incl. the Turbo image-style-reference LoRA on core nodes), ERNIE-Image, Mage-Flow (Microsoft 4B,
 native-resolution, MIT); (image edit) FLUX Kontext,
 Qwen-Image-Edit, FireRed, LongCat, ChronoEdit, JoyAI Image Edit, Mage-Flow-Edit; (video)
 Wan 2.1-2.7 (incl. Uni3C camera-trajectory ControlNet), Wan Animate 2 (local character animation, no pose
-extraction), LTX-2.3 / 2 Pro, Hunyuan Video, SVD, Kling, Veo, Sora, FLUX 3 Video (BFL, with synchronized audio),
+extraction), **LTX-2.5** (open weights AND API partner nodes, day-0 in core v0.32.0), LTX-2.3 / 2 Pro (its API nodes now
+deprecated), Hunyuan Video, SVD, Kling, Veo, Sora, FLUX 3 Video (BFL, with synchronized audio),
 Seedance (1.0 / 1.5 Pro / 2.0 / **2.5**), Luma, Runway, MiniMax (incl. H3, API + local open weights), PixVerse,
-Vidu, Pika, Sync 3 (lip sync), HeyGen (avatar video, talking photo, video translate, TTS), HappyHorse, HuMo, SCAIL-2; (audio) Stable Audio, ACE-Step, ElevenLabs, ChatterBox, Seed Audio, Sonilo; (3D)
+Vidu, Pika, Sync 3 (lip sync), HeyGen (avatar video, talking photo, video translate, TTS), HappyHorse, HuMo, SCAIL-2; (audio) Stable Audio, ACE-Step, **MiniMax Music 3** (open-weight full songs with vocals, core v0.33.1),
+ElevenLabs, ChatterBox, Seed Audio, Sonilo; (3D)
 Hunyuan3D, Tripo, Rodin, Meshy; (newer/niche) Capybara, Bernini-R, Anima (+ ControlNet-LLLite control and inpainting
 patches), NewBie, PixelDiT, Ovis-Image, Lens, Quiver.
 
@@ -245,7 +248,7 @@ matching official doc link is the source.
 
 Three Claude nodes can exist after install; they differ by billing and purpose (see `docs/NODES.md`):
 - **`AnthropicClaudeNode`** (category `LLM/Anthropic`, community, your own key), 40+ templates that rewrite a
-  prompt for a specific model (`Ideogram 3`, `LTX 2.3 / LTX 2 Pro`, `Wan 2.1 & 2.2`, `FLUX`, `Nano Banana`,
+  prompt for a specific model (`Ideogram 3`, `LTX 2.5`, `LTX 2.3 / LTX 2 Pro`, `Wan 2.1 & 2.2`, `FLUX`, `Nano Banana`,
   `Veo 3`, `Sora 2`, ...). Vision + extended thinking. Needs `CLAUDE_API_KEY` env. The workhorse for autonomous
   in-graph prompt enrichment.
 - **`ClaudeNode`** (category `partner/text/Anthropic`, official Comfy-Org), billed via Comfy.org credits, no

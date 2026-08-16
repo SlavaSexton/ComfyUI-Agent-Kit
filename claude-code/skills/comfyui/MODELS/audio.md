@@ -1,7 +1,7 @@
 # Audio models
 
 Part of the kit's per-model prompting reference. The routing table and the auto-pull rule live in
-[`MODELS.md`](../MODELS.md); this file holds the 5 entries for this family.
+[`MODELS.md`](../MODELS.md); this file holds the 6 entries for this family.
 
 
 ### Stable Audio (Stability)
@@ -35,6 +35,54 @@ Part of the kit's per-model prompting reference. The routing table and the auto-
 - **Settings:** defaults `exaggeration=0.5`, `cfg_weight=0.5`; dramatic `exaggeration` 0.7+ with `cfg_weight` ~0.3.
 - **ComfyUI build:** the cited repo is the Python library; for ComfyUI install `filliptm/ComfyUI_Fill-ChatterBox` (ComfyUI Manager), whose TTS node takes `text` + `reference_audio` + `exaggeration` + `cfg_weight` -> AUDIO.
 - **Source:** github.com/resemble-ai/chatterbox (Python library).
+
+### MiniMax Music 3 (open weights, native in core v0.33.1, day-0 2026-08-13)
+Full songs with vocals, not loops or stems: one pass gives intro, verses, chorus and outro with a stable
+arrangement. The first entry in this file that is both open-weight and song-length.
+- **Files (from the template's Model Links note):** `diffusion_models/minimax_music3_dit_fp16.safetensors`
+  (or `minimax_music3_dit_int8_convrot.safetensors` for low VRAM),
+  `text_encoders/minimax_music3_text_encoder_pruned_int8_convrot.safetensors`,
+  `vae/minimax_music3_dav.safetensors`. All under `Comfy-Org/MiniMax-Music-3` on HuggingFace.
+- **Build the graph (parsed from `audio_minimax_music_3.json`, subgraph "Text to Music (MiniMax Music 3)"):**
+  - `UNETLoader` -> MODEL. `CLIPLoader` with **type `minimax`** -> CLIP. `VAELoader` -> VAE.
+  - `CLIPLoader` -> **`MiniMaxMusic3TextEncode`** (`clip`, `caption`, `lyrics`, `seed`, `max_duration`,
+    `cfg_scale`, `top_k`). It has TWO outputs: CONDITIONING and a FLOAT **`seconds`**.
+  - CONDITIONING -> `KSampler.positive`, and the SAME conditioning -> `ConditioningZeroOut` ->
+    `KSampler.negative`. There is no second text encode for the negative.
+  - **`seconds` -> `EmptyMiniMaxMusic3LatentAudio.seconds`** -> `KSampler.latent_image`. This link is the part
+    a hand-built copy gets wrong: the latent length is decided by the ENCODER, because the autoregressive
+    stage can end the song early. The `seconds` widget on the empty latent is dead once the link exists.
+  - A single `SeedNode` feeds BOTH `MiniMaxMusic3TextEncode.seed` and `KSampler.seed`, so one seed reproduces
+    the whole song.
+  - `KSampler` -> `VAEDecodeAudio` (VAE) and in parallel -> `VAEDecodeAudioTiled` (VAE, widgets `1536, 64`);
+    a `ComfySwitchNode` picks between them -> `SaveAudioAdvanced` (`mp3`, `V0`).
+- **Two stages with independent knobs, and that is the whole tuning story.** The autoregressive stage inside
+  the text encode predicts structure and latent tokens; the flow-matching DiT under `KSampler` renders the
+  waveform. So `cfg_scale` / `top_k` on the encode and `cfg` / `steps` on the `KSampler` are separate dials
+  hitting separate stages, even though the template happens to set both cfg values to the same 1.7.
+- **Settings the template actually ships:** `KSampler` steps **30**, cfg **1.7**, sampler `euler`, scheduler
+  `simple`, denoise 1.0. Encode `max_duration` **60** s, `cfg_scale` **1.7**, `top_k` **50**. Node defaults in
+  code are `cfg_scale` 1.5 and `top_k` 50 (`CFG_SCALE` / `CFG_TOP_K` in `comfy/ldm/minimax_music/ar.py`), so
+  the template raises cfg and leaves top_k alone.
+- **The real duration ceiling is 360 s, not the 5 minutes everyone quotes.** `max_duration`'s maximum is
+  `MAX_AUDIO_FRAMES / AUDIO_FRAMES_PER_SECOND` = 9000 / 25 = **360 seconds**, read from
+  `comfy/ldm/minimax_music/ar.py`. The template's own note says "up to ~300 s / 5 minutes"; that is the
+  marketing figure, and it disagrees with the node. Step is 0.04 s (one audio frame).
+- **Prompting, and the two fields do different jobs:**
+  - **Caption** is the music description, written in three sections in this order: **Global Metadata** (genre,
+    BPM, key, mood arc, listening context, production texture) -> **Vocal Details** (voice type, delivery,
+    placement in the mix) -> **Arrangement** (instruments and how they enter). The shipped example opens
+    literally `Global Metadata: Lo-fi hip-hop, chillhop. 78 BPM, D flat major...` and names production
+    artefacts explicitly ("vinyl crackle, tape hiss and wow-flutter pitch wobble").
+  - **Lyrics** carry the structure. **Section tags in square brackets are the only executable structural
+    instruction**; the lyric text itself only conveys mood. The shipped example uses `[Intro]`, `[Verse]`,
+    `[Instrumental]`, and parenthesised non-sung cues like `(rain on the window)`.
+- **Low VRAM:** switch `UNETLoader` to the int8 build and flip the `ComfySwitchNode` to the tiled decode. Tiled
+  decode cuts VRAM sharply at a small risk of seams at tile boundaries; leave it off on a large card.
+- **Source:** official template `audio_minimax_music_3.json` (nodes, links and widgets parsed) and its
+  MarkdownNote guide ; `comfy_extras/nodes_minimax_music.py` and `comfy/ldm/minimax_music/ar.py` on master ;
+  blog.comfy.org/p/minimax-music-3-state-of-the-art ; github.com/MiniMax-AI/MiniMax-Music3 (official Music
+  Caption Rewriter skill). Read 2026-08-15.
 
 ### Seed Audio 1.0 (ByteDance)
 - **Prompt style (this is the whole game):** write the scene as a SCRIPT and wrap everything that is NOT spoken dialogue in `[square brackets]` - only text in quotes after `says / whispers / replies` gets voiced. Un-bracketed prose is read aloud as narration and bloats the clip. Order: `[Language: ...]` -> `[Environment: ...]` -> `[Background music / SFX: ...]` -> `Name (voice traits) says: "line"` -> `[beats / SFX / Outro]`. Describe each voice (gender, age, accent, emotion, tone, pace) inside the parentheses before `says`.

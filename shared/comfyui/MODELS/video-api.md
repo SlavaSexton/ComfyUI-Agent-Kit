@@ -1,7 +1,7 @@
 # Video models (API / closed)
 
 Part of the kit's per-model prompting reference. The routing table and the auto-pull rule live in
-[`MODELS.md`](../MODELS.md); this file holds the 13 entries for this family.
+[`MODELS.md`](../MODELS.md); this file holds the 15 entries for this family.
 
 
 ### Kling (2.1/2.5, 2.6, 3.0/V3, O1, O3) - Kuaishou
@@ -87,6 +87,50 @@ Part of the kit's per-model prompting reference. The routing table and the auto-
     sibling **`seedance` skill** (invoke by name; beside the comfyui skill on disk), distilled from the official
     BytePlus prompt guide.
 - **Source:** docs.byteplus.com (Seedance 1.0 / 1.5 / 2.0 prompt guide) ; Comfy-Org/workflow_templates `api_seedance2_0_*` and `api_seedance2_5_{t2v,flf2v,r2v,video_editing}.json` ; ComfyUI "Seedance 2.0 4K is live" announce (2026-06) ; seed.bytedance.com Seedance 2.5 announce (2026-07-31) ; blog.comfy.org "Seedance 2.5 is now available via Partner Nodes" (2026-08-08) ; core release v0.31.0 PR 15395 ; `comfy_api_nodes/nodes_bytedance.py` on master, read 2026-08-09.
+
+### LTX-2.5 (Lightricks, API partner nodes, new in core v0.32.0)
+The hosted path to the same model the kit documents as open weights in
+[`video-open.md`](video-open.md). Reach for the API when you want 4K or clips past 10 s without owning the
+hardware; reach for the local build when you want IC-LoRAs, custom control, or zero per-second cost.
+- **Three nodes, all `category="partner/video/LTXV"`, all `is_api_node=True`** (read from
+  `comfy_api_nodes/nodes_ltxv.py` on master):
+  - **`LtxApi25TextToVideo`** ("LTX 2.5 Text To Video"): `model` (DynamicCombo) + `prompt` + `seed` -> VIDEO.
+  - **`LtxApi25ImageToVideo`** ("LTX 2.5 Image To Video"): `image` (first frame) + `model` + `prompt` + `seed`,
+    plus an OPTIONAL **`last_frame`**. There is no separate flf2v node: the official
+    `api_ltx2_5_flf2v.json` template is this same node with a second `LoadImage` wired into `last_frame`.
+    Exactly one image per input; more than one raises.
+  - **`LtxApi25AudioToVideo`** ("LTX 2.5 Audio To Video"): an `audio` track drives the video and **its length
+    sets the duration**, valid 2 to 20 s (the node measures `waveform.shape[-1] / sample_rate` and raises
+    outside that band). Optional `image` first frame. Resolution is limited to `1920x1080` / `1080x1920` on
+    both tiers, and there is no duration or fps widget. **No official template ships for this node**, so it is
+    the one to build by hand.
+- **Wiring is trivial and identical in all four shipped templates:** the node's VIDEO output goes straight to
+  `SaveVideo`; i2v/flf2v add `LoadImage` into `image` (and `last_frame`). No conditioning, no sampler, no VAE.
+- **`model` is a DynamicCombo, so the widgets under it CHANGE with the tier.** This is the trap: a duration or
+  resolution that is legal on Fast does not exist on Pro.
+  - **LTX-2.5 (Fast):** duration `2,3,4,5,6,8,10,12,14,16,18,20`; resolution `1280x720`, `720x1280`,
+    `1920x1080`, `1080x1920`, `2560x1440`, `1440x2560`, `3840x2160`, `2160x3840`; fps `24,25,48,50`.
+  - **LTX-2.5 (Pro):** duration `2,3,4,5,6,8,10`; resolution `1280x720`, `720x1280`, `1920x1080`, `1080x1920`;
+    fps `24,25,50`.
+  - Shared: `generate_audio` boolean, default **true** (advanced); `prompt` validated 1 to 10000 chars;
+    `seed` default 42 and only decides whether the node re-runs, results stay nondeterministic (the node's own
+    tooltip says so).
+- **A hard validator you will hit:** `_v25_validate_settings` raises **"Durations over 10s require a 720p or
+  1080p resolution and 24/25 FPS."** So the 4K and 1440p options and 48/50 fps are all capped at 10 s. Fast is
+  the only tier that offers over 10 s at all.
+- **Price, per second, read off the node's own `V25_PRICE_BADGE` rate table (usd = rate x duration):**
+  Fast `0.1287` at 720p, `0.1859` at 1080p, `0.2717` at 1440p, `0.429` at 4K. Pro `0.1716` at 720p, `0.2431` at
+  1080p. Portrait costs the same as landscape at every size. Audio-to-video is billed by a separate flat
+  per-second rate (`V25_A2V_PRICE_BADGE`): Fast `0.1859`, Pro `0.2431`. Worked example: a 20 s Fast clip at
+  1080p is 20 x 0.1859 = **$3.72**; the same 20 s is impossible on Pro.
+- **Prompting.** The shipped example prompts read exactly like the local ones: one cinematography paragraph,
+  shot label in caps (`CLOSE-UP:`, `EPIC WIDE SHOT:`), dialogue in double quotes with physical acting beats
+  between the lines, and i2v prompts opening with `Use the provided start image as the first frame.` The
+  detailed craft rules in the LTX-2.3 entry of `video-open.md` still apply.
+- **Source:** `comfy_api_nodes/nodes_ltxv.py` on master (`Ltx25TextToVideoNode`, `Ltx25ImageToVideoNode`,
+  `Ltx25AudioToVideoNode`, `_v25_model_combo`, `_v25_generation_inputs`, `_v25_validate_settings`,
+  `V25_PRICE_BADGE`, `V25_A2V_PRICE_BADGE`) ; official templates
+  `api_ltx2_5_{t2v,i2v,flf2v}.json` ; blog.comfy.org/p/ltx-25-day-0-support-in-comfyui. Read 2026-08-15.
 
 ### FLUX 3 Video (Black Forest Labs, API, new in core v0.31.0)
 BFL's first video model in ComfyUI, and it generates **synchronized audio** (ambient, speech, effects) in the

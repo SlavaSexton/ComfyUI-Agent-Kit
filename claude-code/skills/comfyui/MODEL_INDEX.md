@@ -1,6 +1,6 @@
 # Model index: every model in the library and what the kit has for it
 
-The template library names **160 distinct models** across 574 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
+The template library names **163 distinct models** across 581 templates (plus 94 official Subgraph Blueprints, reusable subgraph bricks). This index shows, for each, what the kit
 provides: a full prompt recipe in [`MODELS.md`](MODELS.md), an enhancement/utility note, or
 template-only coverage (runnable via a template, no dedicated recipe yet).
 
@@ -10,7 +10,7 @@ template-only coverage (runnable via a template, no dedicated recipe yet).
 | 🔧 **Utility** | enhancement / utility tool, has a "when to use + settings" note (not prompt-driven) |
 | 📋 **Template only** | runnable via a workflow template, no dedicated recipe yet (niche / thin official docs) |
 
-**Totals:** ✅ 72 recipe entries (covering ~132 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
+**Totals:** ✅ 75 recipe entries (covering ~132 model-name variants) · 🔧 18 utility tools · 📋 a few obscure
 template-only · plus text encoders / inference providers that are not generative models.
 
 **Updated: 2026-08-09.** Every ✅ entry has a current prompting recipe in

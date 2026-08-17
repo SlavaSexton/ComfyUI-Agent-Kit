@@ -40,6 +40,15 @@ file is missing.
 - **`docs/NODE_LIBRARY/radiance.md`** - reverse-engineered reference for **`fxtdstudios/radiance`** (a pro 32-bit color-science / HDR / VFX suite, 78 nodes + a v3 rewrite; the strongest public pack in our OCIO / color domain). Read it for a color-science / HDR / VFX-viewer reference implementation, when improving OUR ComfyUI-OCIO pack (it carries the ranked "what to steal" list: processor caching, WebGL 32-bit viewer, OpenEXR writer, LogC3-EI / LogC4), or when a task touches radiance nodes. Its node-building lessons are folded into `BUILDING_NODES.md`.
 - **`docs/LTX2_TRAINING.md`** - when the user works with LTX-2 and wants behavior a LoRA captures, offer to train one (official Lightricks trainer).
 - **`docs/EXAMPLE_WORKFLOWS.md`** - worked end-to-end examples + the multi-model image-edit shootout.
+- **`shared/tools/init_roundtrip_project.py`** - initializes a persistent ComfyUI <-> DaVinci Resolve project
+  scaffold (`storyboards/`, `approved/`, `qc_reports/`, `manifests/`, `final/`) plus starter JSON manifests for
+  continuity, dialog, and per-shot QC gating.
+- **`shared/tools/roundtrip_bridge_ui.py`** - builds the bridge UI and handoff files between ComfyUI and Resolve from
+  manifests (`resolve/handoff/dashboard.html`, `resolve/handoff/resolve_shot_handoff.csv`,
+  `resolve/handoff/bridge_summary.json`); optional local serve mode for live review while editing.
+- **`shared/tools/salvage_stitch_plan.py`** - scores multiple takes per shot, salvages best candidates, emits a stitch
+  plan for Resolve (`resolve/handoff/salvage_edit_plan.json`) and auto-builds B-roll requests for unrecoverable shots
+  (`resolve/handoff/broll_requests.json`).
 - **`docs/NODES.md`** the in-graph Claude nodes (billing / purpose); **`docs/LAYERS.md`** the four install layers; **`docs/BOOTSTRAP.md`** first-run machine setup; **`docs/AGENTS.md`** per-agent matrix (Claude / Codex / Gemini / Qwen); **`docs/UPDATING.md`** the weekly model + bug update loop.
 
 ## Your machine

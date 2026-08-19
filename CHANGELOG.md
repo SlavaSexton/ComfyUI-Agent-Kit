@@ -14,6 +14,15 @@ vx.y.z`), which can become a GitHub Release.
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-08-19 - LTX-2.5, MiniMax Music 3, the OCIO 1.3.0 rename and Apache-2.0
+
+### Changed (licence)
+- **The kit is now Apache-2.0.** Releases up to and including v3.1.0 were MIT and that grant is not
+  withdrawn: anyone who took those versions keeps those rights. The move buys an explicit patent grant
+  (MIT has no patent language at all), the section 6 withholding of trademark rights, and the section 4d
+  NOTICE mechanism, which is why a `NOTICE` file now exists rather than being skipped. It also puts the kit
+  on the same licence as ComfyUI-OCIO. Third-party components are untouched and were never vendored here.
+
 ### Added
 - **LTX-2.5** (`MODELS/video-open.md`), the week's headline arrival, day-0 in core **v0.32.0**. Written
   buildable by parsing all three official templates rather than reading their prose: the full node chain

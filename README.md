@@ -15,7 +15,7 @@ images, video, and audio, build and run workflows, pick the model variant that f
 graph live in your own ComfyUI canvas**. No hosted service, no per-generation billing: one installer wires the same
 stack into every agent you run, then you hand the whole setup to someone else with one command.
 
-![License: MIT](https://img.shields.io/badge/License-MIT-FFD27D.svg)
+![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-FFD27D.svg)
 ![ComfyUI](https://img.shields.io/badge/ComfyUI-driven-5BAEE3.svg)
 ![Agents](https://img.shields.io/badge/Claude_·_Codex_·_Gemini_·_Qwen-9aa3b2.svg)
 ![Platforms](https://img.shields.io/badge/Windows_·_Linux_·_macOS-supported-9aa3b2.svg)
@@ -82,7 +82,7 @@ guide to building your own custom nodes.
   timestamp storyboard, the real-person character formula, and a failure table for face drift, duplicate
   characters and extension seams. Distilled from ByteDance's own guides.
   ([shared/seedance/SKILL.md](shared/seedance/SKILL.md))
-- **Portable and idempotent:** one installer, auto-detects your agents, re-runnable. MIT, no vendored third-party
+- **Portable and idempotent:** one installer, auto-detects your agents, re-runnable. Apache-2.0, no vendored third-party
   code (everything heavy is fetched at install).
 
 ## The four-layer stack
@@ -303,19 +303,20 @@ ComfyUI-Agent-Kit/
 ├── docs/BOOTSTRAP.md / LAYERS.md / NODES.md
 ├── ATTRIBUTION.md                   credits for fetched third-party pieces
 ├── CHANGELOG.md                     curated history of notable changes (Keep a Changelog)
-└── LICENSE                          MIT (this kit's original files)
+├── LICENSE                          Apache-2.0 (this kit's original files)
+└── NOTICE                           attribution + trademark notice (Apache-2.0 section 4d)
 ```
 
 ## What is and isn't in this repo
 
-In the repo (original work, MIT): the skill, the client, the installer, the index generator, the docs, the
+In the repo (original work, Apache-2.0): the skill, the client, the installer, the index generator, the docs, the
 generated visuals. Fetched at install time from their own sources (not redistributed here): the `comfyui-mcp`
 package, the node-building skills, the workflow templates, and the in-graph Claude nodes.
 
 ## Credits and thanks
 
 **Our own companion pack:** **[ComfyUI-OCIO](https://github.com/SlavaSexton/ComfyUI-OCIO)** - nine Nuke-style
-OpenColorIO nodes - is by **Slava Sexton**, this kit's author (MIT). It is credited to him wherever the kit uses,
+OpenColorIO nodes - is by **Slava Sexton**, this kit's author (Apache-2.0). It is credited to him wherever the kit uses,
 recommends, or builds on it; see **[ATTRIBUTION.md](ATTRIBUTION.md)**.
 
 This kit stands on excellent open-source work. It is a thin wiring layer over these projects, and the heavy
@@ -384,7 +385,7 @@ open an issue and it will be fixed.
 
 ## License
 
-MIT, see [LICENSE](LICENSE). Third-party components keep their own licenses.
+Apache-2.0, see [LICENSE](LICENSE) and [NOTICE](NOTICE). Releases up to v3.1.0 were MIT and that grant stands. Third-party components keep their own licenses.
 
 <div align="center">
 

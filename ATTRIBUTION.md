@@ -1,7 +1,10 @@
 # Attribution
 
 This kit's original files (the `comfyui` skill, `comfy_client.py`, the installers, `gen_quick_index.py`, the
-docs, and the activation snippet) are MIT-licensed, see `LICENSE`.
+docs, and the activation snippet) are **Apache-2.0** licensed, see `LICENSE` and `NOTICE`.
+
+Releases up to and including **v3.1.0 were MIT**. That grant stands for anyone who took those versions;
+the repository is Apache-2.0 from **v3.2.0** onward.
 
 The installer **fetches** the following third-party components from their own repositories at install time.
 They are NOT redistributed in this repo; each keeps its own license. Credit to their authors:
@@ -85,7 +88,7 @@ Cloud (a hosted MCP); the patterns are re-expressed here for the local stack. No
 ## Companion pack - ComfyUI-Smart-Upscaler
 
 **ComfyUI-Smart-Upscaler** - eleven nodes for tiled upscaling that reads the whole image once and then writes a
-separate, verified prompt for every tile - is authored by **Slava Sexton** (this kit's author), MIT-licensed,
+separate, verified prompt for every tile - is authored by **Slava Sexton** (this kit's author), Apache-2.0 licensed,
 version 1.0.0. **Not published yet:** there is no public repository or Registry entry as of 2026-08-01, so this
 row carries no URL; it gains one when the pack ships. Documented in `docs/NODE_LIBRARY/smart-upscaler.md`.
 Its shipped workflow depends on two third-party packs, both credited in the table above: **ComfyUI-KJNodes**
@@ -95,6 +98,6 @@ Its shipped workflow depends on two third-party packs, both credited in the tabl
 
 **[ComfyUI-OCIO](https://github.com/SlavaSexton/ComfyUI-OCIO)** - Nuke-style OpenColorIO color nodes (Read /
 Write, ColorSpace, LogConvert, Display, CDLTransform, FileTransform, LookTransform) - is authored by
-**Slava Sexton** (this kit's author), MIT-licensed. Where this kit uses, recommends, bundles, builds on, or draws
+**Slava Sexton** (this kit's author), Apache-2.0 licensed. Where this kit uses, recommends, bundles, builds on, or draws
 the idea from those nodes - in full or in part, as a derivative or as the design - they are credited to
 **Slava Sexton**.

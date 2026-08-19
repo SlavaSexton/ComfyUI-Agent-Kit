@@ -1,0 +1,18 @@
+ComfyUI-Agent-Kit
+Copyright 2026 AI VFX NEWS (Slava Sexton)
+
+This product includes software developed by AI VFX NEWS (https://aivfxnews.com/).
+
+Licensed under the Apache License, Version 2.0. See LICENSE for the full text.
+
+Releases up to and including v3.1.0 were published under the MIT License. That grant is not
+withdrawn: anyone who obtained those versions keeps the rights MIT gave them. This repository is
+Apache-2.0 from v3.2.0 onward.
+
+"AI VFX NEWS" is a trademark of the copyright holder. Section 6 of the Apache License grants no
+trademark rights, so this license does not permit use of the name to endorse, promote, or identify
+derived works.
+
+Third-party components are NOT redistributed in this repository. The installer fetches them from
+their own sources at install time and each keeps its own license; see ATTRIBUTION.md for the list
+and the credits.

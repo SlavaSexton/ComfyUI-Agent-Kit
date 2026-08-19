@@ -33,6 +33,13 @@ vx.y.z`), which can become a GitHub Release.
   duration ceiling in the code is **360 s**, not the 300 s the template's own note advertises.
 - **Grok Imagine Image 2.0** (`MODELS/image-api.md`): the new model option, the `GrokImageEditNodeV2` edit
   path with its Autogrow reference-image input, the per-tier reference limits, and both price tables.
+- **ComfyUI-OCIO v1.3.0** (`NODE_LIBRARY/ocio.md`), our own pack, published 2026-08-16. The kit had been
+  sitting on v1.2.2 and nine nodes; it is **eleven** now, counted by reading the three `NODE_CLASS_MAPPINGS`
+  dicts at the tag rather than trusting a note. The new **`OCIOVAEDecode` / `OCIOVAEEncode`** pair is written
+  buildable: full I/O, both STRING report outputs, the `clamp` and `out_of_range` semantics, and the measured
+  precision costs off the nodes' own tooltips (5.2x for decode at float32, 1.8x for encode). Also the live
+  `view` narrowing, the ACES 1.3 default and what the wrong config version costs, the thumbnail clamp fix, and
+  Player's new `AUDIO` input and `Range check`.
 - **MiniMax H3 ecosystem** (`minimax-h3/reference.md`): lightx2v's Turbo family, which is the only public
   4-step **Ref2VA** checkpoint and was missing from the kit's Turbo section; `ComfyUI-H3-FaceRefine` written
   buildable from its own `nodes.py` (all six node classes, the `H3FACEXFORM` transform that stitching
@@ -44,6 +51,14 @@ vx.y.z`), which can become a GitHub Release.
   open-source ComfyUI. That was true on 2026-08-09 and is false now: `QwenImageTextToImageApi` and
   `QwenImageEditApi` shipped in core **v0.32.0**. The entry now carries the correction, the node names, their
   shared model list and their widgets, read from `comfy_api_nodes/nodes_qwen.py`.
+- **OCIO Write's `from_colorspace` is now `input_colorspace`.** The kit taught the old name, and in v1.3.0 an
+  API-format graph carrying it is **refused** with HTTP 400 `required_input_missing`, so the kit was teaching a
+  path that fails. Corrected everywhere it appeared, with the three layers separated: the API form breaks, a
+  GUI workflow saved from the canvas does not (positional `widgets_values`, the key kept its slot), and direct
+  Python callers still accept the old kwarg.
+- **An `OCIO Metadata` node does not exist.** It was registered on 2026-08-13 and removed the same day. A note
+  in this operation's memory said the pack had twelve nodes including it; reading the registry says eleven
+  without it. The doc now states the removal so nobody hunts for a metadata editor that was never shipped.
 - **The LTX-2 generation's API nodes are deprecated.** `LtxvApiTextToVideo` and `LtxvApiImageToVideo` both
   carry `is_deprecated=True`, and their two templates were deleted from the official library in the same week
   LTX-2.5 landed. Flagged on the LTX-2 Pro entry.

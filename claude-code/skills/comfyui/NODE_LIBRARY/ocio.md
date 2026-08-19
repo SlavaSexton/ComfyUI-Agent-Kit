@@ -1,14 +1,84 @@
 # OCIO color management (ComfyUI-OCIO, our own pack)
 
-**Nine** OpenColorIO nodes we build and maintain, modelled 1:1 on The Foundry Nuke's node set. Pack:
-**`ComfyUI-OCIO`**, author **Slava Sexton** (https://github.com/SlavaSexton/ComfyUI-OCIO), MIT, **released v1.2.2
-2026-07-06** (v1.2.0 was 2026-07-04, v1.0.0 2026-06-30). Category `OCIO`. Built to fill a real gap: the ComfyUI
+**Eleven** OpenColorIO nodes we build and maintain, modelled 1:1 on The Foundry Nuke's node set. Pack:
+**`ComfyUI-OCIO`**, author **Slava Sexton** (https://github.com/SlavaSexton/ComfyUI-OCIO), MIT, **released v1.3.0
+2026-08-16** (v1.2.2 was 2026-07-06, v1.0.0 2026-06-30). Category `OCIO`. Built to fill a real gap: the ComfyUI
 registry had no OCIO pack (`search_custom_nodes "OCIO"` / `"OpenColorIO"` both return nothing).
 
-**The pack (v1.2.2) - native ComfyUI VIDEO pipeline, an on-node viewer, CI-verified accuracy.** (The nine nodes and
+The node count is **11**, counted by reading the three `NODE_CLASS_MAPPINGS` dicts at tag `v1.3.0`: six color
+operators in `nodes.py`, `OCIORead` / `OCIOWrite` / `OCIOPlayer` in `io_nodes.py`, and `OCIOVAEDecode` /
+`OCIOVAEEncode` in `vae_nodes.py`. **An `OCIO Metadata` node was registered on 2026-08-13 and removed the same
+day**; it is not in the pack, and the only part of it that survives is the read-only Metadata panel on OCIO
+Read. There is no replacement for EDITING metadata, so do not send anyone looking for one. Checked
+exhaustively: `OCIOMetadata` appears as neither a class nor a mapping key in any of the 66 Python files at the
+tag.
+
+**Counting the mappings naively gives 14, and 14 is wrong.** `grade_nodes.py` defines and maps `OCIOGrade`,
+`OCIOGradeMatch` and `OCIOApplyGrade`, but `__init__.py` has its import AND both `.update()` calls commented
+out (disabled 2026-07-04, not in use). They are dead code, not nodes. **Read `__init__.py` before trusting a
+`NODE_CLASS_MAPPINGS` scan of any pack** - a mapping that nothing imports registers nothing.
+
+## NEW IN v1.3.0 - the VAE pair, and one BREAKING rename
+
+**BREAKING, and it is the first thing to fix in any saved graph: OCIO Write's `from_colorspace` is now
+`input_colorspace`** (renamed 2026-08-16, to the name OCIO Read and OCIO Player already used). Three layers
+behave differently and confusing them wastes an afternoon:
+
+- **API-format workflow (what an agent builds and POSTs to `/prompt`): the old key is REFUSED.** ComfyUI
+  validates against `INPUT_TYPES` before the node runs, so a graph carrying `from_colorspace` fails with HTTP
+  400 `required_input_missing` (measured by the pack author, stated in the code comment at the widget). **The
+  fix is one word in the JSON.** This is the case that matters for this kit.
+- **GUI-format workflow saved from the canvas: unaffected.** `widgets_values` is a positional array and the
+  key stayed SECOND in `required`, so an existing graph resolves exactly as before. A test asserts the position.
+- **Python callers** (the pack's own `tools/`, `docker/`, anything driving `OCIOWrite.write()` directly) still
+  accept a `from_colorspace=` kwarg. It only wins when `input_colorspace` is still at its default, which is the
+  one state where preferring it cannot overwrite a real choice.
+
+**`OCIOVAEDecode` (display "OCIO VAE Decode")** - the reason the release exists. The stock `VAEDecode` clamps
+every decode to 0..1, which flattens the foot of the curve before any color node can reach it, and it rescales
+output from VAEs whose own transform already emits 0..1.
+- **inputs:** `samples` (LATENT, the same input stock VAE Decode takes), `vae` (VAE), `precision`
+  (default **`float32`**), `clamp` (BOOLEAN, default **False**, labels `clamp to 0..1` / `keep everything`).
+- **outputs:** `IMAGE` named `image/sequence/video`, and a STRING named **`range report`**.
+- **cost, from the node's own tooltip:** float32 costs **5.2x** the model's own dtype, 28.8 s against 5.5 s for
+  25 frames at 1280x704 tiled 384. `float16` applies only where the VAE lists it; LTX does not, so it falls
+  back and the report says so.
+- Turn `clamp` ON only to reproduce the stock path for a comparison. OFF is the point of the node.
+
+**`OCIOVAEEncode` (display "OCIO VAE Encode")** - the other end of the round trip, and it reports the range of
+what it was handed BEFORE the latent exists, so out-of-range input is seen rather than inferred afterwards.
+- **inputs:** `pixels` (IMAGE), `vae` (VAE), `precision` (default `float32`, **1.8x** cost: 5.4 s against 3.0 s
+  for 25 frames at 1280x704), `out_of_range` (combo **`report only`** / `clamp to 0..1` / `raise an error`).
+- **outputs:** `LATENT` named `latent`, and a STRING named **`input report`**.
+- Values outside 0..1 are outside the VAE's training domain. `report only` matches the stock node but tells you.
+
+**Wire them like the stock pair:** `OCIOVAEDecode` replaces `VAEDecode` between the sampler and any color node;
+`OCIOVAEEncode` replaces `VAEEncode` on the way in. Both return their report as a second STRING output, so wire
+it to `PreviewAny` rather than guessing whether anything was out of range.
+
+**Other v1.3.0 changes worth knowing:**
+- **`view` narrows live to what the resolved display accepts.** It used to offer the union of every view across
+  both ACES configs, of which **24 of 32 real entries were invalid** for `Rec.1886 Rec.709 - Display`, and
+  picking one raised at render time after the graph had already spent its time. It never coerces: a view
+  restored from a saved workflow stays selected even when the pair cannot use it, with the label saying so.
+- **`view` now fills itself in with ACES 1.3, not the loaded config's 2.0 default.** A Nuke 13 or 14 comp is on
+  ACES 1.2 / 1.3, and a render made with the wrong version is **off by 35.5% on the worst pixel**.
+- **The `/ocio/thumb` endpoint stopped clamping.** It decoded video through `rgb48le`, which pushes the YUV
+  matrix into an unsigned integer format and clamps on the way out, so the viewport and the thumbnail showed
+  different pictures. Measured on a flat limited-range frame: the file carries green at **-0.0937** and the
+  thumbnail returned exactly **0.0**.
+- **OCIO Player takes an `AUDIO` input**, and gained **`Range check`** in its Info panel, reading e.g.
+  `max 1.017, min -0.008, 0.070% above 1.0` or `nothing above 1.0 (no highlights to recover)`. That line is
+  what tells a display-referred master apart from a broken viewer: pulling exposure down on the former darkens
+  the picture and reveals nothing, which looks identical to a bug.
+- `write_audio` now appears only where sound can arrive without a wire, which is a native `VIDEO` input.
+- Gate at the release: **45 passed, 0 failed**, and three of the five added test files execute the front-end
+  JavaScript under node rather than grepping it for a function name.
+
+**The pack (v1.2.2) - native ComfyUI VIDEO pipeline, an on-node viewer, CI-verified accuracy.** (The nine nodes then registered and
 the VIDEO wire shipped in v1.2.0; v1.2.1 / v1.2.2 add the reproducible CI and an honest accuracy write-up, no node
 changes.)
-- **All nine nodes are on the native VIDEO wire.** Each of the six color nodes (ColorSpace, LogConvert, Display,
+- **All nine of the pre-v1.3.0 nodes are on the native VIDEO wire.** Each of the six color nodes (ColorSpace, LogConvert, Display,
   CDLTransform, FileTransform, LookTransform) plus Write and Player carries a **mutually-exclusive IMAGE-or-VIDEO
   input pair**: connect one and the other auto-disconnects, and the socket matching the live input carries the
   data (VIDEO in -> VIDEO out, IMAGE in -> IMAGE out). VIDEO uses ComfyUI's native `comfy_api`
@@ -28,8 +98,8 @@ changes.)
   proof. Backed by a color-accuracy suite (`tools/accuracy`) + charts (`docs/assets/accuracy/`, incl. a 3D
   gamut-volume chart of sRGB / ACEScg / ACES2065-1 / ARRI Wide Gamut 3 in CIE Lab).
 - **Reproducible CI (v1.2.1+):** a Dockerized CPU-only ComfyUI test env (`docker/`, CPU-only, no models) drives
-  all nine nodes headless through the real ComfyUI HTTP API and gates the round-trip on every push / PR (GitHub
-  Actions) - CI-confirming that all 9 nodes register and the round-trip holds at 4.5e-6. The Docker / CI
+  all nine of those nodes headless through the real ComfyUI HTTP API and gates the round-trip on every push / PR (GitHub
+  Actions) - CI-confirming that those 9 nodes register and the round-trip holds at 4.5e-6. The Docker / CI
   round-trip harness was contributed by **Sam Hodge** (PR #1); the nodes and the color-accuracy suite are Slava
   Sexton's.
 - **Since v1.0.1** (still current): OCIO Write can write LTX-2 HDR straight to an **ACEScg EXR sequence** -
@@ -101,7 +171,7 @@ round-trip max error ~5e-5).
 - **purpose:** color-manage an IMAGE batch and write it to disk (Nuke: Write).
 - **inputs:**
   - `images` (IMAGE) - the frame batch. `alpha` (MASK, optional) - wire OCIO Read's alpha (or any MASK) to write RGBA. `fps` (FLOAT, optional) - wire OCIO Read's fps.
-  - `from_colorspace` (combo) - the working space of the incoming image (default `sRGB - Display`).
+  - **`input_colorspace`** (combo) - the working space of the incoming image (default `sRGB - Display`). **RENAMED from `from_colorspace` in v1.3.0; an API-format graph carrying the old key is refused with HTTP 400.** See the v1.3.0 section at the top.
   - `output_colorspace` (combo) - the file's colorspace. Format picks the default (EXR -> ACEScg, PNG/TIFF/JPEG -> sRGB); stamped into the file metadata where the format allows.
   - `container` (combo `still image`/`sequence`/`video`).
   - `still_format` (combo `exr`/`tiff`/`png`/`jpeg`) - for still/sequence. `video_codec` (combo `prores_4444`/`prores_422hq`/`prores_422`/`dnxhr_hq`/`h264`/`hevc`) - for video. The pack's JS shows only the relevant one per container.
@@ -110,7 +180,7 @@ round-trip max error ~5e-5).
   - `first_frame`/`last_frame` (INT) - which frames to write. `start_number` (INT) - the number on the first output file. `source_start` (INT, hidden, set by the wire) - maps frame numbers to batch indices.
   - `raw_data` (BOOLEAN) - write as-is, no conversion. `output_folder` (STRING, browse button) + `filename` (STRING).
   - `colorspace_in_name` (BOOLEAN, default ON, **v1.0.1**) - put the output colorspace in the file name, BEFORE the frame number: `name_acescg.0086.exr`. Uses a short sanitized tag of `output_colorspace` (e.g. `acescg`, `rec709`, `srgb`, `logc`), or `raw` when Raw Data is on. Off -> plain `name.0086.exr`.
-  - `auto_colorspace` (BOOLEAN, default ON, **v1.0.1**, front-end only) - when the input is wired from LTX's `LTXVHDRDecodePostprocess` (their SDR->HDR decode), auto-sets `from_colorspace = "Linear Rec.709 (sRGB)"` and `output_colorspace = "ACEScg"` for you. Editing either colorspace by hand still wins.
+  - `auto_colorspace` (BOOLEAN, default ON, **v1.0.1**, front-end only) - when the input is wired from LTX's `LTXVHDRDecodePostprocess` (their SDR->HDR decode), auto-sets `input_colorspace = "Linear Rec.709 (sRGB)"` and `output_colorspace = "ACEScg"` for you. Editing either colorspace by hand still wins.
   - `compression` (combo, default `zip`, **v1.0.1**, EXR only) - Nuke-Write-style EXR compression: `zip` / `zips` = lossless (default), `piz` = lossless and good for grain, `dwaa` / `dwab` = smaller but lossy, plus `pxr24` / `rle` / `none`.
 - **how it works:** converts from->out (unless raw_data), then writes: EXR via cv2 (half/float, RGBA, chosen `compression`), TIFF via tifffile, PNG/JPEG via cv2/PIL, video via ffmpeg (rgb48le pipe -> the codec). Returns a preview of the first written frame (a wrong colorspace pick looks visibly wrong) + "wrote N frames". A Render button queues the graph.
 - **naming:** with `colorspace_in_name` ON (default) the colorspace tag sits before the number - still `<name>_<cs>.<ext>`; sequence `<name>_<cs>.0086.<ext>, <name>_<cs>.0087.<ext>, ...`; video `<name>_<cs>.mov` / `.mp4`. OFF -> `<name>.<ext>` / `<name>.0086.<ext>` / `<name>.mov`.

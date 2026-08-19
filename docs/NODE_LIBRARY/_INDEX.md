@@ -33,7 +33,7 @@ Regenerate with `shared/tools/node_inventory.py`.
 | Entry | Purpose |
 |-------|---------|
 | TECHNIQUE: transform in log | do manual scale/distort/warp in log space to preserve detail (Nuke/OCIO practice) |
-| `ocio.md` - our ComfyUI-OCIO pack (Slava Sexton) | OCIO LogConvert + ColorSpace / Display / CDLTransform / FileTransform / LookTransform: the full Nuke OCIO set, runtime-verified |
+| `ocio.md` - our ComfyUI-OCIO pack (Slava Sexton), v1.3.0 | OCIO LogConvert + ColorSpace / Display / CDLTransform / FileTransform / LookTransform: the full Nuke OCIO set, runtime-verified. Plus Read / Write / Player and the **VAE Decode / VAE Encode** pair (no 0..1 clamp, float32, range report). **`from_colorspace` renamed to `input_colorspace` in v1.3.0** |
 | SaveImageAdvanced / LTXVHDRDecodePostprocess | native EXR / linear / HDR I/O (confirmed) |
 
 ### `radiance.md` - reverse-engineered reference: `fxtdstudios/radiance`

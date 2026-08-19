@@ -303,6 +303,7 @@ ComfyUI-Agent-Kit/
 ├── docs/BOOTSTRAP.md / LAYERS.md / NODES.md
 ├── ATTRIBUTION.md                   credits for fetched third-party pieces
 ├── CHANGELOG.md                     curated history of notable changes (Keep a Changelog)
+├── CONTRIBUTING.md                  what the kit accepts, the Teaching standard, house rules
 ├── LICENSE                          Apache-2.0 (this kit's original files)
 └── NOTICE                           attribution + trademark notice (Apache-2.0 section 4d)
 ```
@@ -382,6 +383,11 @@ v2.5.0 leans on more people's work. Thanks also to:
 
 Full per-component licensing is in [ATTRIBUTION.md](ATTRIBUTION.md). If anything here misattributes your work,
 open an issue and it will be fixed.
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) first. It says what the kit accepts, what it does not and why, and the
+bar any knowledge entry has to clear. An issue before a large PR is welcome and usually faster.
 
 ## License
 

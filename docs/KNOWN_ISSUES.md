@@ -9,8 +9,15 @@ repeating the same mistakes. Every row is sourced. Read this (and the "Real limi
 **v0.33.1** (2026-08-13; v0.32.0 landed 2026-08-11). **The `v0.33.0` TAG exists but no GitHub Release was
 published for it** (`gh release view v0.33.0` answers "release not found" while the tag is in the tag list),
 and the v0.33.1 notes compare against v0.32.0 directly. A tag and a Release are different objects; do not
-read the gap as a missing version. Current frontend: **v1.51.6** (2026-08-16), the sixth 1.51.x point release
-in six days.
+read the gap as a missing version.
+
+**The frontend line and the frontend you are running are different numbers, and the gap is now wide.** The
+latest frontend release is **v1.52.2** (2026-08-20), but `requirements.txt` pins
+`comfyui-frontend-package==1.48.7` at core **v0.31.0, v0.32.0 AND v0.33.1** alike (verified by reading the
+file at all three tags). So updating core across this entire range moves the bundled frontend **not at all**.
+A newer frontend is only reachable by asking for it explicitly with
+`--front-end-version Comfy-Org/ComfyUI_frontend@latest`. Read the pin, not the release feed, before believing
+a frontend fix has reached you.
 
 **Read this first this week: v0.32.0 raised the PyTorch floor to 2.7.** "Minimum officially supported pytorch
 is now 2.7" (PR 15413). A portable or hand-built install pinned to an older torch is no longer supported, and

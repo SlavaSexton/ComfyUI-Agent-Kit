@@ -290,7 +290,7 @@ ComfyUI-Agent-Kit/
 ├── install.ps1 / install.sh         top-level: shared setup + auto-detect agents + run adapters
 ├── shared/
 │   ├── comfyui/                     SKILL.md + MODELS.md + comfy_client.py  (one source of truth)
-│   └── tools/gen_quick_index.py     rebuild the template lookup index
+│   └── tools/                        utility scripts (index build, workflow fetch, update checks, roundtrip init)
 ├── agents/
 │   ├── claude/   install.ps1/.sh    -> ~/.claude/skills/comfyui + claude mcp add + CLAUDE.md
 │   ├── codex/    install.ps1/.sh    -> ~/.agents/skills/comfyui + ~/.codex/config.toml
@@ -299,6 +299,7 @@ ComfyUI-Agent-Kit/
 ├── docs/AGENTS.md                   per-agent matrix (how each connects) + GLM note
 ├── docs/MODEL_INDEX.md              every model in the library and what the kit has for it
 ├── docs/EXAMPLE_WORKFLOWS.md        notable shared workflows (model shootouts, restoration) + fetch helper
+├── docs/TASKS.md                    task recipes + ComfyUI <-> DaVinci roundtrip scaffold setup
 ├── docs/UPDATING.md                 stay current: check_updates.py (templates diff + blog RSS) + the loop
 ├── docs/BOOTSTRAP.md / LAYERS.md / NODES.md
 ├── ATTRIBUTION.md                   credits for fetched third-party pieces

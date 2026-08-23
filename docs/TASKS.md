@@ -27,6 +27,26 @@ are local-first.
    before shipping it**.
 6. **Save** the workflow (GUI-format) to the workflows folder; hand over the name + the output paths + how to view.
 
+## setup-comfyui-resolve-roundtrip
+- **Purpose:** initialize a persistent project scaffold for storyboard -> chunks -> QC -> Resolve edit -> re-render.
+- **Command:** `python shared/tools/init_roundtrip_project.py --project "my_short" --root "D:/comfy-studio-projects" --scenes 6`
+- **Salvage planner (outtakes/sync repair):** `python shared/tools/salvage_stitch_plan.py --project-root "D:/comfy-studio-projects/my-short" --min-score 55`
+- **Bridge UI build:** `python shared/tools/roundtrip_bridge_ui.py --project-root "D:/comfy-studio-projects/my-short"`
+- **Bridge UI live:** `python shared/tools/roundtrip_bridge_ui.py --project-root "D:/comfy-studio-projects/my-short" --serve --port 8787`
+- **What it creates:** a contract with `storyboards/`, `shots/`, `approved/` (video/audio/subtitles), `qc_reports/`,
+  `manifests/`, `resolve/`, `broll/`, and `final/`.
+- **Numbering convention:** all starter IDs are **0-based sequential** (`scene_000`, `shot_000`, `take_000`,
+  with scene-marked labels like `line_s001_001` and `brol_s001_001`) and handoff files include numeric index columns
+  for deterministic reassembly.
+- **Starter manifests:** `project_bible.json` (persistent characters/locations), `scene_plan.json`,
+  `shot_manifest.json` (per-shot prompts/seeds/assets/QC gates + optional multi-take lists),
+  `dialog_script.json`, `broll_manifest.json`, and `roundtrip_state.json`.
+- **Round-trip rule:** render approved chunks with stable filenames; in Resolve, keep media linked to this folder so
+  a regenerated shot is just a relink/update, not a timeline rebuild.
+- **Handoff outputs:** `resolve/handoff/dashboard.html` (status UI), `resolve/handoff/resolve_shot_handoff.csv`
+  (timeline/media handoff), `resolve/handoff/salvage_edit_plan.json`, `resolve/handoff/salvage_take_scores.csv`,
+  `resolve/handoff/broll_requests.json`, and `resolve/handoff/bridge_summary.json`.
+
 ## generate-image
 - **Template:** search `_quick_index.json` for "text to image" + the model (e.g. the `text_to_image_z_image_turbo`
   blueprint, or a model-specific template). For img2img / style transfer, swap `EmptyLatentImage` for `LoadImage`

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/cover.png" width="880" alt="ComfyUI skill for AI coding agents, by AI VFX NEWS">
+<img src="docs/assets/cover.png" width="880" alt="ComfyUI skill for AI coding agents, by Chronicle of Brothers">
 
 # ComfyUI-Agent-Kit
 
@@ -8,7 +8,7 @@
 <br>
 **Your GPU, your models, no cloud, no account.**
 
-**By [AI VFX NEWS](https://aivfxnews.com/).**
+**By [Chronicle of Brothers](https://chronicleofbrothers.com/).**
 
 Make Claude Code, Codex, Gemini CLI, or Qwen Code drive **ComfyUI** at full power on your own machine - generate
 images, video, and audio, build and run workflows, pick the model variant that fits *your* hardware, and **show the
@@ -395,6 +395,6 @@ Apache-2.0, see [LICENSE](LICENSE) and [NOTICE](NOTICE). Releases up to v3.1.0 w
 
 <div align="center">
 
-Made by **[AI VFX NEWS](https://aivfxnews.com/)**
+Made by **[Chronicle of Brothers](https://chronicleofbrothers.com/)**
 
 </div>
